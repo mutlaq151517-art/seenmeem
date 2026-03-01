@@ -14,12 +14,10 @@ app.use(cors());
 app.use(express.json());
 
 /* ================= Fix __dirname ================= */
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* ================= Serve Public Folder ================= */
-
+/* ================= Serve Frontend ================= */
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/game", (req, res) => {
@@ -106,6 +104,7 @@ app.post("/api/start-game", async (req, res) => {
     });
 
     if (!question) {
+
       const prompt = `
 أنشئ سؤال واحد فقط في فئة ${category}
 بمستوى ${diff}
