@@ -19,6 +19,54 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("MongoDB Error ❌", err));
 
+/* ================= Sections & Categories ================= */
+
+const sections = [
+  {
+    name: "الكويت",
+    categories: [
+      "قهاوي",
+      "مجسمات الكويت",
+      "جيل الطيبين",
+      "دعايات",
+      "مجلس الأمة",
+      "الكويت",
+      "نفط الكويت",
+      "مرور الكويت"
+    ]
+  },
+  {
+    name: "عام",
+    categories: [
+      "أهل البر",
+      "أهل البحر",
+      "ميمز",
+      "AI",
+      "Falcons",
+      "مشاهير صغار",
+      "مسابيح",
+      "عالم الساعات",
+      "معلومات عامة",
+      "تاريخ",
+      "عالم الشعر",
+      "لغة وأدب",
+      "منتجات",
+      "شعارات",
+      "عالم الحيوان",
+      "تكنولوجيا",
+      "طب الأسنان",
+      "طب عام",
+      "عطور عربية",
+      "عطور عالمية"
+    ]
+  }
+];
+
+/* API يرجع الأقسام */
+app.get("/api/sections", (req, res) => {
+  res.json(sections);
+});
+
 /* ================= Schemas ================= */
 
 const userSchema = new mongoose.Schema({
@@ -32,7 +80,8 @@ const userSchema = new mongoose.Schema({
 });
 
 const questionSchema = new mongoose.Schema({
-  category: String,
+  section: String,     // الكويت / عام
+  category: String,    // قهاوي / تاريخ ...
   difficulty: Number,
   question: String,
   answer: String
@@ -69,7 +118,7 @@ app.post("/api/register", async (req, res) => {
 
     await newUser.save();
 
-    res.json({ message: "Registered ✅" });
+    res.json({ message: "Registered ✅", name });
 
   } catch (err) {
     res.status(500).json({ message: "Register error" });
@@ -99,7 +148,7 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/start-game", async (req, res) => {
   try {
-    const { email, category } = req.body;
+    const { email, section, category, difficulty } = req.body;
 
     const user = await User.findOne({ email }).populate("usedQuestions");
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -108,58 +157,56 @@ app.post("/api/start-game", async (req, res) => {
       return res.status(403).json({ message: "No plays left" });
     }
 
-    const difficulties = [200,200,400,400,600,600];
-    let gameQuestions = [];
+    let question = await Question.findOne({
+      section,
+      category,
+      difficulty,
+      _id: { $nin: user.usedQuestions }
+    });
 
-    for (let diff of difficulties) {
+    /* إذا ما حصل سؤال يولد جديد */
+    if (!question) {
 
-      let question = await Question.findOne({
-        category,
-        difficulty: diff,
-        _id: { $nin: user.usedQuestions }
-      });
+      const prompt = `
+أنشئ سؤال معلومات دقيق وحديث
+القسم: ${section}
+الفئة: ${category}
+المستوى: ${difficulty}
 
-      if (!question) {
-
-        const prompt = `
-أنشئ سؤال واحد فقط في فئة ${category}
-بمستوى ${diff}
-وأعد النتيجة بصيغة JSON:
+أعد بصيغة JSON فقط:
 {
  "question": "...",
  "answer": "..."
 }
 `;
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "أنت مولد أسئلة مسابقات." },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7
-        });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "أنت مولد أسئلة مسابقات دقيقة." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7
+      });
 
-        const parsed = JSON.parse(completion.choices[0].message.content);
+      const parsed = JSON.parse(completion.choices[0].message.content);
 
-        question = await Question.create({
-          category,
-          difficulty: diff,
-          question: parsed.question,
-          answer: parsed.answer
-        });
-      }
-
-      user.usedQuestions.push(question._id);
-      gameQuestions.push(question);
+      question = await Question.create({
+        section,
+        category,
+        difficulty,
+        question: parsed.question,
+        answer: parsed.answer
+      });
     }
 
+    user.usedQuestions.push(question._id);
     user.gamesPlayed += 1;
     await user.save();
 
     res.json({
-      message: "Game Ready 🎮",
-      questions: gameQuestions
+      question: question.question,
+      answer: question.answer
     });
 
   } catch (err) {
