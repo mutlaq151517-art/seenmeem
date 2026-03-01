@@ -3,159 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <title>سين ميم</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:'Cairo',sans-serif;
-direction:rtl;
-background:#fff;
-}
-
-/* ===== NAVBAR ===== */
-.navbar{
-background:#f3f3f3;
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:15px 40px;
-font-weight:bold;
-}
-
-.nav-links{
-display:flex;
-gap:30px;
-font-size:18px;
-}
-
-.logo{
-font-size:28px;
-color:#e33b2e;
-font-weight:900;
-}
-
-/* ===== HERO SECTION ===== */
-.hero{
-height:85vh;
-background:linear-gradient(135deg,#ff3b3b,#ff7a3d,#ffb347);
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-text-align:center;
-color:white;
-position:relative;
-overflow:hidden;
-}
-
-.hero::before{
-content:"";
-position:absolute;
-width:100%;
-height:100%;
-background:url('https://www.transparenttextures.com/patterns/arabesque.png');
-opacity:0.1;
-}
-
-.hero-content{
-position:relative;
-z-index:2;
-}
-
-.hero h1{
-font-size:70px;
-margin:0;
-font-weight:900;
-}
-
-.hero p{
-font-size:22px;
-margin:20px 0;
-}
-
-.buttons{
-margin-top:30px;
-display:flex;
-gap:20px;
-flex-wrap:wrap;
-justify-content:center;
-}
-
-.btn{
-padding:15px 30px;
-border:none;
-border-radius:15px;
-font-size:18px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.red{
-background:#b30000;
-color:white;
-}
-
-.white{
-background:white;
-color:#b30000;
-}
-
-/* ===== CARDS ===== */
-.cards{
-display:flex;
-justify-content:center;
-gap:20px;
-margin-top:-50px;
-flex-wrap:wrap;
-}
-
-.card{
-padding:20px 30px;
-border-radius:15px;
-font-weight:bold;
-color:white;
-cursor:pointer;
-}
-
-.blue{background:#2d6cdf;}
-.yellow{background:#f4b400;}
-.dark{background:#333;}
-.teal{background:#00a8a8;}
+body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#fff;}
+.navbar{background:#f3f3f3;display:flex;justify-content:space-between;align-items:center;padding:15px 40px;font-weight:bold;}
+.logo{font-size:28px;color:#e33b2e;font-weight:900;}
+.hero{height:85vh;background:linear-gradient(135deg,#ff3b3b,#ff7a3d,#ffb347);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:white;}
+.hero h1{font-size:70px;margin:0;font-weight:900;}
+.hero p{font-size:22px;margin:20px 0;}
+.btn{padding:15px 30px;border:none;border-radius:15px;font-size:18px;cursor:pointer;font-weight:bold;}
+.red{background:#b30000;color:white;}
+.white{background:white;color:#b30000;}
 </style>
 </head>
-
 <body>
 
+<script>
+// يمنع الدخول إذا مو مسجل
+if(!localStorage.getItem("userEmail")){
+  window.location.href = "login.html";
+}
+</script>
+
 <div class="navbar">
-<div class="nav-links">
-<div>العب</div>
-<div>تواصل معنا</div>
-<div>ألعابي</div>
-</div>
 <div class="logo">سين ميم</div>
 </div>
 
 <div class="hero">
-<div class="hero-content">
 <h1>سين ميم</h1>
 <p>الجواب عليك، والسؤال علينا</p>
 
-<div class="buttons">
-<button class="btn red" onclick="location.href='game.html'">إنشاء لعبة</button>
-<button class="btn white">إنشاء بطولة</button>
+<div style="margin-top:30px;display:flex;gap:20px;">
+<button class="btn red" onclick="location.href='setup.html'">إنشاء لعبة</button>
+<button class="btn white" onclick="logout()">تسجيل خروج</button>
 </div>
 
 </div>
-</div>
 
-<div class="cards">
-<div class="card blue">سين طلاب</div>
-<div class="card yellow">سين كبار</div>
-<div class="card dark">رمضانيات</div>
-<div class="card teal">ألعاب خاصة</div>
-</div>
+<script>
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
+}
+</script>
 
 </body>
 </html>
