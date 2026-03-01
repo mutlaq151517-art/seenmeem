@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>SeenMeem Game</title>
+
+<style>
+body{
+  margin:0;
+  background:#f4f4f4;
+  font-family:Arial;
+  direction:rtl;
+}
+
+.topbar{
+  background:linear-gradient(to right,#ff4d4d,#ff1a1a);
+  color:white;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+  font-size:18px;
+}
+
+.board{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+  padding:20px;
+}
+
+.category{
+  background:#ffffff;
+  border-radius:15px;
+  text-align:center;
+  padding:10px;
+}
+
+.category h2{
+  background:#ff6a3d;
+  color:white;
+  padding:8px;
+  border-radius:10px;
+  margin:0 0 10px 0;
+}
+
+.points{
+  margin:8px 0;
+  padding:12px;
+  background:#eeeeee;
+  border-radius:10px;
+  font-size:22px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.points:hover{
+  background:#dddddd;
+}
+
+.scoreboard{
+  display:flex;
+  justify-content:space-around;
+  margin:20px;
+}
+
+.team{
+  background:#d10000;
+  color:white;
+  padding:15px;
+  border-radius:20px;
+  width:40%;
+  text-align:center;
+  font-size:20px;
+}
+
+button{
+  margin:5px;
+  padding:5px 12px;
+  font-size:18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.plus{
+  background:#28a745;
+  color:white;
+}
+
+.minus{
+  background:#dc3545;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>SeenMeem</div>
+  <div id="turn">دور: الفريق الأول</div>
+</div>
+
+<div class="board">
+
+  <div class="category">
+    <h2>إسلامي</h2>
+    <div class="points" onclick="selectQuestion(200)">200</div>
+    <div class="points" onclick="selectQuestion(400)">400</div>
+    <div class="points" onclick="selectQuestion(600)">600</div>
+  </div>
+
+  <div class="category">
+    <h2>تاريخ</h2>
+    <div class="points" onclick="selectQuestion(200)">200</div>
+    <div class="points" onclick="selectQuestion(400)">400</div>
+    <div class="points" onclick="selectQuestion(600)">600</div>
+  </div>
+
+  <div class="category">
+    <h2>معلومات عامة</h2>
+    <div class="points" onclick="selectQuestion(200)">200</div>
+    <div class="points" onclick="selectQuestion(400)">400</div>
+    <div class="points" onclick="selectQuestion(600)">600</div>
+  </div>
+
+</div>
+
+<div class="scoreboard">
+
+  <div class="team">
+    الفريق الأول
+    <br><br>
+    <button class="plus" onclick="addScore(1)">+</button>
+    <span id="score1">0</span>
+    <button class="minus" onclick="removeScore(1)">-</button>
+  </div>
+
+  <div class="team">
+    الفريق الثاني
+    <br><br>
+    <button class="plus" onclick="addScore(2)">+</button>
+    <span id="score2">0</span>
+    <button class="minus" onclick="removeScore(2)">-</button>
+  </div>
+
+</div>
+
+<script>
+let currentTurn = 1;
+
+function selectQuestion(points){
+  alert("تم اختيار سؤال " + points + " نقطة");
+  switchTurn();
+}
+
+function switchTurn(){
+  currentTurn = currentTurn === 1 ? 2 : 1;
+  document.getElementById("turn").innerText =
+    "دور: الفريق " + (currentTurn === 1 ? "الأول" : "الثاني");
+}
+
+function addScore(team){
+  let el = document.getElementById("score"+team);
+  el.innerText = parseInt(el.innerText) + 100;
+}
+
+function removeScore(team){
+  let el = document.getElementById("score"+team);
+  el.innerText = parseInt(el.innerText) - 100;
+}
+</script>
+
+</body>
+</html>
