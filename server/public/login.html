@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>SeenMeem - تسجيل الدخول</title>
+<style>
+body{
+margin:0;
+font-family:Tahoma;
+direction:rtl;
+background:#f2f2f2;
+}
+
+.container{
+width:90%;
+max-width:450px;
+margin:100px auto;
+background:white;
+padding:30px;
+border-radius:20px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
+margin-bottom:30px;
+}
+
+input{
+width:100%;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+background:linear-gradient(to right,#ff3b3b,#ff9c52);
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.link{
+text-align:center;
+margin-top:15px;
+color:#b30000;
+cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2 id="title">تسجيل دخول</h2>
+
+<input type="text" id="name" placeholder="الاسم" style="display:none;">
+<input type="email" id="email" placeholder="البريد الإلكتروني">
+<input type="password" id="password" placeholder="كلمة السر">
+
+<button onclick="submitForm()">تسجيل دخول</button>
+
+<div class="link" onclick="toggleMode()">إنشاء حساب جديد</div>
+</div>
+
+<script>
+let registerMode = false;
+
+function toggleMode(){
+registerMode = !registerMode;
+document.getElementById("name").style.display = registerMode ? "block":"none";
+document.getElementById("title").innerText = registerMode ? "إنشاء حساب":"تسجيل دخول";
+document.querySelector("button").innerText = registerMode ? "إنشاء حساب":"تسجيل دخول";
+document.querySelector(".link").innerText = registerMode ? "لديك حساب؟ تسجيل دخول":"إنشاء حساب جديد";
+}
+
+async function submitForm(){
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+const name = document.getElementById("name").value;
+
+if(registerMode){
+
+const res = await fetch("/api/register",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ name,email,password })
+});
+
+if(res.ok){
+localStorage.setItem("userEmail",email);
+localStorage.setItem("userName",name);
+window.location.href="home.html";
+}else{
+alert("المستخدم موجود مسبقاً");
+}
+
+}else{
+
+const res = await fetch("/api/login",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ email,password })
+});
+
+const data = await res.json();
+
+if(res.ok){
+localStorage.setItem("userEmail",email);
+localStorage.setItem("userName",data.name);
+window.location.href="home.html";
+}else{
+alert("بيانات الدخول غير صحيحة");
+}
+
+}
+}
+</script>
+
+</body>
+</html>
