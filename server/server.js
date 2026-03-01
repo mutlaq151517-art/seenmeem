@@ -19,54 +19,6 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("MongoDB Error ❌", err));
 
-/* ================= Sections & Categories ================= */
-
-const sections = [
-  {
-    name: "الكويت",
-    categories: [
-      "قهاوي",
-      "مجسمات الكويت",
-      "جيل الطيبين",
-      "دعايات",
-      "مجلس الأمة",
-      "الكويت",
-      "نفط الكويت",
-      "مرور الكويت"
-    ]
-  },
-  {
-    name: "عام",
-    categories: [
-      "أهل البر",
-      "أهل البحر",
-      "ميمز",
-      "AI",
-      "Falcons",
-      "مشاهير صغار",
-      "مسابيح",
-      "عالم الساعات",
-      "معلومات عامة",
-      "تاريخ",
-      "عالم الشعر",
-      "لغة وأدب",
-      "منتجات",
-      "شعارات",
-      "عالم الحيوان",
-      "تكنولوجيا",
-      "طب الأسنان",
-      "طب عام",
-      "عطور عربية",
-      "عطور عالمية"
-    ]
-  }
-];
-
-/* API يرجع الأقسام */
-app.get("/api/sections", (req, res) => {
-  res.json(sections);
-});
-
 /* ================= Schemas ================= */
 
 const userSchema = new mongoose.Schema({
@@ -74,20 +26,27 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   gamesPlayed: { type: Number, default: 0 },
-  gamesAllowed: { type: Number, default: 1 },
+  gamesAllowed: { type: Number, default: 999 }, // خليناه مفتوح
   usedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   isAdmin: { type: Boolean, default: false }
 });
 
+const categorySchema = new mongoose.Schema({
+  section: String,
+  name: String,
+  image: String
+});
+
 const questionSchema = new mongoose.Schema({
-  section: String,     // الكويت / عام
-  category: String,    // قهاوي / تاريخ ...
+  section: String,
+  category: String,
   difficulty: Number,
   question: String,
   answer: String
 });
 
 const User = mongoose.model("User", userSchema);
+const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
 /* ================= OpenAI ================= */
@@ -112,15 +71,14 @@ app.post("/api/register", async (req, res) => {
     const newUser = new User({
       name,
       email,
-      password: hashed,
-      gamesAllowed: 1
+      password: hashed
     });
 
     await newUser.save();
 
     res.json({ message: "Registered ✅", name });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Register error" });
   }
 });
@@ -139,8 +97,55 @@ app.post("/api/login", async (req, res) => {
 
     res.json({ message: "Login success ✅", name: user.name });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Login error" });
+  }
+});
+
+/* ================= Get Categories ================= */
+
+app.get("/api/categories", async (req, res) => {
+  const categories = await Category.find();
+  res.json(categories);
+});
+
+/* ================= Add Category (Admin Only) ================= */
+
+app.post("/api/admin/add-category", async (req, res) => {
+  try {
+    const { email, section, name, image } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const newCategory = new Category({ section, name, image });
+    await newCategory.save();
+
+    res.json({ message: "Category added ✅" });
+
+  } catch {
+    res.status(500).json({ message: "Category error" });
+  }
+});
+
+/* ================= Delete Category (Admin) ================= */
+
+app.post("/api/admin/delete-category", async (req, res) => {
+  try {
+    const { email, id } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await Category.findByIdAndDelete(id);
+    res.json({ message: "Deleted ✅" });
+
+  } catch {
+    res.status(500).json({ message: "Delete error" });
   }
 });
 
@@ -153,10 +158,6 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email }).populate("usedQuestions");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    if (user.gamesPlayed >= user.gamesAllowed) {
-      return res.status(403).json({ message: "No plays left" });
-    }
-
     let question = await Question.findOne({
       section,
       category,
@@ -164,11 +165,10 @@ app.post("/api/start-game", async (req, res) => {
       _id: { $nin: user.usedQuestions }
     });
 
-    /* إذا ما حصل سؤال يولد جديد */
     if (!question) {
 
       const prompt = `
-أنشئ سؤال معلومات دقيق وحديث
+أنشئ سؤال حديث ودقيق.
 القسم: ${section}
 الفئة: ${category}
 المستوى: ${difficulty}
@@ -201,7 +201,6 @@ app.post("/api/start-game", async (req, res) => {
     }
 
     user.usedQuestions.push(question._id);
-    user.gamesPlayed += 1;
     await user.save();
 
     res.json({
@@ -211,25 +210,6 @@ app.post("/api/start-game", async (req, res) => {
 
   } catch (err) {
     res.status(500).json({ message: "Game error" });
-  }
-});
-
-/* ================= Admin Add Plays ================= */
-
-app.post("/api/admin/add-plays", async (req, res) => {
-  try {
-    const { email, amount } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.gamesAllowed += Number(amount);
-    await user.save();
-
-    res.json({ message: "Plays added ✅" });
-
-  } catch (err) {
-    res.status(500).json({ message: "Admin error" });
   }
 });
 
