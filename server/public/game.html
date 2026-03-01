@@ -2,173 +2,204 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>SeenMeem Game</title>
+<title>SeenMeem</title>
 
 <style>
 body{
-  margin:0;
-  background:#f4f4f4;
-  font-family:Arial;
-  direction:rtl;
+margin:0;
+font-family:Tahoma, Arial;
+direction:rtl;
+background:#f2f2f2;
 }
 
+/* ====== TOP BAR ====== */
 .topbar{
-  background:linear-gradient(to right,#ff4d4d,#ff1a1a);
-  color:white;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  font-weight:bold;
-  font-size:18px;
+background:linear-gradient(to right,#ff3b3b,#b30000);
+color:white;
+padding:12px 20px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
 }
 
+.turn-box{
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
+}
+
+/* ====== BOARD ====== */
 .board{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:15px;
-  padding:20px;
+padding:25px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:25px;
 }
 
 .category{
-  background:#ffffff;
-  border-radius:15px;
-  text-align:center;
-  padding:10px;
+background:#e6e6e6;
+border-radius:20px;
+padding:15px;
+text-align:center;
 }
 
-.category h2{
-  background:#ff6a3d;
-  color:white;
-  padding:8px;
-  border-radius:10px;
-  margin:0 0 10px 0;
+.category-title{
+background:#ff6a3d;
+color:white;
+padding:10px;
+border-radius:12px;
+font-weight:bold;
+margin-top:10px;
 }
 
 .points{
-  margin:8px 0;
-  padding:12px;
-  background:#eeeeee;
-  border-radius:10px;
-  font-size:22px;
-  cursor:pointer;
-  font-weight:bold;
+background:#d9d9d9;
+margin:8px 0;
+padding:12px;
+border-radius:20px;
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
+color:#a60000;
 }
 
 .points:hover{
-  background:#dddddd;
+background:#cfcfcf;
 }
 
-.scoreboard{
-  display:flex;
-  justify-content:space-around;
-  margin:20px;
+/* ====== BOTTOM ====== */
+.bottom{
+display:flex;
+justify-content:space-between;
+padding:20px 40px;
 }
 
 .team{
-  background:#d10000;
-  color:white;
-  padding:15px;
-  border-radius:20px;
-  width:40%;
-  text-align:center;
-  font-size:20px;
+background:#b30000;
+color:white;
+padding:15px;
+border-radius:20px;
+width:30%;
+text-align:center;
 }
 
-button{
-  margin:5px;
-  padding:5px 12px;
-  font-size:18px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
+.score{
+margin-top:10px;
+background:white;
+color:black;
+padding:8px;
+border-radius:20px;
+display:flex;
+justify-content:center;
+align-items:center;
+gap:15px;
 }
 
-.plus{
-  background:#28a745;
-  color:white;
+.btn{
+width:35px;
+height:35px;
+border-radius:50%;
+border:none;
+font-size:18px;
+cursor:pointer;
 }
 
-.minus{
-  background:#dc3545;
-  color:white;
-}
+.plus{background:#2ecc71;color:white;}
+.minus{background:#e74c3c;color:white;}
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
-  <div>SeenMeem</div>
-  <div id="turn">دور: الفريق الأول</div>
+<div>SeenMeem</div>
+<div class="turn-box">دور الفريق : الشبعان</div>
 </div>
 
 <div class="board">
 
-  <div class="category">
-    <h2>إسلامي</h2>
-    <div class="points" onclick="selectQuestion(200)">200</div>
-    <div class="points" onclick="selectQuestion(400)">400</div>
-    <div class="points" onclick="selectQuestion(600)">600</div>
-  </div>
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/616/616490.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">الكويت</div>
+</div>
 
-  <div class="category">
-    <h2>تاريخ</h2>
-    <div class="points" onclick="selectQuestion(200)">200</div>
-    <div class="points" onclick="selectQuestion(400)">400</div>
-    <div class="points" onclick="selectQuestion(600)">600</div>
-  </div>
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">معلومات عامة</div>
+</div>
 
-  <div class="category">
-    <h2>معلومات عامة</h2>
-    <div class="points" onclick="selectQuestion(200)">200</div>
-    <div class="points" onclick="selectQuestion(400)">400</div>
-    <div class="points" onclick="selectQuestion(600)">600</div>
-  </div>
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/4720/4720774.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">إسلامي</div>
+</div>
+
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">الحيلة</div>
+</div>
+
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/4298/4298309.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">قصص الأنبياء</div>
+</div>
+
+<div class="category">
+<img src="https://cdn-icons-png.flaticon.com/512/854/854878.png" width="80">
+<div class="points" onclick="pick(this)">200</div>
+<div class="points" onclick="pick(this)">400</div>
+<div class="points" onclick="pick(this)">600</div>
+<div class="category-title">تاريخ</div>
+</div>
 
 </div>
 
-<div class="scoreboard">
+<div class="bottom">
 
-  <div class="team">
-    الفريق الأول
-    <br><br>
-    <button class="plus" onclick="addScore(1)">+</button>
-    <span id="score1">0</span>
-    <button class="minus" onclick="removeScore(1)">-</button>
-  </div>
+<div class="team">
+الحمدان
+<div class="score">
+<button class="btn minus" onclick="changeScore('t1',-100)">-</button>
+<span id="t1">0</span>
+<button class="btn plus" onclick="changeScore('t1',100)">+</button>
+</div>
+</div>
 
-  <div class="team">
-    الفريق الثاني
-    <br><br>
-    <button class="plus" onclick="addScore(2)">+</button>
-    <span id="score2">0</span>
-    <button class="minus" onclick="removeScore(2)">-</button>
-  </div>
+<div class="team">
+الشبعان
+<div class="score">
+<button class="btn minus" onclick="changeScore('t2',-100)">-</button>
+<span id="t2">0</span>
+<button class="btn plus" onclick="changeScore('t2',100)">+</button>
+</div>
+</div>
 
 </div>
 
 <script>
-let currentTurn = 1;
-
-function selectQuestion(points){
-  alert("تم اختيار سؤال " + points + " نقطة");
-  switchTurn();
+function pick(el){
+alert("تم اختيار سؤال " + el.innerText + " نقطة");
+el.style.visibility="hidden";
 }
 
-function switchTurn(){
-  currentTurn = currentTurn === 1 ? 2 : 1;
-  document.getElementById("turn").innerText =
-    "دور: الفريق " + (currentTurn === 1 ? "الأول" : "الثاني");
-}
-
-function addScore(team){
-  let el = document.getElementById("score"+team);
-  el.innerText = parseInt(el.innerText) + 100;
-}
-
-function removeScore(team){
-  let el = document.getElementById("score"+team);
-  el.innerText = parseInt(el.innerText) - 100;
+function changeScore(id,val){
+let score=document.getElementById(id);
+score.innerText=parseInt(score.innerText)+val;
 }
 </script>
 
