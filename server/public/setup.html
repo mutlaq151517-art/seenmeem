@@ -2,46 +2,117 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>إعداد المباراة</title>
+<title>اختيار الفئات</title>
 <style>
-body{font-family:Tahoma;direction:rtl;background:#f5f5f5;padding:30px;}
-.box{background:white;padding:30px;border-radius:20px;max-width:500px;margin:auto;}
-input{width:100%;padding:12px;margin:10px 0;border-radius:10px;border:1px solid #ccc;}
-button{width:100%;padding:15px;background:#b30000;color:white;border:none;border-radius:12px;font-size:18px;cursor:pointer;}
+body{
+margin:0;
+font-family:Cairo;
+direction:rtl;
+background:#f2f2f2;
+padding:30px;
+}
+
+h2{
+text-align:center;
+margin-bottom:30px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:15px;
+text-align:center;
+cursor:pointer;
+border:3px solid transparent;
+}
+
+.card.selected{
+border:3px solid #b30000;
+background:#ffe6e6;
+}
+
+img{
+width:60px;
+height:60px;
+}
+
+button{
+margin-top:30px;
+padding:15px 25px;
+border:none;
+border-radius:12px;
+background:#b30000;
+color:white;
+font-size:18px;
+cursor:pointer;
+display:block;
+margin-left:auto;
+margin-right:auto;
+}
 </style>
 </head>
 <body>
 
+<h2>اختر 6 فئات</h2>
+
+<div class="grid" id="categories"></div>
+
+<button onclick="next()">التالي</button>
+
 <script>
-if(!localStorage.getItem("userEmail")){
-  window.location.href="login.html";
+
+let selected = [];
+
+async function loadCategories(){
+const res = await fetch("/api/categories");
+const data = await res.json();
+
+const container = document.getElementById("categories");
+
+data.forEach(cat=>{
+const div = document.createElement("div");
+div.className="card";
+div.innerHTML=`
+<img src="${cat.image}">
+<h4>${cat.name}</h4>
+`;
+
+div.onclick=()=>{
+if(selected.includes(cat.name)){
+selected = selected.filter(c=>c!==cat.name);
+div.classList.remove("selected");
+}else{
+if(selected.length>=6){
+alert("اختر 6 فقط");
+return;
 }
-</script>
+selected.push(cat.name);
+div.classList.add("selected");
+}
+};
 
-<div class="box">
-<h2>إعداد المباراة</h2>
+container.appendChild(div);
+});
+}
 
-<input id="team1" placeholder="اسم الفريق الأول">
-<input id="team2" placeholder="اسم الفريق الثاني">
-
-<button onclick="startGame()">ابدأ المباراة</button>
-</div>
-
-<script>
-function startGame(){
-const t1 = document.getElementById("team1").value.trim();
-const t2 = document.getElementById("team2").value.trim();
-
-if(!t1 || !t2){
-alert("اكتب أسماء الفرق");
+function next(){
+if(selected.length!==6){
+alert("لازم تختار 6 فئات");
 return;
 }
 
-localStorage.setItem("team1", t1);
-localStorage.setItem("team2", t2);
-
-window.location.href="game.html";
+localStorage.setItem("selectedCategories",JSON.stringify(selected));
+window.location.href="teams.html";
 }
+
+loadCategories();
+
 </script>
 
 </body>
