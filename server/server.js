@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 dotenv.config();
 
@@ -9,21 +11,88 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+/* ================= MongoDB ================= */
+
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB Connected ✅"))
+.catch(err => console.log("MongoDB Error ❌", err));
+
+/* ================= User Schema ================= */
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  gamesPlayed: { type: Number, default: 0 },
+  gamesAllowed: { type: Number, default: 1 }, // أول تسجيل له لعبة واحدة فقط
+  isAdmin: { type: Boolean, default: false }
+});
+
+const User = mongoose.model("User", userSchema);
+
+/* ================= OpenAI ================= */
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-/*
-========================================
-Generate Questions Endpoint
-========================================
-Body:
-{
-  category: "اسلامي",
-  difficulty: 200
-}
-========================================
-*/
+/* ================= Register ================= */
+
+app.post("/api/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashed,
+      gamesPlayed: 0,
+      gamesAllowed: 1
+    });
+
+    await newUser.save();
+
+    res.json({ message: "Registered successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Registration failed" });
+  }
+});
+
+/* ================= Start Game ================= */
+
+app.post("/api/play", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.gamesPlayed >= user.gamesAllowed) {
+      return res.status(403).json({ message: "No more plays allowed" });
+    }
+
+    user.gamesPlayed += 1;
+    await user.save();
+
+    res.json({
+      message: "Game started 🎮",
+      remaining: user.gamesAllowed - user.gamesPlayed
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "Game start failed" });
+  }
+});
+
+/* ================= Generate Question ================= */
 
 app.post("/generate-question", async (req, res) => {
   try {
@@ -43,7 +112,6 @@ app.post("/generate-question", async (req, res) => {
 الشروط:
 - سؤال واضح وقصير
 - إجابة واحدة صحيحة فقط
-- لا تكرر نفس السؤال سابقاً
 - مناسب لمسابقة بين فريقين
 
 أعد النتيجة بصيغة JSON فقط بالشكل التالي:
@@ -64,7 +132,6 @@ app.post("/generate-question", async (req, res) => {
     });
 
     const content = completion.choices[0].message.content;
-
     const parsed = JSON.parse(content);
 
     res.json(parsed);
@@ -75,8 +142,10 @@ app.post("/generate-question", async (req, res) => {
   }
 });
 
+/* ================= Root ================= */
+
 app.get("/", (req, res) => {
-  res.send("SeenMeem AI Server Running 🚀");
+  res.send("SeenMeem API Running 🚀");
 });
 
 const PORT = process.env.PORT || 5000;
