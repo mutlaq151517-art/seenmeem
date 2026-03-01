@@ -2,90 +2,70 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>SeenMeem</title>
-
+<title>SeenMeem - الرئيسية</title>
 <style>
 body{
-margin:0;
-font-family:Tahoma;
-direction:rtl;
-background:#ffffff;
+  margin:0;
+  font-family:Tahoma;
+  direction:rtl;
+  background:#f4f4f4;
 }
 
-/* ===== Top Bar ===== */
-.top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:15px 30px;
-background:#f2f2f2;
-font-weight:bold;
+.container{
+  width:90%;
+  max-width:500px;
+  margin:120px auto;
+  text-align:center;
 }
 
-/* ===== Hero Section ===== */
-.hero{
-height:85vh;
-background:linear-gradient(to right,#ff3b3b,#ff9c52);
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-color:white;
-text-align:center;
+h2{
+  margin-bottom:40px;
 }
 
-.hero h1{
-font-size:60px;
-margin:0;
+button{
+  width:100%;
+  padding:18px;
+  margin-bottom:20px;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(to right,#ff3b3b,#ff9c52);
+  color:white;
+  font-size:20px;
+  cursor:pointer;
 }
 
-.hero p{
-font-size:22px;
-margin-top:20px;
-}
-
-.start-btn{
-margin-top:35px;
-padding:15px 40px;
-background:white;
-color:#ff3b3b;
-border:none;
-border-radius:30px;
-font-size:20px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.start-btn:hover{
-opacity:0.9;
+.logout{
+  background:#444;
 }
 </style>
 </head>
 <body>
 
-<div class="top">
-<div id="welcome"></div>
-<div>SeenMeem</div>
-</div>
+<div class="container">
+  <h2>مرحباً <span id="username"></span> 👋</h2>
 
-<div class="hero">
-<h1>سين جيم</h1>
-<p>الجواب عليك ، والسؤال علينا</p>
-<button class="start-btn" onclick="startGame()">ابدأ اللعب</button>
+  <button onclick="startGame()">ابدأ اللعب</button>
+
+  <button class="logout" onclick="logout()">تسجيل خروج</button>
 </div>
 
 <script>
+
 const name = localStorage.getItem("userName");
-
 if(!name){
-window.location.href="login.html";
+  window.location.href="login.html";
 }
-
-document.getElementById("welcome").innerText = "مرحباً " + name + " 👋";
+document.getElementById("username").innerText = name;
 
 function startGame(){
-window.location.href="game.html";
+  window.location.href="select.html"; // 👈 هنا التعديل
 }
+
+function logout(){
+  localStorage.clear();
+  window.location.href="login.html";
+}
+
 </script>
 
 </body>
