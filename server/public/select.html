@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>اختيار الفئات</title>
+<style>
+body{
+  margin:0;
+  font-family:Tahoma;
+  direction:rtl;
+  background:#f4f4f4;
+}
+
+h2{
+  text-align:center;
+  margin-top:30px;
+}
+
+.container{
+  width:90%;
+  max-width:900px;
+  margin:20px auto;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:15px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  text-align:center;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:0.2s;
+}
+
+.card.selected{
+  border:2px solid #ff5a3c;
+  background:#fff2ed;
+}
+
+button{
+  margin-top:30px;
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(to right,#ff3b3b,#ff9c52);
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>اختر القسم</h2>
+<div class="container">
+  <div id="sections" class="grid"></div>
+</div>
+
+<h2 style="display:none;" id="catTitle">اختر 6 فئات</h2>
+<div class="container">
+  <div id="categories" class="grid"></div>
+  <button id="continueBtn" style="display:none;" onclick="goNext()">متابعة</button>
+</div>
+
+<script>
+
+let selectedSection = null;
+let selectedCategories = [];
+
+async function loadSections(){
+  const res = await fetch("/api/sections");
+  const data = await res.json();
+
+  const container = document.getElementById("sections");
+
+  data.forEach(sec=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerText=sec.name;
+    div.onclick=()=>selectSection(sec);
+    container.appendChild(div);
+  });
+}
+
+function selectSection(section){
+  selectedSection = section;
+  document.getElementById("catTitle").style.display="block";
+
+  const catContainer = document.getElementById("categories");
+  catContainer.innerHTML="";
+  selectedCategories=[];
+
+  section.categories.forEach(cat=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerText=cat;
+    div.onclick=()=>toggleCategory(div,cat);
+    catContainer.appendChild(div);
+  });
+}
+
+function toggleCategory(element,cat){
+
+  if(selectedCategories.includes(cat)){
+    selectedCategories = selectedCategories.filter(c=>c!==cat);
+    element.classList.remove("selected");
+  }else{
+    if(selectedCategories.length>=6){
+      alert("تقدر تختار 6 فئات فقط");
+      return;
+    }
+    selectedCategories.push(cat);
+    element.classList.add("selected");
+  }
+
+  document.getElementById("continueBtn").style.display =
+    selectedCategories.length===6 ? "block":"none";
+}
+
+function goNext(){
+  localStorage.setItem("selectedSection",selectedSection.name);
+  localStorage.setItem("selectedCategories",JSON.stringify(selectedCategories));
+  window.location.href="teams.html";
+}
+
+loadSections();
+
+</script>
+
+</body>
+</html>
