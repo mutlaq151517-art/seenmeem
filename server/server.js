@@ -5,12 +5,21 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "path";
 import { fileURLToPath } from "url";
+import OpenAI from "openai";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+/* ================= OpenAI ================= */
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+/* ================= Mongo ================= */
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
@@ -23,7 +32,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   gamesPlayed: { type: Number, default: 0 },
-  gamesAllowed: { type: Number, default: 999 }, // ما يمنع اللعب
+  gamesAllowed: { type: Number, default: 999 },
   isAdmin: { type: Boolean, default: false }
 });
 
@@ -90,31 +99,77 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 });
 
-/* ================= Question ================= */
+/* ================= Question (OpenAI Integrated) ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
     const { section, category, difficulty } = req.body;
 
+    // أولاً نحاول نجيب سؤال من الداتابيس
     let question = await Question.findOne({
       section,
       category,
       difficulty
     });
 
-    if (!question) {
+    if (question) {
       return res.json({
-        question: `سؤال تجريبي لفئة ${category} مستوى ${difficulty}`,
-        answer: "هذه إجابة تجريبية"
+        question: question.question,
+        answer: question.answer
+      });
+    }
+
+    // إذا ما فيه سؤال في الداتابيس → نولد من OpenAI
+    const level =
+      difficulty == 200 ? "سهل جداً" :
+      difficulty == 400 ? "متوسط" :
+      "صعب";
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "أنت مولد أسئلة لعبة ثقافية عربية. أجب فقط بصيغة JSON."
+        },
+        {
+          role: "user",
+          content: `
+أنشئ سؤالاً واحداً باللغة العربية.
+
+الفئة: ${category}
+مستوى الصعوبة: ${level}
+
+أعد النتيجة بهذا الشكل فقط:
+{
+  "question": "نص السؤال هنا",
+  "answer": "الإجابة المختصرة هنا"
+}
+`
+        }
+      ],
+      temperature: 0.7
+    });
+
+    const aiText = completion.choices[0].message.content;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(aiText);
+    } catch {
+      return res.json({
+        question: "حدث خطأ في توليد السؤال",
+        answer: "حاول مرة أخرى"
       });
     }
 
     res.json({
-      question: question.question,
-      answer: question.answer
+      question: parsed.question,
+      answer: parsed.answer
     });
 
-  } catch {
+  } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Game error" });
   }
 });
