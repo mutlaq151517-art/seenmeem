@@ -11,74 +11,79 @@ margin:0;
 font-family:'Cairo',sans-serif;
 direction:rtl;
 background:#f3f3f3;
-padding:60px 80px;
+}
+
+/* ===== Page Width Like Screenshot ===== */
+
+.container{
+max-width:1350px;
+margin:auto;
+padding:60px 40px 100px;
 }
 
 h2{
 text-align:center;
-margin-bottom:60px;
 font-size:36px;
 font-weight:900;
+margin-bottom:70px;
 }
 
-/* ===== GRID ===== */
+/* ===== Grid 4 Columns EXACT ===== */
 
 .grid{
 display:grid;
-grid-template-columns:repeat(4, 1fr); /* 4 في الصف */
+grid-template-columns:repeat(4, 1fr);
 gap:35px;
-max-width:1400px;
-margin:auto;
 }
 
-/* ===== CARD ===== */
+/* ===== Card ===== */
 
 .card{
 position:relative;
 background:white;
-border-radius:28px;
+border-radius:30px;
 overflow:hidden;
 cursor:pointer;
 transition:0.25s;
-box-shadow:0 6px 18px rgba(0,0,0,0.08);
+box-shadow:0 6px 15px rgba(0,0,0,0.08);
 }
 
 .card:hover{
-transform:translateY(-3px);
+transform:translateY(-4px);
 }
 
 .card.selected{
-outline:4px solid #ff7a3d;
+box-shadow:0 0 0 4px #ff7a3d;
 }
 
-/* ===== IMAGE ===== */
+/* ===== Image Size EXACT ===== */
 
 .card img{
 width:100%;
-height:190px;   /* الحجم المضبوط */
+height:180px;   /* نفس الارتفاع تقريباً */
 object-fit:cover;
 display:block;
 }
 
-/* ===== TITLE ===== */
+/* ===== Bottom Orange Bar ===== */
 
 .card-title{
 background:#ff7a3d;
 color:white;
 text-align:center;
-padding:16px;
-font-size:22px;
+padding:14px;
+font-size:20px;
 font-weight:bold;
 }
 
-/* ===== INFO ICON ===== */
+/* ===== Blue Info Circle ===== */
 
 .info{
 position:absolute;
 top:12px;
 left:12px;
-width:34px;
-height:34px;
+width:32px;
+height:32px;
 background:#2d8cff;
 color:white;
 border-radius:50%;
@@ -86,29 +91,29 @@ display:flex;
 align-items:center;
 justify-content:center;
 font-weight:bold;
-font-size:18px;
+font-size:16px;
 }
 
-/* ===== BUTTON ===== */
+/* ===== Button ===== */
 
 button{
-margin-top:70px;
-padding:18px 45px;
-border:none;
-border-radius:30px;
+margin:80px auto 0;
+display:block;
+padding:16px 45px;
 background:#b30000;
+border:none;
+border-radius:28px;
 color:white;
 font-size:20px;
-cursor:pointer;
-display:block;
-margin-left:auto;
-margin-right:auto;
 font-weight:bold;
+cursor:pointer;
 }
 
 button:hover{
 background:#8f0000;
 }
+
+/* ===== Responsive ===== */
 
 @media(max-width:1200px){
 .grid{
@@ -127,11 +132,15 @@ if(!localStorage.getItem("userEmail")){
 }
 </script>
 
+<div class="container">
+
 <h2>اختر 6 فئات</h2>
 
 <div class="grid" id="categories"></div>
 
 <button onclick="next()">التالي</button>
+
+</div>
 
 <script>
 
@@ -141,11 +150,6 @@ async function loadCategories(){
 try{
 
 const res = await fetch("/api/categories");
-if(!res.ok){
-alert("مشكلة في جلب الفئات");
-return;
-}
-
 const data = await res.json();
 const container = document.getElementById("categories");
 container.innerHTML = "";
@@ -176,6 +180,7 @@ div.classList.add("selected");
 };
 
 container.appendChild(div);
+
 });
 
 }catch(err){
