@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import OpenAI from "openai";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "path";
@@ -25,7 +24,6 @@ const userSchema = new mongoose.Schema({
   password: String,
   gamesPlayed: { type: Number, default: 0 },
   gamesAllowed: { type: Number, default: 1 },
-  usedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   isAdmin: { type: Boolean, default: false }
 });
 
@@ -47,10 +45,6 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 /* ================= Register ================= */
 
 app.post("/api/register", async (req, res) => {
@@ -61,7 +55,6 @@ app.post("/api/register", async (req, res) => {
     if (existing) return res.status(400).json({ message: "User exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-
     await User.create({ name, email, password: hashed });
 
     res.json({ message: "Registered ✅", name });
@@ -97,25 +90,6 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 });
 
-/* ================= Purchase Game ================= */
-
-app.post("/api/buy-game", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.gamesAllowed += 1;
-    await user.save();
-
-    res.json({ message: "Game purchased ✅" });
-
-  } catch {
-    res.status(500).json({ message: "Purchase error" });
-  }
-});
-
 /* ================= Start Game ================= */
 
 app.post("/api/start-game", async (req, res) => {
@@ -125,9 +99,8 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    /* ✅ نتحقق من بداية لعبة جديدة فقط */
     if (user.gamesPlayed >= user.gamesAllowed) {
-      return res.status(403).json({ message: "No plays left - Purchase required" });
+      return res.status(403).json({ message: "Purchase required" });
     }
 
     let question = await Question.findOne({
@@ -136,68 +109,23 @@ app.post("/api/start-game", async (req, res) => {
       difficulty
     });
 
+    /* لو ما فيه سؤال في الداتابيس */
     if (!question) {
-
-      const prompt = `
-أنشئ سؤال دقيق متعلق فقط بالفئة:
-القسم: ${section}
-الفئة: ${category}
-المستوى: ${difficulty}
-
-صيغة JSON فقط:
-{
- "question": "...",
- "answer": "..."
-}
-`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.7
-      });
-
-      const parsed = JSON.parse(completion.choices[0].message.content);
-
-      question = await Question.create({
-        section,
-        category,
-        difficulty,
-        question: parsed.question,
-        answer: parsed.answer
+      return res.json({
+        question: `سؤال تجريبي لفئة ${category} مستوى ${difficulty}`,
+        answer: "هذه إجابة تجريبية"
       });
     }
 
-    /* ❗ ما نزيد gamesPlayed هنا */
     res.json({
       question: question.question,
       answer: question.answer
     });
 
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Game error" });
   }
-});
-
-/* ================= Start New Game ================= */
-
-app.post("/api/start-new-game", async (req, res) => {
-  const { email } = req.body;
-
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  if (user.gamesPlayed >= user.gamesAllowed) {
-    return res.status(403).json({ message: "Purchase required" });
-  }
-
-  user.gamesPlayed += 1;
-  await user.save();
-
-  res.json({ message: "Game started ✅" });
 });
 
 /* ================= Serve ================= */
