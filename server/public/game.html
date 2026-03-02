@@ -112,42 +112,6 @@ color:black;
 padding:5px 15px;
 border-radius:25px;
 }
-
-/* ===== Question Overlay ===== */
-.overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.6);
-display:none;
-justify-content:center;
-align-items:center;
-}
-
-.card{
-background:white;
-padding:40px;
-border-radius:30px;
-width:80%;
-max-width:900px;
-text-align:center;
-}
-
-.btn{
-padding:10px 25px;
-border:none;
-border-radius:20px;
-color:white;
-cursor:pointer;
-margin:10px;
-font-size:18px;
-}
-
-.green{background:#2e7d32;}
-.red{background:#d32f2f;}
-.gray{background:#888;}
 </style>
 </head>
 <body>
@@ -171,50 +135,34 @@ font-size:18px;
 </div>
 </div>
 
-<div class="overlay" id="overlay">
-<div class="card">
-<h2 id="questionText"></h2>
-<div id="answerText" style="display:none;font-size:28px;margin-top:20px;"></div>
-
-<div id="answerBtns">
-<button class="btn green" onclick="showAnswer()">إظهار الإجابة</button>
-<button class="btn red" onclick="closeCard()">إغلاق</button>
-</div>
-
-<div id="teamChoice" style="display:none;">
-<h3>أي فريق جاوب صح؟</h3>
-<button class="btn red" onclick="givePoints(1)" id="btn1"></button>
-<button class="btn red" onclick="givePoints(2)" id="btn2"></button>
-<button class="btn gray" onclick="closeCard()">ولا أحد</button>
-</div>
-</div>
-</div>
-
 <script>
 
-const categoriesSelected=JSON.parse(localStorage.getItem("selectedCategories"));
-const team1=localStorage.getItem("team1Name");
-const team2=localStorage.getItem("team2Name");
+const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories"));
+const team1 = localStorage.getItem("team1Name");
+const team2 = localStorage.getItem("team2Name");
 
-let score1=0;
-let score2=0;
-let currentPoints=0;
-let currentTeam=1;
+let score1 = parseInt(localStorage.getItem("score1")) || 0;
+let score2 = parseInt(localStorage.getItem("score2")) || 0;
+let currentTeam = localStorage.getItem("turnTeam") || team1;
 
-document.getElementById("team1Name").innerText=team1;
-document.getElementById("team2Name").innerText=team2;
+document.getElementById("team1Name").innerText = team1;
+document.getElementById("team2Name").innerText = team2;
+document.getElementById("score1").innerText = score1;
+document.getElementById("score2").innerText = score2;
 
 updateTurn();
 
 function updateTurn(){
-document.getElementById("turnBox").innerText=
-"دور فريق: "+(currentTeam===1?team1:team2);
+document.getElementById("turnBox").innerText = "دور فريق: " + currentTeam;
 }
 
 function switchTurn(){
-currentTeam=currentTeam===1?2:1;
+currentTeam = currentTeam === team1 ? team2 : team1;
+localStorage.setItem("turnTeam", currentTeam);
 updateTurn();
 }
+
+/* ===== Load Categories ===== */
 
 fetch("/api/categories")
 .then(res=>res.json())
@@ -254,8 +202,10 @@ board.appendChild(div);
 });
 });
 
+/* ===== Open Question ===== */
+
 function openQ(el,category,points){
-currentPoints=points;
+
 el.classList.add("used");
 
 fetch("/api/start-game",{
@@ -269,35 +219,39 @@ difficulty:points
 })
 .then(res=>res.json())
 .then(data=>{
-document.getElementById("overlay").style.display="flex";
-document.getElementById("questionText").innerText=data.question;
-document.getElementById("answerText").innerText=data.answer;
-document.getElementById("answerText").style.display="none";
-document.getElementById("answerBtns").style.display="block";
-document.getElementById("teamChoice").style.display="none";
-document.getElementById("btn1").innerText=team1;
-document.getElementById("btn2").innerText=team2;
+
+localStorage.setItem("currentQuestion", data.question);
+localStorage.setItem("currentAnswer", data.answer);
+localStorage.setItem("currentImage", data.image || "");
+localStorage.setItem("currentPoints", points);
+localStorage.setItem("currentCategory", category);
+localStorage.setItem("currentTeam", currentTeam);
+
+window.location.href = "question.html";
+
 });
 }
 
-function showAnswer(){
-document.getElementById("answerText").style.display="block";
-document.getElementById("answerBtns").style.display="none";
-document.getElementById("teamChoice").style.display="block";
+/* ===== When Returning From Winner ===== */
+
+if(localStorage.getItem("addPoints")){
+const winner = localStorage.getItem("addPoints");
+const pts = parseInt(localStorage.getItem("currentPoints"));
+
+if(winner === "team1"){
+score1 += pts;
+}
+if(winner === "team2"){
+score2 += pts;
 }
 
-function givePoints(team){
-if(team===1){score1+=currentPoints;}
-else{score2+=currentPoints;}
+localStorage.setItem("score1", score1);
+localStorage.setItem("score2", score2);
 
-document.getElementById("score1").innerText=score1;
-document.getElementById("score2").innerText=score2;
+document.getElementById("score1").innerText = score1;
+document.getElementById("score2").innerText = score2;
 
-closeCard();
-}
-
-function closeCard(){
-document.getElementById("overlay").style.display="none";
+localStorage.removeItem("addPoints");
 switchTurn();
 }
 
