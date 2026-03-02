@@ -13,35 +13,33 @@ direction:rtl;
 background:#f3f3f3;
 }
 
-/* ===== Container عرض أعرض مثل الصورة ===== */
+/* ===== عرض الصفحة مضبوط ===== */
 
 .container{
-max-width:1500px;
+max-width:1400px;
 margin:auto;
-padding:70px 100px 120px;
+padding:60px 40px 120px; /* قللنا البادينق */
 }
 
 h2{
 text-align:center;
 font-size:36px;
 font-weight:900;
-margin-bottom:80px;
+margin-bottom:70px;
 }
 
-/* ===== 4 أعمدة بحجم ثابت (مو 1fr) ===== */
+/* ===== 4 أعمدة ثابتة فعلياً ===== */
 
 .grid{
 display:grid;
-grid-template-columns:repeat(4, 260px); /* عرض ثابت مصغّر */
-justify-content:center;
-gap:45px 50px;
+grid-template-columns:repeat(4, 1fr);
+gap:40px;
 }
 
-/* ===== Card أصغر ===== */
+/* ===== الكرت ===== */
 
 .card{
 position:relative;
-width:260px;
 background:white;
 border-radius:22px;
 overflow:hidden;
@@ -58,16 +56,16 @@ transform:translateY(-3px);
 box-shadow:0 0 0 4px #ff7a3d;
 }
 
-/* ===== صورة أقصر ===== */
+/* ===== الصورة ===== */
 
 .card img{
 width:100%;
-height:160px; /* أقصر مثل الصورة */
+height:160px;
 object-fit:cover;
 display:block;
 }
 
-/* ===== الشريط البرتقالي أنحف ===== */
+/* ===== الشريط البرتقالي ===== */
 
 .card-title{
 background:#ff7a3d;
@@ -78,7 +76,7 @@ font-size:18px;
 font-weight:bold;
 }
 
-/* ===== دائرة المعلومات أصغر ===== */
+/* ===== دائرة المعلومات ===== */
 
 .info{
 position:absolute;
@@ -96,7 +94,7 @@ font-weight:bold;
 font-size:14px;
 }
 
-/* ===== زر التالي ===== */
+/* ===== زر ===== */
 
 button{
 margin:90px auto 0;
@@ -115,11 +113,11 @@ button:hover{
 background:#8f0000;
 }
 
-/* ===== Responsive ===== */
+/* موبايل */
 
-@media(max-width:1200px){
+@media(max-width:1100px){
 .grid{
-grid-template-columns:repeat(2, 260px);
+grid-template-columns:repeat(2, 1fr);
 }
 }
 
