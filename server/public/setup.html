@@ -11,13 +11,13 @@ margin:0;
 font-family:'Cairo',sans-serif;
 direction:rtl;
 background:#f3f3f3;
-padding:50px 60px;
+padding:60px 80px;
 }
 
 h2{
 text-align:center;
-margin-bottom:50px;
-font-size:34px;
+margin-bottom:60px;
+font-size:36px;
 font-weight:900;
 }
 
@@ -25,9 +25,9 @@ font-weight:900;
 
 .grid{
 display:grid;
-grid-template-columns:repeat(2, 1fr);
-gap:40px 50px;
-max-width:1100px;
+grid-template-columns:repeat(4, 1fr); /* 4 في الصف */
+gap:35px;
+max-width:1400px;
 margin:auto;
 }
 
@@ -36,26 +36,26 @@ margin:auto;
 .card{
 position:relative;
 background:white;
-border-radius:35px;
+border-radius:28px;
 overflow:hidden;
 cursor:pointer;
 transition:0.25s;
-box-shadow:0 8px 20px rgba(0,0,0,0.08);
-}
-
-.card.selected{
-outline:5px solid #ff7a3d;
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
 }
 
 .card:hover{
-transform:translateY(-4px);
+transform:translateY(-3px);
+}
+
+.card.selected{
+outline:4px solid #ff7a3d;
 }
 
 /* ===== IMAGE ===== */
 
 .card img{
 width:100%;
-height:240px;   /* الحجم المضبوط */
+height:190px;   /* الحجم المضبوط */
 object-fit:cover;
 display:block;
 }
@@ -66,8 +66,8 @@ display:block;
 background:#ff7a3d;
 color:white;
 text-align:center;
-padding:18px;
-font-size:24px;
+padding:16px;
+font-size:22px;
 font-weight:bold;
 }
 
@@ -75,10 +75,10 @@ font-weight:bold;
 
 .info{
 position:absolute;
-top:15px;
-left:15px;
-width:38px;
-height:38px;
+top:12px;
+left:12px;
+width:34px;
+height:34px;
 background:#2d8cff;
 color:white;
 border-radius:50%;
@@ -86,13 +86,13 @@ display:flex;
 align-items:center;
 justify-content:center;
 font-weight:bold;
-font-size:20px;
+font-size:18px;
 }
 
 /* ===== BUTTON ===== */
 
 button{
-margin-top:60px;
+margin-top:70px;
 padding:18px 45px;
 border:none;
 border-radius:30px;
@@ -110,9 +110,9 @@ button:hover{
 background:#8f0000;
 }
 
-@media(max-width:900px){
+@media(max-width:1200px){
 .grid{
-grid-template-columns:1fr;
+grid-template-columns:repeat(2,1fr);
 }
 }
 
@@ -157,7 +157,7 @@ div.className="card";
 
 div.innerHTML=`
 <div class="info">i</div>
-<img src="${cat.image}" onerror="this.src='https://via.placeholder.com/600x400'">
+<img src="${cat.image}" onerror="this.src='https://via.placeholder.com/400x300'">
 <div class="card-title">${cat.name}</div>
 `;
 
