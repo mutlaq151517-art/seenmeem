@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>أي فريق جاوب صح؟</title>
+<style>
+body{
+margin:0;
+font-family:Cairo;
+direction:rtl;
+background:#d9d9d9;
+}
+
+/* ===== Top Bar ===== */
+.topbar{
+background:linear-gradient(to right,#ff3b3b,#ff9c52);
+color:white;
+padding:15px 30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
+}
+
+.turn{
+background:#b30000;
+padding:8px 20px;
+border-radius:25px;
+}
+
+/* ===== Layout ===== */
+.container{
+display:flex;
+gap:30px;
+padding:40px;
+}
+
+/* ===== Main Box ===== */
+.main-box{
+flex:1;
+background:#eee;
+border:8px solid #ff6a3d;
+border-radius:40px;
+padding:60px 40px;
+text-align:center;
+position:relative;
+}
+
+.main-box h2{
+font-size:36px;
+margin-bottom:60px;
+}
+
+.btn{
+border:none;
+padding:18px 60px;
+border-radius:35px;
+font-size:24px;
+font-weight:bold;
+cursor:pointer;
+margin:15px;
+min-width:250px;
+}
+
+.red{
+background:#b30000;
+color:white;
+}
+
+.gray{
+background:#9e9e9e;
+color:white;
+width:80%;
+}
+
+.green{
+position:absolute;
+bottom:20px;
+left:20px;
+background:#2e7d32;
+color:white;
+padding:12px 25px;
+border-radius:25px;
+font-size:18px;
+}
+
+/* ===== Side Panel ===== */
+.side{
+width:320px;
+}
+
+.team-box{
+background:#b30000;
+color:white;
+padding:15px;
+border-radius:30px;
+text-align:center;
+font-weight:bold;
+margin-bottom:15px;
+font-size:22px;
+}
+
+.score{
+text-align:center;
+font-size:28px;
+margin-bottom:20px;
+}
+
+.help-title{
+text-align:center;
+font-weight:bold;
+margin-bottom:15px;
+}
+
+.help-icons{
+display:flex;
+justify-content:center;
+gap:15px;
+margin-bottom:25px;
+}
+
+.icon{
+width:50px;
+height:50px;
+background:#ddd;
+border-radius:50%;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+<div>سين ميم</div>
+<div class="turn" id="turnBox"></div>
+</div>
+
+<div class="container">
+
+<!-- ===== Main ===== -->
+<div class="main-box">
+
+<h2>أي فريق جاوب صح ؟</h2>
+
+<button class="btn red" onclick="selectWinner(1)" id="team1Btn"></button>
+<button class="btn red" onclick="selectWinner(2)" id="team2Btn"></button>
+
+<br>
+
+<button class="btn gray" onclick="selectWinner(0)">ولا أحد</button>
+
+<button class="green" onclick="goBack()">العودة للإجابة</button>
+
+</div>
+
+<!-- ===== Side Panel ===== -->
+<div class="side">
+
+<div class="team-box" id="team1Name"></div>
+<div class="score" id="score1">0</div>
+<div class="help-title">وسائل المساعدة</div>
+<div class="help-icons">
+<div class="icon"></div>
+<div class="icon"></div>
+<div class="icon"></div>
+</div>
+
+<div class="team-box" id="team2Name"></div>
+<div class="score" id="score2">0</div>
+<div class="help-title">وسائل المساعدة</div>
+<div class="help-icons">
+<div class="icon"></div>
+<div class="icon"></div>
+<div class="icon"></div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const team1 = localStorage.getItem("team1Name");
+const team2 = localStorage.getItem("team2Name");
+
+let score1 = localStorage.getItem("score1") || 0;
+let score2 = localStorage.getItem("score2") || 0;
+
+document.getElementById("team1Name").innerText = team1;
+document.getElementById("team2Name").innerText = team2;
+document.getElementById("team1Btn").innerText = team1;
+document.getElementById("team2Btn").innerText = team2;
+
+document.getElementById("score1").innerText = score1;
+document.getElementById("score2").innerText = score2;
+
+function selectWinner(team){
+
+let points = localStorage.getItem("currentPoints") || 0;
+points = parseInt(points);
+
+if(team === 1){
+score1 = parseInt(score1) + points;
+localStorage.setItem("score1", score1);
+}
+else if(team === 2){
+score2 = parseInt(score2) + points;
+localStorage.setItem("score2", score2);
+}
+
+window.location.href = "game.html";
+}
+
+function goBack(){
+window.location.href = "answer.html";
+}
+
+</script>
+
+</body>
+</html>
