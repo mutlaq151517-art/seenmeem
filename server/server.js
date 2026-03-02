@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   gamesPlayed: { type: Number, default: 0 },
-  gamesAllowed: { type: Number, default: 999 }, // خليناه مفتوح
+  gamesAllowed: { type: Number, default: 1 }, // لعبة وحدة فقط
   usedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   isAdmin: { type: Boolean, default: false }
 });
@@ -42,7 +42,8 @@ const questionSchema = new mongoose.Schema({
   category: String,
   difficulty: Number,
   question: String,
-  answer: String
+  answer: String,
+  isStarter: { type: Boolean, default: false } // باقة أول لعبة
 });
 
 const User = mongoose.model("User", userSchema);
@@ -62,19 +63,15 @@ app.post("/api/register", async (req, res) => {
     const { name, email, password } = req.body;
 
     const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "User exists" });
-    }
+    if (existing) return res.status(400).json({ message: "User exists" });
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
+    await User.create({
       name,
       email,
       password: hashed
     });
-
-    await newUser.save();
 
     res.json({ message: "Registered ✅", name });
 
@@ -102,50 +99,22 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Get Categories ================= */
+/* ================= Purchase Game ================= */
 
-app.get("/api/categories", async (req, res) => {
-  const categories = await Category.find();
-  res.json(categories);
-});
-
-/* ================= Add Category (Admin Only) ================= */
-
-app.post("/api/admin/add-category", async (req, res) => {
+app.post("/api/buy-game", async (req, res) => {
   try {
-    const { email, section, name, image } = req.body;
+    const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    const newCategory = new Category({ section, name, image });
-    await newCategory.save();
+    user.gamesAllowed += 1;
+    await user.save();
 
-    res.json({ message: "Category added ✅" });
+    res.json({ message: "Game purchased ✅" });
 
   } catch {
-    res.status(500).json({ message: "Category error" });
-  }
-});
-
-/* ================= Delete Category (Admin) ================= */
-
-app.post("/api/admin/delete-category", async (req, res) => {
-  try {
-    const { email, id } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
-    await Category.findByIdAndDelete(id);
-    res.json({ message: "Deleted ✅" });
-
-  } catch {
-    res.status(500).json({ message: "Delete error" });
+    res.status(500).json({ message: "Purchase error" });
   }
 });
 
@@ -158,49 +127,110 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email }).populate("usedQuestions");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    let question = await Question.findOne({
-      section,
-      category,
-      difficulty,
-      _id: { $nin: user.usedQuestions }
-    });
+    if (user.gamesPlayed >= user.gamesAllowed) {
+      return res.status(403).json({ message: "No plays left - Purchase required" });
+    }
 
-    if (!question) {
+    let question;
 
-      const prompt = `
-أنشئ سؤال حديث ودقيق.
+    /* ===== أول لعبة: باقة ثابتة ===== */
+    if (user.gamesPlayed === 0) {
+
+      question = await Question.findOne({
+        section,
+        category,
+        difficulty,
+        isStarter: true
+      });
+
+      if (!question) {
+
+        const prompt = `
+أنشئ سؤال دقيق مرتبط فقط بالفئة التالية:
 القسم: ${section}
 الفئة: ${category}
 المستوى: ${difficulty}
 
-أعد بصيغة JSON فقط:
+شروط صارمة:
+- متعلق مباشرة بالفئة
+- إجابة واحدة فقط
+- لا شرح
+- صيغة JSON فقط
 {
  "question": "...",
  "answer": "..."
 }
 `;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "أنت مولد أسئلة مسابقات دقيقة." },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.7
-      });
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7
+        });
 
-      const parsed = JSON.parse(completion.choices[0].message.content);
+        const parsed = JSON.parse(completion.choices[0].message.content);
 
-      question = await Question.create({
+        question = await Question.create({
+          section,
+          category,
+          difficulty,
+          question: parsed.question,
+          answer: parsed.answer,
+          isStarter: true
+        });
+      }
+
+    } else {
+
+      /* ===== ألعاب مدفوعة ===== */
+      question = await Question.findOne({
         section,
         category,
         difficulty,
-        question: parsed.question,
-        answer: parsed.answer
+        _id: { $nin: user.usedQuestions }
       });
+
+      if (!question) {
+
+        const prompt = `
+أنشئ سؤال جديد وغير مكرر متعلق فقط بالفئة:
+القسم: ${section}
+الفئة: ${category}
+المستوى: ${difficulty}
+
+صيغة JSON فقط:
+{
+ "question": "...",
+ "answer": "..."
+}
+`;
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7
+        });
+
+        const parsed = JSON.parse(completion.choices[0].message.content);
+
+        question = await Question.create({
+          section,
+          category,
+          difficulty,
+          question: parsed.question,
+          answer: parsed.answer
+        });
+      }
     }
 
     user.usedQuestions.push(question._id);
+    user.gamesPlayed += 1;
     await user.save();
 
     res.json({
