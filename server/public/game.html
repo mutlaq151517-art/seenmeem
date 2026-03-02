@@ -5,204 +5,33 @@
 <title>سين ميم</title>
 <style>
 body{margin:0;font-family:Cairo;direction:rtl;background:#d9d9d9;}
-
-/* Top */
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
-color:white;
-padding:15px 25px;
-display:flex;
-justify-content:space-between;
-align-items:center;
+color:white;padding:15px 25px;
+display:flex;justify-content:space-between;align-items:center;
 }
-
-.turn{
-background:#b30000;
-padding:8px 18px;
-border-radius:25px;
-}
-
-.end-btn{
-background:#b30000;
-border:none;
-color:white;
-padding:8px 18px;
-border-radius:20px;
-cursor:pointer;
-}
-
-/* Board */
-.board{
-padding:30px;
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:30px;
-}
-
-.category{
-background:#eee;
-border-radius:25px;
-padding:15px;
-text-align:center;
-}
-
-.title{
-background:#ff7a3d;
-color:white;
-padding:8px;
-border-radius:10px;
-margin-bottom:10px;
-font-weight:bold;
-}
-
-.points{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:10px;
-}
-
-.point{
-background:#ccc;
-padding:10px 20px;
-border-radius:20px;
-font-weight:bold;
-color:#b30000;
-cursor:pointer;
-}
-
+.turn{background:#b30000;padding:8px 18px;border-radius:25px;}
+.end-btn{background:#b30000;border:none;color:white;padding:8px 18px;border-radius:20px;cursor:pointer;}
+.board{padding:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
+.category{background:#eee;border-radius:25px;padding:15px;text-align:center;}
+.title{background:#ff7a3d;color:white;padding:8px;border-radius:10px;margin-bottom:10px;font-weight:bold;}
+.points{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.point{background:#ccc;padding:10px;border-radius:20px;font-weight:bold;color:#b30000;cursor:pointer;}
 .point.used{visibility:hidden;}
-
-.bottom{
-background:#eee;
-padding:20px;
-display:flex;
-justify-content:space-between;
-}
-
-.team{
-background:#b30000;
-color:white;
-padding:10px 20px;
-border-radius:25px;
-}
-
-/* Overlay */
-.overlay{
-position:fixed;
-top:0;left:0;
-width:100%;height:100%;
-background:rgba(0,0,0,.6);
-display:none;
-justify-content:center;
-align-items:center;
-}
-
-.card{
-background:#f7f7f7;
-width:85%;
-max-width:1000px;
-height:75%;
-border:6px solid #e53935;
-border-radius:30px;
-padding:40px;
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-position:relative;
-}
-
-.timer{
-position:absolute;
-top:10px;
-left:50%;
-transform:translateX(-50%);
-background:#2c2c2c;
-color:white;
-padding:10px 25px;
-border-radius:30px;
-}
-
-.question{
-text-align:center;
-font-size:28px;
-font-weight:bold;
-margin-top:40px;
-}
-
-.answer{
-display:none;
-text-align:center;
-font-size:34px;
-font-weight:bold;
-}
-
-.buttons{
-display:flex;
-justify-content:space-between;
-}
-
-.btn{
-padding:10px 25px;
-border:none;
-border-radius:20px;
-color:white;
-cursor:pointer;
-}
-
+.bottom{background:#eee;padding:20px;display:flex;justify-content:space-between;font-size:20px;font-weight:bold;}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;}
+.card{background:white;width:80%;max-width:900px;padding:40px;border-radius:30px;text-align:center;}
+.btn{padding:10px 25px;border:none;border-radius:20px;color:white;cursor:pointer;margin:10px;}
 .green{background:#2e7d32;}
 .red{background:#d32f2f;}
 .gray{background:#888;}
-
-/* Result Screen */
-.result-card{
-background:white;
-width:80%;
-max-width:900px;
-padding:50px;
-border-radius:30px;
-text-align:center;
-}
-
-.result-title{
-font-size:40px;
-margin-bottom:20px;
-}
-
-.winner-name{
-font-size:70px;
-color:#ff5c33;
-margin-bottom:40px;
-}
-
-.score-box{
-display:flex;
-justify-content:space-between;
-gap:30px;
-}
-
-.score{
-flex:1;
-border-radius:25px;
-overflow:hidden;
-}
-
-.score-header{
-background:#222;
-color:white;
-padding:15px;
-font-size:20px;
-}
-
-.score-value{
-padding:40px;
-font-size:50px;
-color:white;
-}
-
+.result-card{background:white;width:80%;max-width:900px;padding:50px;border-radius:30px;text-align:center;}
 .green-bg{background:#8db600;}
 .red-bg{background:#e31818;}
-
+.score-value{padding:40px;font-size:50px;color:white;}
+.score-header{background:#222;color:white;padding:15px;}
+.score{flex:1;border-radius:25px;overflow:hidden;}
+.score-box{display:flex;gap:30px;}
 </style>
 </head>
 <body>
@@ -218,63 +47,49 @@ color:white;
 <div class="board" id="board"></div>
 
 <div class="bottom">
-<div class="team" id="team1Box"></div>
-<div class="team" id="team2Box"></div>
+<div id="team1Box"></div>
+<div id="team2Box"></div>
 </div>
 
-<!-- Question Overlay -->
 <div class="overlay" id="overlay">
 <div class="card">
-<div class="timer" id="timer">60</div>
+<h2 id="questionText"></h2>
+<div id="answerText" style="display:none;font-size:28px;margin:20px;"></div>
 
-<div class="question" id="questionText"></div>
-<div class="answer" id="answerText"></div>
-
-<div class="buttons" id="mainButtons">
+<div id="answerBtns">
 <button class="btn green" onclick="showAnswer()">إظهار الإجابة</button>
 <button class="btn red" onclick="closeCard()">إغلاق</button>
 </div>
 
-<div id="teamChoice" style="display:none;flex-direction:column;gap:15px;">
-<h2 style="text-align:center;">أي فريق جاوب صح ؟</h2>
-<button class="btn red" onclick="givePoints(1)" id="team1Btn"></button>
-<button class="btn red" onclick="givePoints(2)" id="team2Btn"></button>
+<div id="teamChoice" style="display:none;">
+<h3>أي فريق جاوب صح؟</h3>
+<button class="btn red" onclick="givePoints(1)" id="t1Btn"></button>
+<button class="btn red" onclick="givePoints(2)" id="t2Btn"></button>
 <button class="btn gray" onclick="closeCard()">ولا أحد</button>
-<button class="btn green" onclick="backToAnswer()">العودة للإجابة</button>
+</div>
+</div>
 </div>
 
-</div>
-</div>
-
-<!-- Result Overlay -->
 <div class="overlay" id="resultOverlay">
 <div class="result-card">
-<div class="result-title">مبروك الفوز</div>
-<div class="winner-name" id="winnerName"></div>
+<h2>مبروك الفوز</h2>
+<h1 id="winnerName"></h1>
 
 <div class="score-box">
 <div class="score">
 <div class="score-header" id="rTeam1"></div>
-<div class="score-value green-bg" id="rScore1"></div>
+<div class="score-value" id="rScore1"></div>
 </div>
-
 <div class="score">
 <div class="score-header" id="rTeam2"></div>
-<div class="score-value red-bg" id="rScore2"></div>
+<div class="score-value" id="rScore2"></div>
 </div>
 </div>
-
 </div>
 </div>
 
 <script>
-
 const categories=JSON.parse(localStorage.getItem("selectedCategories"));
-if(!categories||categories.length!==6){
-alert("اختر الفئات أولاً");
-window.location.href="select.html";
-}
-
 const team1=localStorage.getItem("team1Name");
 const team2=localStorage.getItem("team2Name");
 
@@ -282,11 +97,9 @@ let score1=0;
 let score2=0;
 let currentPoints=0;
 let currentTeam=1;
-let interval;
-let timeLeft=60;
 
-document.getElementById("team1Box").innerText=team1;
-document.getElementById("team2Box").innerText=team2;
+document.getElementById("team1Box").innerText=team1+" : 0";
+document.getElementById("team2Box").innerText=team2+" : 0";
 
 updateTurn();
 
@@ -322,51 +135,45 @@ function openQ(el,category,points){
 currentPoints=points;
 el.classList.add("used");
 
+fetch("/api/start-game",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+section:"عام",
+category,
+difficulty:points
+})
+})
+.then(res=>res.json())
+.then(data=>{
 document.getElementById("overlay").style.display="flex";
-document.getElementById("questionText").innerText=
-"سؤال "+category+" بقيمة "+points;
-document.getElementById("answerText").innerText="إجابة تجريبية";
-
+document.getElementById("questionText").innerText=data.question;
+document.getElementById("answerText").innerText=data.answer;
 document.getElementById("answerText").style.display="none";
-document.getElementById("mainButtons").style.display="flex";
 document.getElementById("teamChoice").style.display="none";
-
-document.getElementById("team1Btn").innerText=team1;
-document.getElementById("team2Btn").innerText=team2;
-
-startTimer();
-}
-
-function startTimer(){
-timeLeft=60;
-document.getElementById("timer").innerText=timeLeft;
-interval=setInterval(()=>{
-timeLeft--;
-document.getElementById("timer").innerText=timeLeft;
-if(timeLeft<=0)clearInterval(interval);
-},1000);
+document.getElementById("answerBtns").style.display="block";
+document.getElementById("t1Btn").innerText=team1;
+document.getElementById("t2Btn").innerText=team2;
+});
 }
 
 function showAnswer(){
-clearInterval(interval);
 document.getElementById("answerText").style.display="block";
-document.getElementById("mainButtons").style.display="none";
-document.getElementById("teamChoice").style.display="flex";
-}
-
-function backToAnswer(){
-document.getElementById("teamChoice").style.display="none";
-document.getElementById("answerText").style.display="block";
+document.getElementById("answerBtns").style.display="none";
+document.getElementById("teamChoice").style.display="block";
 }
 
 function givePoints(team){
 if(team===1){score1+=currentPoints;}
 else{score2+=currentPoints;}
+
+document.getElementById("team1Box").innerText=team1+" : "+score1;
+document.getElementById("team2Box").innerText=team2+" : "+score2;
+
 closeCard();
 }
 
 function closeCard(){
-clearInterval(interval);
 document.getElementById("overlay").style.display="none";
 switchTurn();
 }
@@ -381,8 +188,15 @@ document.getElementById("rScore2").innerText=score2;
 
 let winner=score1>score2?team1:score2>score1?team2:"تعادل";
 document.getElementById("winnerName").innerText=winner;
-}
 
+if(score1>score2){
+document.getElementById("rScore1").classList.add("green-bg");
+document.getElementById("rScore2").classList.add("red-bg");
+}else if(score2>score1){
+document.getElementById("rScore2").classList.add("green-bg");
+document.getElementById("rScore1").classList.add("red-bg");
+}
+}
 </script>
 </body>
 </html>
