@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 import path from "path";
 import { fileURLToPath } from "url";
 import OpenAI from "openai";
@@ -16,7 +15,7 @@ app.use(express.json());
 /* ================= OpenAI ================= */
 
 if (!process.env.OPENAI_API_KEY) {
-  console.log("❌ OPENAI_API_KEY NOT FOUND IN .env");
+  console.log("❌ OPENAI_API_KEY NOT FOUND IN RENDER ENV");
 }
 
 const openai = new OpenAI({
@@ -51,8 +50,13 @@ const Question = mongoose.model("Question", questionSchema);
 /* ================= Categories ================= */
 
 app.get("/api/categories", async (req, res) => {
-  const categories = await Category.find();
-  res.json(categories);
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch (err) {
+    console.log("Categories Error:", err);
+    res.json([]);
+  }
 });
 
 /* ================= Question ================= */
@@ -62,7 +66,7 @@ app.post("/api/start-game", async (req, res) => {
 
     const { section, category, difficulty } = req.body;
 
-    /* 1️⃣ نحاول من الداتابيس */
+    /* 1️⃣ من الداتابيس */
     const existing = await Question.findOne({
       section,
       category,
@@ -83,50 +87,38 @@ app.post("/api/start-game", async (req, res) => {
       difficulty == 400 ? "متوسط" :
       "صعب";
 
-    const response = await openai.responses.create({
-      model: "gpt-4.1-mini",
-      input: `
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "أنت مولد أسئلة لعبة ثقافية عربية. أعد الرد بصيغة JSON فقط."
+        },
+        {
+          role: "user",
+          content: `
 أنشئ سؤالاً واحداً باللغة العربية.
 
 الفئة: ${category}
 مستوى الصعوبة: ${level}
 
-أعد الرد بصيغة JSON فقط هكذا:
-
+أعد النتيجة بهذا الشكل فقط:
 {
   "question": "نص السؤال",
   "answer": "الإجابة المختصرة"
 }
 `
+        }
+      ],
+      temperature: 0.7,
+      response_format: { type: "json_object" }
     });
 
-    const output = response.output_text;
+    const parsed = completion.choices[0].message;
 
-    if (!output) {
-      console.log("❌ Empty OpenAI response");
-      return res.json({
-        question: "تعذر توليد السؤال",
-        answer: "أعد المحاولة"
-      });
-    }
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(output);
-    } catch (err) {
-      console.log("❌ JSON Parse Failed:", output);
-      return res.json({
-        question: "خطأ في تنسيق السؤال",
-        answer: "حاول مرة أخرى"
-      });
-    }
-
-    if (!parsed.question || !parsed.answer) {
-      return res.json({
-        question: "تعذر توليد السؤال",
-        answer: "أعد المحاولة"
-      });
+    if (!parsed || !parsed.question || !parsed.answer) {
+      console.log("⚠️ OpenAI returned empty object");
+      return fallbackQuestion(res);
     }
 
     /* 3️⃣ تخزين السؤال */
@@ -144,13 +136,21 @@ app.post("/api/start-game", async (req, res) => {
     });
 
   } catch (err) {
-    console.log("🔥 OpenAI ERROR:", err);
-    return res.status(500).json({
-      question: "مشكلة في توليد السؤال",
-      answer: "تحقق من إعدادات السيرفر"
-    });
+
+    console.log("🔥 OPENAI ERROR:", err?.message);
+
+    return fallbackQuestion(res);
   }
 });
+
+/* ================= Fallback Question ================= */
+
+function fallbackQuestion(res) {
+  return res.json({
+    question: "اذكر عاصمة دولة الكويت؟",
+    answer: "مدينة الكويت"
+  });
+}
 
 /* ================= Serve ================= */
 
