@@ -4,57 +4,177 @@
 <meta charset="UTF-8">
 <title>سين ميم</title>
 <style>
-body{margin:0;font-family:Cairo;direction:rtl;background:#d9d9d9;}
+body{
+margin:0;
+font-family:Cairo;
+direction:rtl;
+background:#d9d9d9;
+}
+
+/* ===== Top Bar ===== */
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
-color:white;padding:15px 25px;
-display:flex;justify-content:space-between;align-items:center;
+color:white;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
-.turn{background:#b30000;padding:8px 18px;border-radius:25px;}
-.end-btn{background:#b30000;border:none;color:white;padding:8px 18px;border-radius:20px;cursor:pointer;}
-.board{padding:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
-.category{background:#eee;border-radius:25px;padding:15px;text-align:center;}
-.title{background:#ff7a3d;color:white;padding:8px;border-radius:10px;margin-bottom:10px;font-weight:bold;}
-.points{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.point{background:#ccc;padding:10px;border-radius:20px;font-weight:bold;color:#b30000;cursor:pointer;}
-.point.used{visibility:hidden;}
-.bottom{background:#eee;padding:20px;display:flex;justify-content:space-between;font-size:20px;font-weight:bold;}
-.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;}
-.card{background:white;width:80%;max-width:900px;padding:40px;border-radius:30px;text-align:center;}
-.btn{padding:10px 25px;border:none;border-radius:20px;color:white;cursor:pointer;margin:10px;}
+
+.turn{
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
+font-weight:bold;
+}
+
+/* ===== Board ===== */
+.board{
+padding:30px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:35px;
+}
+
+.category{
+background:#e5e5e5;
+border-radius:30px;
+padding:15px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
+
+.points-col{
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.point{
+background:#cfcfcf;
+padding:12px 25px;
+border-radius:25px;
+font-size:22px;
+font-weight:bold;
+color:#b30000;
+cursor:pointer;
+text-align:center;
+min-width:90px;
+}
+
+.point.used{
+visibility:hidden;
+}
+
+.category-center{
+text-align:center;
+}
+
+.category-center img{
+width:130px;
+height:130px;
+object-fit:contain;
+}
+
+.category-title{
+background:#ff7a3d;
+color:white;
+padding:10px;
+border-radius:15px;
+margin-top:10px;
+font-weight:bold;
+}
+
+/* ===== Bottom Scores ===== */
+.bottom{
+background:#eee;
+padding:25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.team{
+background:#b30000;
+color:white;
+padding:12px 25px;
+border-radius:25px;
+display:flex;
+align-items:center;
+gap:20px;
+font-weight:bold;
+}
+
+.score{
+background:white;
+color:black;
+padding:5px 15px;
+border-radius:25px;
+}
+
+/* ===== Question Overlay ===== */
+.overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.card{
+background:white;
+padding:40px;
+border-radius:30px;
+width:80%;
+max-width:900px;
+text-align:center;
+}
+
+.btn{
+padding:10px 25px;
+border:none;
+border-radius:20px;
+color:white;
+cursor:pointer;
+margin:10px;
+font-size:18px;
+}
+
 .green{background:#2e7d32;}
 .red{background:#d32f2f;}
 .gray{background:#888;}
-.result-card{background:white;width:80%;max-width:900px;padding:50px;border-radius:30px;text-align:center;}
-.green-bg{background:#8db600;}
-.red-bg{background:#e31818;}
-.score-value{padding:40px;font-size:50px;color:white;}
-.score-header{background:#222;color:white;padding:15px;}
-.score{flex:1;border-radius:25px;overflow:hidden;}
-.score-box{display:flex;gap:30px;}
 </style>
 </head>
 <body>
 
 <div class="topbar">
 <div>سين ميم</div>
-<div>
-<span class="turn" id="turnBox"></span>
-<button class="end-btn" onclick="endGame()">إنهاء اللعبة</button>
-</div>
+<div class="turn" id="turnBox"></div>
 </div>
 
 <div class="board" id="board"></div>
 
 <div class="bottom">
-<div id="team1Box"></div>
-<div id="team2Box"></div>
+<div class="team">
+<span id="team1Name"></span>
+<div class="score" id="score1">0</div>
+</div>
+
+<div class="team">
+<span id="team2Name"></span>
+<div class="score" id="score2">0</div>
+</div>
 </div>
 
 <div class="overlay" id="overlay">
 <div class="card">
 <h2 id="questionText"></h2>
-<div id="answerText" style="display:none;font-size:28px;margin:20px;"></div>
+<div id="answerText" style="display:none;font-size:28px;margin-top:20px;"></div>
 
 <div id="answerBtns">
 <button class="btn green" onclick="showAnswer()">إظهار الإجابة</button>
@@ -63,33 +183,16 @@ display:flex;justify-content:space-between;align-items:center;
 
 <div id="teamChoice" style="display:none;">
 <h3>أي فريق جاوب صح؟</h3>
-<button class="btn red" onclick="givePoints(1)" id="t1Btn"></button>
-<button class="btn red" onclick="givePoints(2)" id="t2Btn"></button>
+<button class="btn red" onclick="givePoints(1)" id="btn1"></button>
+<button class="btn red" onclick="givePoints(2)" id="btn2"></button>
 <button class="btn gray" onclick="closeCard()">ولا أحد</button>
 </div>
 </div>
 </div>
 
-<div class="overlay" id="resultOverlay">
-<div class="result-card">
-<h2>مبروك الفوز</h2>
-<h1 id="winnerName"></h1>
-
-<div class="score-box">
-<div class="score">
-<div class="score-header" id="rTeam1"></div>
-<div class="score-value" id="rScore1"></div>
-</div>
-<div class="score">
-<div class="score-header" id="rTeam2"></div>
-<div class="score-value" id="rScore2"></div>
-</div>
-</div>
-</div>
-</div>
-
 <script>
-const categories=JSON.parse(localStorage.getItem("selectedCategories"));
+
+const categoriesSelected=JSON.parse(localStorage.getItem("selectedCategories"));
 const team1=localStorage.getItem("team1Name");
 const team2=localStorage.getItem("team2Name");
 
@@ -98,8 +201,8 @@ let score2=0;
 let currentPoints=0;
 let currentTeam=1;
 
-document.getElementById("team1Box").innerText=team1+" : 0";
-document.getElementById("team2Box").innerText=team2+" : 0";
+document.getElementById("team1Name").innerText=team1;
+document.getElementById("team2Name").innerText=team2;
 
 updateTurn();
 
@@ -113,22 +216,42 @@ currentTeam=currentTeam===1?2:1;
 updateTurn();
 }
 
+fetch("/api/categories")
+.then(res=>res.json())
+.then(data=>{
+
 const board=document.getElementById("board");
 
-categories.forEach(cat=>{
+categoriesSelected.forEach(catName=>{
+
+const cat=data.find(c=>c.name===catName);
+if(!cat) return;
+
 const div=document.createElement("div");
 div.className="category";
+
 div.innerHTML=`
-<div class="title">${cat}</div>
-<div class="points">
-<div class="point" onclick="openQ(this,'${cat}',200)">200</div>
-<div class="point" onclick="openQ(this,'${cat}',200)">200</div>
-<div class="point" onclick="openQ(this,'${cat}',400)">400</div>
-<div class="point" onclick="openQ(this,'${cat}',400)">400</div>
-<div class="point" onclick="openQ(this,'${cat}',600)">600</div>
-<div class="point" onclick="openQ(this,'${cat}',600)">600</div>
-</div>`;
+<div class="points-col">
+<div class="point" onclick="openQ(this,'${cat.name}',200)">200</div>
+<div class="point" onclick="openQ(this,'${cat.name}',400)">400</div>
+<div class="point" onclick="openQ(this,'${cat.name}',600)">600</div>
+</div>
+
+<div class="category-center">
+<img src="${cat.image}">
+<div class="category-title">${cat.name}</div>
+</div>
+
+<div class="points-col">
+<div class="point" onclick="openQ(this,'${cat.name}',200)">200</div>
+<div class="point" onclick="openQ(this,'${cat.name}',400)">400</div>
+<div class="point" onclick="openQ(this,'${cat.name}',600)">600</div>
+</div>
+`;
+
 board.appendChild(div);
+
+});
 });
 
 function openQ(el,category,points){
@@ -150,10 +273,10 @@ document.getElementById("overlay").style.display="flex";
 document.getElementById("questionText").innerText=data.question;
 document.getElementById("answerText").innerText=data.answer;
 document.getElementById("answerText").style.display="none";
-document.getElementById("teamChoice").style.display="none";
 document.getElementById("answerBtns").style.display="block";
-document.getElementById("t1Btn").innerText=team1;
-document.getElementById("t2Btn").innerText=team2;
+document.getElementById("teamChoice").style.display="none";
+document.getElementById("btn1").innerText=team1;
+document.getElementById("btn2").innerText=team2;
 });
 }
 
@@ -167,8 +290,8 @@ function givePoints(team){
 if(team===1){score1+=currentPoints;}
 else{score2+=currentPoints;}
 
-document.getElementById("team1Box").innerText=team1+" : "+score1;
-document.getElementById("team2Box").innerText=team2+" : "+score2;
+document.getElementById("score1").innerText=score1;
+document.getElementById("score2").innerText=score2;
 
 closeCard();
 }
@@ -178,25 +301,6 @@ document.getElementById("overlay").style.display="none";
 switchTurn();
 }
 
-function endGame(){
-document.getElementById("resultOverlay").style.display="flex";
-
-document.getElementById("rTeam1").innerText=team1;
-document.getElementById("rTeam2").innerText=team2;
-document.getElementById("rScore1").innerText=score1;
-document.getElementById("rScore2").innerText=score2;
-
-let winner=score1>score2?team1:score2>score1?team2:"تعادل";
-document.getElementById("winnerName").innerText=winner;
-
-if(score1>score2){
-document.getElementById("rScore1").classList.add("green-bg");
-document.getElementById("rScore2").classList.add("red-bg");
-}else if(score2>score1){
-document.getElementById("rScore2").classList.add("green-bg");
-document.getElementById("rScore1").classList.add("red-bg");
-}
-}
 </script>
 </body>
 </html>
