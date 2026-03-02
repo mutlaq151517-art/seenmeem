@@ -5,32 +5,214 @@
 <title>سين ميم</title>
 <style>
 body{margin:0;font-family:Cairo;direction:rtl;background:#d9d9d9;}
-.topbar{background:linear-gradient(to right,#ff3b3b,#ff7a3d);color:white;padding:15px 25px;display:flex;justify-content:space-between;}
-.turn{background:#b30000;padding:8px 18px;border-radius:25px;}
-.board{padding:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
-.category{background:#eee;border-radius:25px;padding:15px;text-align:center;}
-.title{background:#ff7a3d;color:white;padding:8px;border-radius:10px;margin-bottom:10px;font-weight:bold;}
-.points{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
-.point{background:#ccc;padding:10px 20px;border-radius:20px;font-weight:bold;color:#b30000;cursor:pointer;}
+
+/* Top */
+.topbar{
+background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+color:white;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.turn{
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
+}
+
+.end-btn{
+background:#b30000;
+border:none;
+color:white;
+padding:8px 18px;
+border-radius:20px;
+cursor:pointer;
+}
+
+/* Board */
+.board{
+padding:30px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:30px;
+}
+
+.category{
+background:#eee;
+border-radius:25px;
+padding:15px;
+text-align:center;
+}
+
+.title{
+background:#ff7a3d;
+color:white;
+padding:8px;
+border-radius:10px;
+margin-bottom:10px;
+font-weight:bold;
+}
+
+.points{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:10px;
+}
+
+.point{
+background:#ccc;
+padding:10px 20px;
+border-radius:20px;
+font-weight:bold;
+color:#b30000;
+cursor:pointer;
+}
+
 .point.used{visibility:hidden;}
-.bottom{background:#eee;padding:20px;display:flex;justify-content:space-between;}
-.team{background:#b30000;color:white;padding:10px 20px;border-radius:25px;}
-.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;}
-.card{background:#f7f7f7;width:85%;max-width:1000px;height:75%;border:6px solid #e53935;border-radius:30px;padding:40px;display:flex;flex-direction:column;justify-content:space-between;}
-.timer{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#2c2c2c;color:white;padding:10px 25px;border-radius:30px;}
-.question{text-align:center;font-size:28px;font-weight:bold;margin-top:40px;}
-.answer{display:none;text-align:center;font-size:34px;font-weight:bold;}
-.buttons{display:flex;justify-content:space-between;}
-.btn{padding:10px 25px;border:none;border-radius:20px;color:white;cursor:pointer;}
+
+.bottom{
+background:#eee;
+padding:20px;
+display:flex;
+justify-content:space-between;
+}
+
+.team{
+background:#b30000;
+color:white;
+padding:10px 20px;
+border-radius:25px;
+}
+
+/* Overlay */
+.overlay{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,.6);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.card{
+background:#f7f7f7;
+width:85%;
+max-width:1000px;
+height:75%;
+border:6px solid #e53935;
+border-radius:30px;
+padding:40px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+position:relative;
+}
+
+.timer{
+position:absolute;
+top:10px;
+left:50%;
+transform:translateX(-50%);
+background:#2c2c2c;
+color:white;
+padding:10px 25px;
+border-radius:30px;
+}
+
+.question{
+text-align:center;
+font-size:28px;
+font-weight:bold;
+margin-top:40px;
+}
+
+.answer{
+display:none;
+text-align:center;
+font-size:34px;
+font-weight:bold;
+}
+
+.buttons{
+display:flex;
+justify-content:space-between;
+}
+
+.btn{
+padding:10px 25px;
+border:none;
+border-radius:20px;
+color:white;
+cursor:pointer;
+}
+
 .green{background:#2e7d32;}
 .red{background:#d32f2f;}
+.gray{background:#888;}
+
+/* Result Screen */
+.result-card{
+background:white;
+width:80%;
+max-width:900px;
+padding:50px;
+border-radius:30px;
+text-align:center;
+}
+
+.result-title{
+font-size:40px;
+margin-bottom:20px;
+}
+
+.winner-name{
+font-size:70px;
+color:#ff5c33;
+margin-bottom:40px;
+}
+
+.score-box{
+display:flex;
+justify-content:space-between;
+gap:30px;
+}
+
+.score{
+flex:1;
+border-radius:25px;
+overflow:hidden;
+}
+
+.score-header{
+background:#222;
+color:white;
+padding:15px;
+font-size:20px;
+}
+
+.score-value{
+padding:40px;
+font-size:50px;
+color:white;
+}
+
+.green-bg{background:#8db600;}
+.red-bg{background:#e31818;}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
 <div>سين ميم</div>
-<div class="turn" id="turnBox"></div>
+<div>
+<span class="turn" id="turnBox"></span>
+<button class="end-btn" onclick="endGame()">إنهاء اللعبة</button>
+</div>
 </div>
 
 <div class="board" id="board"></div>
@@ -40,15 +222,48 @@ body{margin:0;font-family:Cairo;direction:rtl;background:#d9d9d9;}
 <div class="team" id="team2Box"></div>
 </div>
 
+<!-- Question Overlay -->
 <div class="overlay" id="overlay">
 <div class="card">
 <div class="timer" id="timer">60</div>
+
 <div class="question" id="questionText"></div>
 <div class="answer" id="answerText"></div>
-<div class="buttons">
+
+<div class="buttons" id="mainButtons">
 <button class="btn green" onclick="showAnswer()">إظهار الإجابة</button>
 <button class="btn red" onclick="closeCard()">إغلاق</button>
 </div>
+
+<div id="teamChoice" style="display:none;flex-direction:column;gap:15px;">
+<h2 style="text-align:center;">أي فريق جاوب صح ؟</h2>
+<button class="btn red" onclick="givePoints(1)" id="team1Btn"></button>
+<button class="btn red" onclick="givePoints(2)" id="team2Btn"></button>
+<button class="btn gray" onclick="closeCard()">ولا أحد</button>
+<button class="btn green" onclick="backToAnswer()">العودة للإجابة</button>
+</div>
+
+</div>
+</div>
+
+<!-- Result Overlay -->
+<div class="overlay" id="resultOverlay">
+<div class="result-card">
+<div class="result-title">مبروك الفوز</div>
+<div class="winner-name" id="winnerName"></div>
+
+<div class="score-box">
+<div class="score">
+<div class="score-header" id="rTeam1"></div>
+<div class="score-value green-bg" id="rScore1"></div>
+</div>
+
+<div class="score">
+<div class="score-header" id="rTeam2"></div>
+<div class="score-value red-bg" id="rScore2"></div>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -63,6 +278,9 @@ window.location.href="select.html";
 const team1=localStorage.getItem("team1Name");
 const team2=localStorage.getItem("team2Name");
 
+let score1=0;
+let score2=0;
+let currentPoints=0;
 let currentTeam=1;
 let interval;
 let timeLeft=60;
@@ -100,17 +318,21 @@ div.innerHTML=`
 board.appendChild(div);
 });
 
-async function openQ(el,category,points){
-
+function openQ(el,category,points){
+currentPoints=points;
 el.classList.add("used");
 
 document.getElementById("overlay").style.display="flex";
 document.getElementById("questionText").innerText=
 "سؤال "+category+" بقيمة "+points;
-document.getElementById("answerText").innerText=
-"إجابة تجريبية";
+document.getElementById("answerText").innerText="إجابة تجريبية";
 
 document.getElementById("answerText").style.display="none";
+document.getElementById("mainButtons").style.display="flex";
+document.getElementById("teamChoice").style.display="none";
+
+document.getElementById("team1Btn").innerText=team1;
+document.getElementById("team2Btn").innerText=team2;
 
 startTimer();
 }
@@ -128,12 +350,37 @@ if(timeLeft<=0)clearInterval(interval);
 function showAnswer(){
 clearInterval(interval);
 document.getElementById("answerText").style.display="block";
+document.getElementById("mainButtons").style.display="none";
+document.getElementById("teamChoice").style.display="flex";
+}
+
+function backToAnswer(){
+document.getElementById("teamChoice").style.display="none";
+document.getElementById("answerText").style.display="block";
+}
+
+function givePoints(team){
+if(team===1){score1+=currentPoints;}
+else{score2+=currentPoints;}
+closeCard();
 }
 
 function closeCard(){
 clearInterval(interval);
 document.getElementById("overlay").style.display="none";
 switchTurn();
+}
+
+function endGame(){
+document.getElementById("resultOverlay").style.display="flex";
+
+document.getElementById("rTeam1").innerText=team1;
+document.getElementById("rTeam2").innerText=team2;
+document.getElementById("rScore1").innerText=score1;
+document.getElementById("rScore2").innerText=score2;
+
+let winner=score1>score2?team1:score2>score1?team2:"تعادل";
+document.getElementById("winnerName").innerText=winner;
 }
 
 </script>
