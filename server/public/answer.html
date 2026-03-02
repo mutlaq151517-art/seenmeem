@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>الإجابة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{
+margin:0;
+font-family:'Cairo',sans-serif;
+direction:rtl;
+background:#f4f4f4;
+}
 
+/* Top */
+.topbar{
+background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+color:white;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.turn{
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
+}
+
+/* Card */
+.wrapper{
+padding:40px;
+display:flex;
+justify-content:center;
+}
+
+.card{
+background:white;
+width:85%;
+border:6px solid #e53935;
+border-radius:30px;
+padding:40px;
+min-height:500px;
+position:relative;
+text-align:center;
+}
+
+.answer-title{
+font-size:40px;
+font-weight:bold;
+margin-bottom:30px;
+}
+
+.answer-img{
+max-width:500px;
+max-height:300px;
+object-fit:contain;
+margin-bottom:40px;
+}
+
+/* Buttons */
+.buttons{
+position:absolute;
+bottom:20px;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 20px;
+}
+
+.btn{
+border:none;
+padding:10px 25px;
+border-radius:20px;
+color:white;
+cursor:pointer;
+font-size:16px;
+}
+
+.blue{background:#1565c0;}
+.red{background:#d32f2f;}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+<div>سين ميم</div>
+<div class="turn" id="turnBox"></div>
+</div>
+
+<div class="wrapper">
+<div class="card">
+
+<div class="answer-title" id="answerText"></div>
+
+<img id="answerImage" class="answer-img">
+
+<div class="buttons">
+<button class="btn blue" onclick="goWinner()">أي فريق؟</button>
+<button class="btn red" onclick="goBack()">ارجع للسؤال</button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+const answer=localStorage.getItem("currentAnswer");
+const image=localStorage.getItem("currentImage");
+const teamTurn=localStorage.getItem("currentTeam");
+
+document.getElementById("answerText").innerText=answer;
+document.getElementById("answerImage").src=image;
+document.getElementById("turnBox").innerText="دور فريق: "+teamTurn;
+
+function goWinner(){
+window.location.href="winner.html";
+}
+
+function goBack(){
+window.location.href="question.html";
+}
+
+</script>
+
+</body>
+</html>
