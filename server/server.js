@@ -13,8 +13,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ================= MongoDB ================= */
-
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected ✅"))
 .catch(err => console.log("MongoDB Error ❌", err));
@@ -42,15 +40,12 @@ const questionSchema = new mongoose.Schema({
   category: String,
   difficulty: Number,
   question: String,
-  answer: String,
-  isStarter: { type: Boolean, default: false }
+  answer: String
 });
 
 const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
-
-/* ================= OpenAI ================= */
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -67,11 +62,7 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
-      email,
-      password: hashed
-    });
+    await User.create({ name, email, password: hashed });
 
     res.json({ message: "Registered ✅", name });
 
@@ -99,18 +90,14 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Get Categories ================= */
+/* ================= Categories ================= */
 
 app.get("/api/categories", async (req, res) => {
-  try {
-    const categories = await Category.find();
-    res.json(categories);
-  } catch {
-    res.status(500).json({ message: "Failed to fetch categories" });
-  }
+  const categories = await Category.find();
+  res.json(categories);
 });
 
-/* ================= Buy Game ================= */
+/* ================= Purchase Game ================= */
 
 app.post("/api/buy-game", async (req, res) => {
   try {
@@ -135,9 +122,10 @@ app.post("/api/start-game", async (req, res) => {
   try {
     const { email, section, category, difficulty } = req.body;
 
-    const user = await User.findOne({ email }).populate("usedQuestions");
+    const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    /* ✅ نتحقق من بداية لعبة جديدة فقط */
     if (user.gamesPlayed >= user.gamesAllowed) {
       return res.status(403).json({ message: "No plays left - Purchase required" });
     }
@@ -145,19 +133,18 @@ app.post("/api/start-game", async (req, res) => {
     let question = await Question.findOne({
       section,
       category,
-      difficulty,
-      _id: { $nin: user.usedQuestions }
+      difficulty
     });
 
     if (!question) {
 
       const prompt = `
-أنشئ سؤال دقيق متعلق مباشرة بالفئة:
+أنشئ سؤال دقيق متعلق فقط بالفئة:
 القسم: ${section}
 الفئة: ${category}
 المستوى: ${difficulty}
 
-أعد بصيغة JSON فقط:
+صيغة JSON فقط:
 {
  "question": "...",
  "answer": "..."
@@ -184,21 +171,36 @@ app.post("/api/start-game", async (req, res) => {
       });
     }
 
-    user.usedQuestions.push(question._id);
-    user.gamesPlayed += 1;
-    await user.save();
-
+    /* ❗ ما نزيد gamesPlayed هنا */
     res.json({
       question: question.question,
       answer: question.answer
     });
 
-  } catch {
+  } catch (err) {
     res.status(500).json({ message: "Game error" });
   }
 });
 
-/* ================= Serve Frontend ================= */
+/* ================= Start New Game ================= */
+
+app.post("/api/start-new-game", async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  if (user.gamesPlayed >= user.gamesAllowed) {
+    return res.status(403).json({ message: "Purchase required" });
+  }
+
+  user.gamesPlayed += 1;
+  await user.save();
+
+  res.json({ message: "Game started ✅" });
+});
+
+/* ================= Serve ================= */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -208,8 +210,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
-
-/* ================= Server ================= */
 
 const PORT = process.env.PORT || 5000;
 
