@@ -54,44 +54,6 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= Register ================= */
-
-app.post("/api/register", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: "User exists" });
-
-    const hashed = await bcrypt.hash(password, 10);
-    await User.create({ name, email, password: hashed });
-
-    res.json({ message: "Registered ✅", name });
-
-  } catch {
-    res.status(500).json({ message: "Register error" });
-  }
-});
-
-/* ================= Login ================= */
-
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ message: "Wrong password" });
-
-    res.json({ message: "Login success ✅", name: user.name, email });
-
-  } catch {
-    res.status(500).json({ message: "Login error" });
-  }
-});
-
 /* ================= Categories ================= */
 
 app.get("/api/categories", async (req, res) => {
@@ -99,27 +61,27 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 });
 
-/* ================= Question (OpenAI Integrated) ================= */
+/* ================= Question ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
     const { section, category, difficulty } = req.body;
 
-    // أولاً نحاول نجيب سؤال من الداتابيس
-    let question = await Question.findOne({
+    // 1️⃣ نحاول نجيب من الداتابيس
+    const existing = await Question.findOne({
       section,
       category,
       difficulty
     });
 
-    if (question) {
+    if (existing) {
       return res.json({
-        question: question.question,
-        answer: question.answer
+        question: existing.question,
+        answer: existing.answer
       });
     }
 
-    // إذا ما فيه سؤال في الداتابيس → نولد من OpenAI
+    // 2️⃣ توليد من OpenAI
     const level =
       difficulty == 200 ? "سهل جداً" :
       difficulty == 400 ? "متوسط" :
@@ -130,7 +92,7 @@ app.post("/api/start-game", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "أنت مولد أسئلة لعبة ثقافية عربية. أجب فقط بصيغة JSON."
+          content: "أنت مولد أسئلة لعبة ثقافية عربية. أعد الرد JSON فقط بدون أي شرح."
         },
         {
           role: "user",
@@ -151,17 +113,42 @@ app.post("/api/start-game", async (req, res) => {
       temperature: 0.7
     });
 
-    const aiText = completion.choices[0].message.content;
+    let aiText = completion.choices[0].message.content;
+
+    // تنظيف لو رجع داخل ```json
+    aiText = aiText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
     let parsed;
+
     try {
       parsed = JSON.parse(aiText);
-    } catch {
+    } catch (error) {
+      console.log("JSON Parse Error:", aiText);
       return res.json({
         question: "حدث خطأ في توليد السؤال",
         answer: "حاول مرة أخرى"
       });
     }
+
+    // تأكد ما يرجع undefined
+    if (!parsed.question || !parsed.answer) {
+      return res.json({
+        question: "تعذر توليد السؤال",
+        answer: "أعد المحاولة"
+      });
+    }
+
+    // 3️⃣ نخزن السؤال بالمستقبل (اختياري)
+    await Question.create({
+      section,
+      category,
+      difficulty,
+      question: parsed.question,
+      answer: parsed.answer
+    });
 
     res.json({
       question: parsed.question,
@@ -169,7 +156,7 @@ app.post("/api/start-game", async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err);
+    console.log("OpenAI Error:", err);
     res.status(500).json({ message: "Game error" });
   }
 });
