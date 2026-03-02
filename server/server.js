@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   gamesPlayed: { type: Number, default: 0 },
-  gamesAllowed: { type: Number, default: 1 },
+  gamesAllowed: { type: Number, default: 999 }, // ما يمنع اللعب
   isAdmin: { type: Boolean, default: false }
 });
 
@@ -76,7 +76,7 @@ app.post("/api/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: "Wrong password" });
 
-    res.json({ message: "Login success ✅", name: user.name });
+    res.json({ message: "Login success ✅", name: user.name, email });
 
   } catch {
     res.status(500).json({ message: "Login error" });
@@ -90,18 +90,11 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 });
 
-/* ================= Start Game ================= */
+/* ================= Question ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
-    const { email, section, category, difficulty } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (user.gamesPlayed >= user.gamesAllowed) {
-      return res.status(403).json({ message: "Purchase required" });
-    }
+    const { section, category, difficulty } = req.body;
 
     let question = await Question.findOne({
       section,
@@ -109,7 +102,6 @@ app.post("/api/start-game", async (req, res) => {
       difficulty
     });
 
-    /* لو ما فيه سؤال في الداتابيس */
     if (!question) {
       return res.json({
         question: `سؤال تجريبي لفئة ${category} مستوى ${difficulty}`,
@@ -122,8 +114,7 @@ app.post("/api/start-game", async (req, res) => {
       answer: question.answer
     });
 
-  } catch (err) {
-    console.log(err);
+  } catch {
     res.status(500).json({ message: "Game error" });
   }
 });
@@ -136,7 +127,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "home.html"));
 });
 
 const PORT = process.env.PORT || 5000;
