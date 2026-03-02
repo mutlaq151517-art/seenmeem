@@ -4,99 +4,124 @@
 <meta charset="UTF-8">
 <title>سين ميم</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-
 <style>
 body{
 margin:0;
-font-family:'Cairo',sans-serif;
+font-family:Cairo, Arial;
 direction:rtl;
-background:linear-gradient(135deg,#ff3b3b,#b30000);
-color:white;
+background:#d9d9d9;
 }
 
-/* ===== TOP ===== */
+/* ===== Top Bar ===== */
+
 .topbar{
+background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+color:white;
+padding:15px 25px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:15px 30px;
 font-weight:bold;
-font-size:20px;
 }
 
 .turn-box{
-background:white;
-color:#b30000;
-padding:8px 20px;
-border-radius:30px;
-font-weight:bold;
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
 }
 
-/* ===== BOARD ===== */
+/* ===== Board ===== */
+
 .board{
 padding:30px;
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:20px;
+gap:35px;
 }
 
 .category{
-background:rgba(255,255,255,0.15);
-border-radius:20px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+background:#eee;
+border-radius:25px;
 padding:15px;
+}
+
+.points-col{
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.point{
+background:#ccc;
+padding:10px 25px;
+border-radius:20px;
+font-size:22px;
+font-weight:bold;
+color:#b30000;
+cursor:pointer;
 text-align:center;
-backdrop-filter:blur(10px);
+min-width:80px;
+}
+
+.point:hover{
+background:#bbb;
+}
+
+.category-center{
+text-align:center;
+}
+
+.category-center img{
+width:120px;
+height:120px;
+object-fit:contain;
 }
 
 .category-title{
+background:#ff7a3d;
+color:white;
+padding:8px;
+border-radius:10px;
 margin-top:10px;
-font-weight:900;
-}
-
-.points{
-background:white;
-color:#b30000;
-margin:8px 0;
-padding:12px;
-border-radius:15px;
-font-size:22px;
 font-weight:bold;
-cursor:pointer;
-transition:0.2s;
 }
 
-.points:hover{
-transform:scale(1.05);
-}
+/* ===== Bottom ===== */
 
-/* ===== TEAMS ===== */
 .bottom{
+background:#eee;
+padding:25px;
 display:flex;
-justify-content:space-around;
-padding:20px;
-}
-
-.team{
-background:white;
-color:#b30000;
-padding:15px;
-border-radius:20px;
-width:35%;
-text-align:center;
-}
-
-.score{
-margin-top:10px;
-display:flex;
-justify-content:center;
-gap:10px;
+justify-content:space-between;
 align-items:center;
 }
 
+.team{
+background:#b30000;
+color:white;
+padding:12px 25px;
+border-radius:25px;
+display:flex;
+align-items:center;
+gap:20px;
+}
+
+.score-box{
+background:white;
+color:black;
+padding:5px 15px;
+border-radius:25px;
+display:flex;
+align-items:center;
+gap:15px;
+}
+
 .btn{
-width:35px;
-height:35px;
+width:30px;
+height:30px;
 border-radius:50%;
 border:none;
 font-size:18px;
@@ -106,14 +131,13 @@ cursor:pointer;
 .plus{background:#2ecc71;color:white;}
 .minus{background:#e74c3c;color:white;}
 
-/* ===== MODAL ===== */
 .modal{
 position:fixed;
 top:0;
 left:0;
 width:100%;
 height:100%;
-background:rgba(0,0,0,0.8);
+background:rgba(0,0,0,0.6);
 display:none;
 justify-content:center;
 align-items:center;
@@ -121,39 +145,18 @@ align-items:center;
 
 .modal-content{
 background:white;
-color:#333;
-padding:40px;
-border-radius:25px;
-width:90%;
+padding:30px;
+border-radius:20px;
+width:80%;
 max-width:600px;
 text-align:center;
 }
 
-.timer{
-font-size:45px;
-color:#b30000;
-margin:20px 0;
-font-weight:bold;
-}
-
-.modal button{
-margin:10px;
-padding:10px 20px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-font-weight:bold;
-}
-
-.show-btn{background:#b30000;color:white;}
-.reset-btn{background:#333;color:white;}
-.close-btn{background:#999;color:white;}
-
 .answer{
 margin-top:20px;
-font-size:20px;
-font-weight:bold;
 display:none;
+font-weight:bold;
+color:#b30000;
 }
 </style>
 </head>
@@ -171,7 +174,7 @@ display:none;
 
 <div class="team">
 <span id="team1Label"></span>
-<div class="score">
+<div class="score-box">
 <button class="btn minus" onclick="changeScore('t1',-100)">-</button>
 <span id="t1">0</span>
 <button class="btn plus" onclick="changeScore('t1',100)">+</button>
@@ -180,7 +183,7 @@ display:none;
 
 <div class="team">
 <span id="team2Label"></span>
-<div class="score">
+<div class="score-box">
 <button class="btn minus" onclick="changeScore('t2',-100)">-</button>
 <span id="t2">0</span>
 <button class="btn plus" onclick="changeScore('t2',100)">+</button>
@@ -191,36 +194,25 @@ display:none;
 
 <div class="modal" id="questionModal">
 <div class="modal-content">
+<h3 id="questionText"></h3>
 
-<h2 id="questionText"></h2>
-
-<div class="timer" id="timer">60</div>
-
-<button class="show-btn" onclick="showAnswer()">إظهار الإجابة</button>
-<button class="reset-btn" onclick="resetTimer()">إعادة الوقت</button>
-<button class="close-btn" onclick="closeModal()">إغلاق</button>
-
+<button onclick="showAnswer()">إظهار الإجابة</button>
 <div class="answer" id="answerText"></div>
 
+<br><br>
+<button onclick="closeModal()">إغلاق</button>
 </div>
 </div>
 
 <script>
 
-const selectedCategories = JSON.parse(localStorage.getItem("selectedCategories"));
-const team1 = localStorage.getItem("team1Name");
-const team2 = localStorage.getItem("team2Name");
+const selectedCategories = JSON.parse(localStorage.getItem("selectedCategories")) || [];
+const team1 = localStorage.getItem("team1Name") || "الفريق الأول";
+const team2 = localStorage.getItem("team2Name") || "الفريق الثاني";
 const email = localStorage.getItem("userEmail");
 
 let currentTeam = 1;
-let timerInterval;
-let timeLeft = 60;
 let currentAnswer = "";
-
-if(!selectedCategories || selectedCategories.length !== 6){
-alert("ارجع واختَر الفئات");
-window.location.href="setup.html";
-}
 
 document.getElementById("team1Label").innerText = team1;
 document.getElementById("team2Label").innerText = team2;
@@ -229,7 +221,7 @@ updateTurn();
 
 function updateTurn(){
 let name = currentTeam === 1 ? team1 : team2;
-document.getElementById("turnBox").innerText = "دور الفريق : " + name;
+document.getElementById("turnBox").innerText = "دور فريق : " + name;
 }
 
 function switchTurn(){
@@ -237,23 +229,42 @@ currentTeam = currentTeam === 1 ? 2 : 1;
 updateTurn();
 }
 
+/* ===== Build Board ===== */
+
 const board = document.getElementById("board");
 
 selectedCategories.forEach(category=>{
+
 const div = document.createElement("div");
 div.className="category";
 
 div.innerHTML=`
-<div class="points" onclick="pick(this,'${category}',200)">200</div>
-<div class="points" onclick="pick(this,'${category}',400)">400</div>
-<div class="points" onclick="pick(this,'${category}',600)">600</div>
+<div class="points-col">
+<div class="point" onclick="pick(this,'${category}',200)">200</div>
+<div class="point" onclick="pick(this,'${category}',400)">400</div>
+<div class="point" onclick="pick(this,'${category}',600)">600</div>
+</div>
+
+<div class="category-center">
+<img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png">
 <div class="category-title">${category}</div>
+</div>
+
+<div class="points-col">
+<div class="point" onclick="pick(this,'${category}',200)">200</div>
+<div class="point" onclick="pick(this,'${category}',400)">400</div>
+<div class="point" onclick="pick(this,'${category}',600)">600</div>
+</div>
 `;
 
 board.appendChild(div);
 });
 
+/* ===== Pick Question ===== */
+
 async function pick(el,category,difficulty){
+
+try{
 
 const res = await fetch("/api/start-game",{
 method:"POST",
@@ -268,53 +279,33 @@ difficulty
 
 const data = await res.json();
 
-if(res.ok){
+if(!res.ok){
+alert(data.message || "Game error");
+return;
+}
 
-document.getElementById("questionText").innerText = data.question;
 currentAnswer = data.answer;
 
+document.getElementById("questionText").innerText = data.question;
 document.getElementById("answerText").style.display="none";
 document.getElementById("questionModal").style.display="flex";
 
-startTimer();
-
 el.style.visibility="hidden";
+switchTurn();
 
-}else{
-alert(data.message);
-}
-}
-
-function startTimer(){
-timeLeft = 60;
-document.getElementById("timer").innerText = timeLeft;
-
-clearInterval(timerInterval);
-
-timerInterval = setInterval(()=>{
-timeLeft--;
-document.getElementById("timer").innerText = timeLeft;
-
-if(timeLeft <= 0){
-clearInterval(timerInterval);
-}
-},1000);
+}catch{
+alert("Game error");
 }
 
-function resetTimer(){
-startTimer();
 }
 
 function showAnswer(){
-document.getElementById("answerText").innerText = "الإجابة: " + currentAnswer;
+document.getElementById("answerText").innerText = currentAnswer;
 document.getElementById("answerText").style.display="block";
-clearInterval(timerInterval);
-switchTurn();
 }
 
 function closeModal(){
 document.getElementById("questionModal").style.display="none";
-clearInterval(timerInterval);
 }
 
 function changeScore(id,val){
