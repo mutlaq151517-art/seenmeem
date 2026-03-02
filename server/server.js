@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   password: String,
   gamesPlayed: { type: Number, default: 0 },
-  gamesAllowed: { type: Number, default: 1 }, // لعبة وحدة فقط
+  gamesAllowed: { type: Number, default: 1 },
   usedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   isAdmin: { type: Boolean, default: false }
 });
@@ -43,7 +43,7 @@ const questionSchema = new mongoose.Schema({
   difficulty: Number,
   question: String,
   answer: String,
-  isStarter: { type: Boolean, default: false } // باقة أول لعبة
+  isStarter: { type: Boolean, default: false }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -99,7 +99,18 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Purchase Game ================= */
+/* ================= Get Categories ================= */
+
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch categories" });
+  }
+});
+
+/* ================= Buy Game ================= */
 
 app.post("/api/buy-game", async (req, res) => {
   try {
@@ -131,102 +142,46 @@ app.post("/api/start-game", async (req, res) => {
       return res.status(403).json({ message: "No plays left - Purchase required" });
     }
 
-    let question;
+    let question = await Question.findOne({
+      section,
+      category,
+      difficulty,
+      _id: { $nin: user.usedQuestions }
+    });
 
-    /* ===== أول لعبة: باقة ثابتة ===== */
-    if (user.gamesPlayed === 0) {
+    if (!question) {
 
-      question = await Question.findOne({
-        section,
-        category,
-        difficulty,
-        isStarter: true
-      });
-
-      if (!question) {
-
-        const prompt = `
-أنشئ سؤال دقيق مرتبط فقط بالفئة التالية:
+      const prompt = `
+أنشئ سؤال دقيق متعلق مباشرة بالفئة:
 القسم: ${section}
 الفئة: ${category}
 المستوى: ${difficulty}
 
-شروط صارمة:
-- متعلق مباشرة بالفئة
-- إجابة واحدة فقط
-- لا شرح
-- صيغة JSON فقط
+أعد بصيغة JSON فقط:
 {
  "question": "...",
  "answer": "..."
 }
 `;
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7
-        });
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7
+      });
 
-        const parsed = JSON.parse(completion.choices[0].message.content);
+      const parsed = JSON.parse(completion.choices[0].message.content);
 
-        question = await Question.create({
-          section,
-          category,
-          difficulty,
-          question: parsed.question,
-          answer: parsed.answer,
-          isStarter: true
-        });
-      }
-
-    } else {
-
-      /* ===== ألعاب مدفوعة ===== */
-      question = await Question.findOne({
+      question = await Question.create({
         section,
         category,
         difficulty,
-        _id: { $nin: user.usedQuestions }
+        question: parsed.question,
+        answer: parsed.answer
       });
-
-      if (!question) {
-
-        const prompt = `
-أنشئ سؤال جديد وغير مكرر متعلق فقط بالفئة:
-القسم: ${section}
-الفئة: ${category}
-المستوى: ${difficulty}
-
-صيغة JSON فقط:
-{
- "question": "...",
- "answer": "..."
-}
-`;
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "أنت خبير إنشاء أسئلة مسابقات دقيقة." },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7
-        });
-
-        const parsed = JSON.parse(completion.choices[0].message.content);
-
-        question = await Question.create({
-          section,
-          category,
-          difficulty,
-          question: parsed.question,
-          answer: parsed.answer
-        });
-      }
     }
 
     user.usedQuestions.push(question._id);
@@ -238,7 +193,7 @@ app.post("/api/start-game", async (req, res) => {
       answer: question.answer
     });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Game error" });
   }
 });
