@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import path from "path";
 import { fileURLToPath } from "url";
 import OpenAI from "openai";
@@ -15,7 +16,7 @@ app.use(express.json());
 /* ================= OpenAI ================= */
 
 if (!process.env.OPENAI_API_KEY) {
-  console.log("❌ OPENAI_API_KEY NOT FOUND IN RENDER ENV");
+  console.log("❌ OPENAI_API_KEY NOT FOUND");
 }
 
 const openai = new OpenAI({
@@ -30,22 +31,71 @@ mongoose.connect(process.env.MONGO_URI)
 
 /* ================= Schemas ================= */
 
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String
+});
+
 const categorySchema = new mongoose.Schema({
   section: String,
   name: String,
   image: String
 });
 
-const questionSchema = new mongoose.Schema({
-  section: String,
-  category: String,
-  difficulty: Number,
-  question: String,
-  answer: String
+const User = mongoose.model("User", userSchema);
+const Category = mongoose.model("Category", categorySchema);
+
+/* ================= Register ================= */
+
+app.post("/api/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "المستخدم موجود مسبقاً" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    await User.create({
+      name,
+      email,
+      password: hashed
+    });
+
+    res.json({ message: "تم إنشاء الحساب ✅" });
+
+  } catch (err) {
+    console.log("Register Error:", err);
+    res.status(500).json({ message: "خطأ في التسجيل" });
+  }
 });
 
-const Category = mongoose.model("Category", categorySchema);
-const Question = mongoose.model("Question", questionSchema);
+/* ================= Login ================= */
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: "كلمة المرور غير صحيحة" });
+    }
+
+    res.json({ message: "تم تسجيل الدخول ✅", name: user.name });
+
+  } catch (err) {
+    console.log("Login Error:", err);
+    res.status(500).json({ message: "خطأ في تسجيل الدخول" });
+  }
+});
 
 /* ================= Categories ================= */
 
@@ -54,33 +104,16 @@ app.get("/api/categories", async (req, res) => {
     const categories = await Category.find();
     res.json(categories);
   } catch (err) {
-    console.log("Categories Error:", err);
     res.json([]);
   }
 });
 
-/* ================= Question ================= */
+/* ================= Question (Always New) ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
 
-    const { section, category, difficulty } = req.body;
-
-    /* 1️⃣ من الداتابيس */
-    const existing = await Question.findOne({
-      section,
-      category,
-      difficulty
-    });
-
-    if (existing) {
-      return res.json({
-        question: existing.question,
-        answer: existing.answer
-      });
-    }
-
-    /* 2️⃣ توليد من OpenAI */
+    const { category, difficulty } = req.body;
 
     const level =
       difficulty == 200 ? "سهل جداً" :
@@ -97,7 +130,7 @@ app.post("/api/start-game", async (req, res) => {
         {
           role: "user",
           content: `
-أنشئ سؤالاً واحداً باللغة العربية.
+أنشئ سؤالاً جديداً ومختلفاً باللغة العربية.
 
 الفئة: ${category}
 مستوى الصعوبة: ${level}
@@ -110,25 +143,16 @@ app.post("/api/start-game", async (req, res) => {
 `
         }
       ],
-      temperature: 0.7,
+      temperature: 0.9,
       response_format: { type: "json_object" }
     });
 
-    const parsed = completion.choices[0].message;
+    const content = completion.choices[0].message.content;
+    const parsed = JSON.parse(content);
 
-    if (!parsed || !parsed.question || !parsed.answer) {
-      console.log("⚠️ OpenAI returned empty object");
+    if (!parsed.question || !parsed.answer) {
       return fallbackQuestion(res);
     }
-
-    /* 3️⃣ تخزين السؤال */
-    await Question.create({
-      section,
-      category,
-      difficulty,
-      question: parsed.question,
-      answer: parsed.answer
-    });
 
     return res.json({
       question: parsed.question,
@@ -136,14 +160,12 @@ app.post("/api/start-game", async (req, res) => {
     });
 
   } catch (err) {
-
-    console.log("🔥 OPENAI ERROR:", err?.message);
-
+    console.log("OpenAI Error:", err?.message);
     return fallbackQuestion(res);
   }
 });
 
-/* ================= Fallback Question ================= */
+/* ================= Fallback ================= */
 
 function fallbackQuestion(res) {
   return res.json({
