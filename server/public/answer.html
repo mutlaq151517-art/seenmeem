@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>الإجابة</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
 <style>
 body{
 margin:0;
@@ -12,7 +13,6 @@ direction:rtl;
 background:#f4f4f4;
 }
 
-/* Top */
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
 color:white;
@@ -26,9 +26,9 @@ align-items:center;
 background:#b30000;
 padding:8px 18px;
 border-radius:25px;
+font-weight:bold;
 }
 
-/* Card */
 .wrapper{
 padding:40px;
 display:flex;
@@ -38,49 +38,41 @@ justify-content:center;
 .card{
 background:white;
 width:85%;
-border:6px solid #e53935;
-border-radius:30px;
-padding:40px;
-min-height:500px;
+border:8px solid #ff5c33;
+border-radius:35px;
+padding:60px 40px;
+min-height:520px;
 position:relative;
 text-align:center;
 }
 
 .answer-title{
-font-size:40px;
-font-weight:bold;
-margin-bottom:30px;
-}
-
-.answer-img{
-max-width:500px;
-max-height:300px;
-object-fit:contain;
+font-size:38px;
+font-weight:900;
 margin-bottom:40px;
 }
 
-/* Buttons */
 .buttons{
 position:absolute;
-bottom:20px;
+bottom:25px;
 width:100%;
 display:flex;
 justify-content:space-between;
-padding:0 20px;
+padding:0 30px;
 }
 
 .btn{
 border:none;
-padding:10px 25px;
-border-radius:20px;
+padding:12px 30px;
+border-radius:25px;
 color:white;
 cursor:pointer;
-font-size:16px;
+font-size:18px;
+font-weight:bold;
 }
 
 .blue{background:#1565c0;}
 .red{background:#d32f2f;}
-
 </style>
 </head>
 <body>
@@ -95,11 +87,9 @@ font-size:16px;
 
 <div class="answer-title" id="answerText"></div>
 
-<img id="answerImage" class="answer-img">
-
 <div class="buttons">
-<button class="btn blue" onclick="goWinner()">أي فريق؟</button>
-<button class="btn red" onclick="goBack()">ارجع للسؤال</button>
+<button class="btn blue" onclick="goWinner()">أي فريق ؟</button>
+<button class="btn red" onclick="goBack()">العودة للإجابة</button>
 </div>
 
 </div>
@@ -107,13 +97,11 @@ font-size:16px;
 
 <script>
 
-const answer=localStorage.getItem("currentAnswer");
-const image=localStorage.getItem("currentImage");
-const teamTurn=localStorage.getItem("currentTeam");
+const answer = localStorage.getItem("currentAnswer");
+const teamTurn = localStorage.getItem("currentTeam");
 
-document.getElementById("answerText").innerText=answer;
-document.getElementById("answerImage").src=image;
-document.getElementById("turnBox").innerText="دور فريق: "+teamTurn;
+document.getElementById("answerText").innerText = answer;
+document.getElementById("turnBox").innerText = "دور فريق: " + teamTurn;
 
 function goWinner(){
 window.location.href="winner.html";
@@ -124,6 +112,5 @@ window.location.href="question.html";
 }
 
 </script>
-
 </body>
 </html>
