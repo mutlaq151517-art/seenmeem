@@ -3,60 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <title>اختيار الفئات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
 body{
 margin:0;
-font-family:Cairo, Arial;
+font-family:'Cairo',sans-serif;
 direction:rtl;
 background:#f2f2f2;
-padding:30px;
+padding:40px;
 }
 
 h2{
 text-align:center;
-margin-bottom:30px;
+margin-bottom:40px;
+font-size:32px;
+font-weight:900;
 }
+
+/* ===== GRID ===== */
 
 .grid{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:20px;
+grid-template-columns:repeat(4,1fr);
+gap:30px;
 }
 
+/* ===== CARD ===== */
+
 .card{
+position:relative;
 background:white;
-padding:20px;
-border-radius:15px;
-text-align:center;
+border-radius:30px;
+overflow:hidden;
 cursor:pointer;
-border:3px solid transparent;
-transition:0.2s;
+transition:0.3s;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card:hover{
+transform:translateY(-5px);
 }
 
 .card.selected{
-border:3px solid #b30000;
-background:#ffe6e6;
+outline:6px solid #ff7a3d;
 }
 
-img{
-width:60px;
-height:60px;
+/* ===== IMAGE ===== */
+
+.card img{
+width:100%;
+height:220px;
+object-fit:cover;
+display:block;
 }
+
+/* ===== TITLE BAR ===== */
+
+.card-title{
+background:#ff7a3d;
+color:white;
+text-align:center;
+padding:15px;
+font-size:22px;
+font-weight:bold;
+}
+
+/* ===== INFO ICON ===== */
+
+.info{
+position:absolute;
+top:15px;
+left:15px;
+width:35px;
+height:35px;
+background:#2d8cff;
+color:white;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:bold;
+font-size:18px;
+}
+
+/* ===== BUTTON ===== */
 
 button{
-margin-top:30px;
-padding:15px 25px;
+margin-top:50px;
+padding:18px 40px;
 border:none;
-border-radius:12px;
+border-radius:25px;
 background:#b30000;
 color:white;
-font-size:18px;
+font-size:20px;
 cursor:pointer;
 display:block;
 margin-left:auto;
 margin-right:auto;
+font-weight:bold;
 }
+
+button:hover{
+background:#8f0000;
+}
+
+@media(max-width:1200px){
+.grid{
+grid-template-columns:repeat(2,1fr);
+}
+}
+
 </style>
 </head>
 
@@ -78,46 +135,28 @@ if(!localStorage.getItem("userEmail")){
 
 let selected = [];
 
-function resetMatch(){
-localStorage.removeItem("score1");
-localStorage.removeItem("score2");
-localStorage.removeItem("turnTeam");
-localStorage.removeItem("usedQuestions");
-localStorage.removeItem("matchStarted");
-localStorage.removeItem("currentQuestion");
-localStorage.removeItem("currentAnswer");
-localStorage.removeItem("currentPoints");
-localStorage.removeItem("currentCategory");
-localStorage.removeItem("currentTeam");
-}
-
 async function loadCategories(){
 try{
 
 const res = await fetch("/api/categories");
-
 if(!res.ok){
-alert("مشكلة في جلب الفئات من السيرفر");
+alert("مشكلة في جلب الفئات");
 return;
 }
 
 const data = await res.json();
-
 const container = document.getElementById("categories");
 container.innerHTML = "";
 
-if(!data.length){
-container.innerHTML = "<p style='text-align:center'>لا توجد فئات مضافة</p>";
-return;
-}
-
 data.forEach(cat=>{
+
 const div = document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<img src="${cat.image}" onerror="this.src='https://via.placeholder.com/60'">
-<h4>${cat.name}</h4>
+<div class="info">i</div>
+<img src="${cat.image}" onerror="this.src='https://via.placeholder.com/400x220'">
+<div class="card-title">${cat.name}</div>
 `;
 
 div.onclick=()=>{
@@ -126,7 +165,7 @@ selected = selected.filter(c=>c!==cat.name);
 div.classList.remove("selected");
 }else{
 if(selected.length>=6){
-alert("اختر 6 فقط");
+alert("تقدر تختار 6 فقط");
 return;
 }
 selected.push(cat.name);
@@ -147,9 +186,6 @@ if(selected.length!==6){
 alert("لازم تختار 6 فئات");
 return;
 }
-
-/* تصفير كامل قبل أي لعبة جديدة */
-resetMatch();
 
 localStorage.setItem("selectedCategories",JSON.stringify(selected));
 window.location.href="teams.html";
