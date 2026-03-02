@@ -131,7 +131,9 @@ cursor:pointer;
 .plus{background:#2ecc71;color:white;}
 .minus{background:#e74c3c;color:white;}
 
-.modal{
+/* ===== QUESTION OVERLAY ===== */
+
+.game-overlay{
 position:fixed;
 top:0;
 left:0;
@@ -141,22 +143,83 @@ background:rgba(0,0,0,0.6);
 display:none;
 justify-content:center;
 align-items:center;
+z-index:999;
 }
 
-.modal-content{
+.game-card{
 background:white;
-padding:30px;
-border-radius:20px;
-width:80%;
-max-width:600px;
-text-align:center;
+width:85%;
+max-width:1000px;
+height:75%;
+border:6px solid #e53935;
+border-radius:30px;
+position:relative;
+padding:40px;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
 }
 
-.answer{
-margin-top:20px;
-display:none;
+.timer{
+position:absolute;
+top:-25px;
+left:50%;
+transform:translateX(-50%);
+background:#2c2c2c;
+color:white;
+padding:10px 25px;
+border-radius:30px;
 font-weight:bold;
-color:#b30000;
+font-size:20px;
+}
+
+.points-badge{
+position:absolute;
+top:20px;
+right:20px;
+background:black;
+color:white;
+padding:8px 15px;
+border-radius:15px;
+}
+
+.question-text{
+font-size:28px;
+font-weight:bold;
+text-align:center;
+margin-top:40px;
+}
+
+.answer-text{
+display:none;
+font-size:32px;
+font-weight:bold;
+text-align:center;
+color:#222;
+margin-top:40px;
+}
+
+.game-buttons{
+display:flex;
+justify-content:space-between;
+}
+
+.btn-green{
+background:#2e7d32;
+color:white;
+border:none;
+padding:12px 25px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.btn-red{
+background:#d32f2f;
+color:white;
+border:none;
+padding:12px 25px;
+border-radius:20px;
+cursor:pointer;
 }
 </style>
 </head>
@@ -192,15 +255,22 @@ color:#b30000;
 
 </div>
 
-<div class="modal" id="questionModal">
-<div class="modal-content">
-<h3 id="questionText"></h3>
+<!-- ===== QUESTION SCREEN ===== -->
 
-<button onclick="showAnswer()">إظهار الإجابة</button>
-<div class="answer" id="answerText"></div>
+<div class="game-overlay" id="gameOverlay">
+<div class="game-card">
 
-<br><br>
-<button onclick="closeModal()">إغلاق</button>
+<div class="timer" id="timer">60</div>
+<div class="points-badge" id="pointsBadge"></div>
+
+<div class="question-text" id="bigQuestion"></div>
+<div class="answer-text" id="bigAnswer"></div>
+
+<div class="game-buttons">
+<button class="btn-green" onclick="showBigAnswer()">الإجابة</button>
+<button class="btn-red" onclick="closeBigGame()">رجوع</button>
+</div>
+
 </div>
 </div>
 
@@ -212,7 +282,8 @@ const team2 = localStorage.getItem("team2Name") || "الفريق الثاني";
 const email = localStorage.getItem("userEmail");
 
 let currentTeam = 1;
-let currentAnswer = "";
+let countdown;
+let timeLeft = 60;
 
 document.getElementById("team1Label").innerText = team1;
 document.getElementById("team2Label").innerText = team2;
@@ -284,11 +355,15 @@ alert(data.message || "Game error");
 return;
 }
 
-currentAnswer = data.answer;
+document.getElementById("bigQuestion").innerText = data.question;
+document.getElementById("bigAnswer").innerText = data.answer;
+document.getElementById("bigAnswer").style.display="none";
 
-document.getElementById("questionText").innerText = data.question;
-document.getElementById("answerText").style.display="none";
-document.getElementById("questionModal").style.display="flex";
+document.getElementById("pointsBadge").innerText = difficulty + " نقطة";
+
+document.getElementById("gameOverlay").style.display="flex";
+
+startTimer();
 
 el.style.visibility="hidden";
 switchTurn();
@@ -296,16 +371,30 @@ switchTurn();
 }catch{
 alert("Game error");
 }
-
 }
 
-function showAnswer(){
-document.getElementById("answerText").innerText = currentAnswer;
-document.getElementById("answerText").style.display="block";
+function startTimer(){
+timeLeft = 60;
+document.getElementById("timer").innerText = timeLeft;
+
+countdown = setInterval(()=>{
+timeLeft--;
+document.getElementById("timer").innerText = timeLeft;
+
+if(timeLeft <= 0){
+clearInterval(countdown);
+}
+},1000);
 }
 
-function closeModal(){
-document.getElementById("questionModal").style.display="none";
+function showBigAnswer(){
+document.getElementById("bigAnswer").style.display="block";
+clearInterval(countdown);
+}
+
+function closeBigGame(){
+document.getElementById("gameOverlay").style.display="none";
+clearInterval(countdown);
 }
 
 function changeScore(id,val){
