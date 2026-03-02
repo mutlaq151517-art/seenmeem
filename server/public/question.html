@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>السؤال</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body{
+margin:0;
+font-family:'Cairo',sans-serif;
+direction:rtl;
+background:#f4f4f4;
+}
 
+/* Top Bar */
+.topbar{
+background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+color:white;
+padding:15px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.turn{
+background:#b30000;
+padding:8px 18px;
+border-radius:25px;
+}
+
+/* Main Box */
+.wrapper{
+padding:40px;
+display:flex;
+justify-content:center;
+}
+
+.card{
+background:white;
+width:85%;
+border:6px solid #e53935;
+border-radius:30px;
+padding:40px;
+position:relative;
+min-height:500px;
+}
+
+/* Timer */
+.timer-box{
+position:absolute;
+top:-25px;
+left:50%;
+transform:translateX(-50%);
+background:#2d2b3a;
+color:white;
+padding:10px 30px;
+border-radius:30px;
+font-size:20px;
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+/* Points */
+.points{
+position:absolute;
+top:20px;
+left:20px;
+background:black;
+color:white;
+padding:8px 15px;
+border-radius:20px;
+font-size:14px;
+}
+
+/* Question Text */
+.question{
+text-align:center;
+margin-top:80px;
+font-size:28px;
+font-weight:bold;
+line-height:1.8;
+}
+
+/* Buttons */
+.buttons{
+position:absolute;
+bottom:20px;
+width:100%;
+display:flex;
+justify-content:space-between;
+padding:0 20px;
+}
+
+.btn{
+border:none;
+padding:10px 25px;
+border-radius:20px;
+color:white;
+cursor:pointer;
+font-size:16px;
+}
+
+.green{background:#2e7d32;}
+.orange{background:#ff7a3d;}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+<div>سين ميم</div>
+<div class="turn" id="turnBox"></div>
+</div>
+
+<div class="wrapper">
+<div class="card">
+
+<div class="timer-box">
+<span id="pauseBtn">⏸</span>
+<span id="timer">60</span>
+</div>
+
+<div class="points" id="pointsBox">200 نقطة</div>
+
+<div class="question" id="questionText"></div>
+
+<div class="buttons">
+<button class="btn green" onclick="goAnswer()">الإجابة</button>
+<button class="btn orange" id="categoryBtn"></button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let timeLeft=60;
+let interval;
+let paused=false;
+
+const question=localStorage.getItem("currentQuestion");
+const points=localStorage.getItem("currentPoints");
+const category=localStorage.getItem("currentCategory");
+const teamTurn=localStorage.getItem("currentTeam");
+
+document.getElementById("questionText").innerText=question;
+document.getElementById("pointsBox").innerText=points+" نقطة";
+document.getElementById("categoryBtn").innerText=category;
+document.getElementById("turnBox").innerText="دور فريق: "+teamTurn;
+
+startTimer();
+
+function startTimer(){
+interval=setInterval(()=>{
+if(!paused){
+timeLeft--;
+document.getElementById("timer").innerText=timeLeft;
+if(timeLeft<=0)clearInterval(interval);
+}
+},1000);
+}
+
+document.getElementById("pauseBtn").onclick=()=>{
+paused=!paused;
+}
+
+function goAnswer(){
+clearInterval(interval);
+window.location.href="answer.html";
+}
+
+</script>
+
+</body>
+</html>
