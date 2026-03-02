@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>سين ميم</title>
+
 <style>
 body{
 margin:0;
@@ -61,10 +62,15 @@ color:#b30000;
 cursor:pointer;
 text-align:center;
 min-width:90px;
+transition:0.2s;
 }
 
+/* بدل الإخفاء نخليه باهت */
 .point.used{
-visibility:hidden;
+opacity:0.35;
+pointer-events:none;
+background:#bdbdbd;
+color:#777;
 }
 
 .category-center{
@@ -137,13 +143,26 @@ border-radius:25px;
 
 <script>
 
-const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories"));
-const team1 = localStorage.getItem("team1Name");
-const team2 = localStorage.getItem("team2Name");
+/* ================= CLEAN START ================= */
+
+if(!localStorage.getItem("gameStarted")){
+localStorage.setItem("score1",0);
+localStorage.setItem("score2",0);
+localStorage.setItem("turnTeam",localStorage.getItem("team1Name"));
+localStorage.setItem("usedQuestions",JSON.stringify([]));
+localStorage.setItem("gameStarted","yes");
+}
+
+/* ================= VARIABLES ================= */
+
+const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories")) || [];
+const team1 = localStorage.getItem("team1Name") || "فريق 1";
+const team2 = localStorage.getItem("team2Name") || "فريق 2";
 
 let score1 = parseInt(localStorage.getItem("score1")) || 0;
 let score2 = parseInt(localStorage.getItem("score2")) || 0;
 let currentTeam = localStorage.getItem("turnTeam") || team1;
+let usedQuestions = JSON.parse(localStorage.getItem("usedQuestions")) || [];
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
@@ -162,13 +181,14 @@ localStorage.setItem("turnTeam", currentTeam);
 updateTurn();
 }
 
-/* ===== Load Categories ===== */
+/* ================= LOAD BOARD ================= */
 
 fetch("/api/categories")
 .then(res=>res.json())
 .then(data=>{
 
 const board=document.getElementById("board");
+board.innerHTML="";
 
 categoriesSelected.forEach(catName=>{
 
@@ -180,31 +200,50 @@ div.className="category";
 
 div.innerHTML=`
 <div class="points-col">
-<div class="point" onclick="openQ(this,'${cat.name}',200)">200</div>
-<div class="point" onclick="openQ(this,'${cat.name}',400)">400</div>
-<div class="point" onclick="openQ(this,'${cat.name}',600)">600</div>
+${createPoint(cat.name,200)}
+${createPoint(cat.name,400)}
+${createPoint(cat.name,600)}
 </div>
 
 <div class="category-center">
-<img src="${cat.image}">
+<img src="${cat.image || ''}">
 <div class="category-title">${cat.name}</div>
 </div>
 
 <div class="points-col">
-<div class="point" onclick="openQ(this,'${cat.name}',200)">200</div>
-<div class="point" onclick="openQ(this,'${cat.name}',400)">400</div>
-<div class="point" onclick="openQ(this,'${cat.name}',600)">600</div>
+${createPoint(cat.name,200)}
+${createPoint(cat.name,400)}
+${createPoint(cat.name,600)}
 </div>
 `;
 
 board.appendChild(div);
 
 });
+
 });
 
-/* ===== Open Question ===== */
+/* ================= CREATE POINT BUTTON ================= */
+
+function createPoint(category,points){
+
+const key = category+"_"+points;
+const used = usedQuestions.includes(key) ? "used" : "";
+
+return `<div class="point ${used}" 
+onclick="openQ(this,'${category}',${points})">${points}</div>`;
+}
+
+/* ================= OPEN QUESTION ================= */
 
 function openQ(el,category,points){
+
+const key = category+"_"+points;
+
+if(usedQuestions.includes(key)) return;
+
+usedQuestions.push(key);
+localStorage.setItem("usedQuestions",JSON.stringify(usedQuestions));
 
 el.classList.add("used");
 
@@ -220,30 +259,29 @@ difficulty:points
 .then(res=>res.json())
 .then(data=>{
 
-localStorage.setItem("currentQuestion", data.question);
-localStorage.setItem("currentAnswer", data.answer);
+if(!data || !data.question){
+alert("مشكلة في توليد السؤال");
+return;
+}
+
+localStorage.setItem("currentQuestion", data.question || "خطأ");
+localStorage.setItem("currentAnswer", data.answer || "");
 localStorage.setItem("currentImage", data.image || "");
 localStorage.setItem("currentPoints", points);
-localStorage.setItem("currentCategory", category);
-localStorage.setItem("currentTeam", currentTeam);
 
 window.location.href = "question.html";
 
 });
 }
 
-/* ===== When Returning From Winner ===== */
+/* ================= RETURN FROM WINNER ================= */
 
 if(localStorage.getItem("addPoints")){
 const winner = localStorage.getItem("addPoints");
-const pts = parseInt(localStorage.getItem("currentPoints"));
+const pts = parseInt(localStorage.getItem("currentPoints")) || 0;
 
-if(winner === "team1"){
-score1 += pts;
-}
-if(winner === "team2"){
-score2 += pts;
-}
+if(winner === "team1"){ score1 += pts; }
+if(winner === "team2"){ score2 += pts; }
 
 localStorage.setItem("score1", score1);
 localStorage.setItem("score2", score2);
