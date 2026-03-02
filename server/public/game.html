@@ -3,191 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <title>سين ميم</title>
-
 <style>
-body{
-margin:0;
-font-family:Cairo, Arial;
-direction:rtl;
-background:#d9d9d9;
-}
-
-/* ===== Overlay ===== */
-
-.overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.55);
-display:none;
-justify-content:center;
-align-items:center;
-z-index:999;
-}
-
-.card{
-background:#f7f7f7;
-width:85%;
-max-width:1100px;
-height:80%;
-border:6px solid #e53935;
-border-radius:35px;
-position:relative;
-padding:40px;
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-}
-
-/* ===== Timer ===== */
-
-.timer{
-position:absolute;
-top:-28px;
-left:50%;
-transform:translateX(-50%);
-background:#2c2c2c;
-color:white;
-padding:12px 30px;
-border-radius:30px;
-font-size:22px;
-font-weight:bold;
-}
-
-/* ===== Points Badge ===== */
-
-.points{
-position:absolute;
-top:20px;
-right:20px;
-background:black;
-color:white;
-padding:10px 18px;
-border-radius:15px;
-font-weight:bold;
-}
-
-/* ===== Question ===== */
-
-.question{
-font-size:30px;
-font-weight:bold;
-text-align:center;
-margin-top:40px;
-}
-
-/* ===== Answer Screen ===== */
-
-.answer-screen{
-display:none;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100%;
-font-size:36px;
-font-weight:bold;
-}
-
-/* ===== Buttons ===== */
-
-.buttons{
-display:flex;
-justify-content:space-between;
-}
-
-.btn-green{
-background:#2e7d32;
-color:white;
-border:none;
-padding:12px 25px;
-border-radius:25px;
-cursor:pointer;
-font-size:18px;
-}
-
-.btn-red{
-background:#d32f2f;
-color:white;
-border:none;
-padding:12px 25px;
-border-radius:25px;
-cursor:pointer;
-font-size:18px;
-}
-
+body{margin:0;font-family:Cairo;direction:rtl;background:#d9d9d9;}
+.topbar{background:linear-gradient(to right,#ff3b3b,#ff7a3d);color:white;padding:15px 25px;display:flex;justify-content:space-between;}
+.turn{background:#b30000;padding:8px 18px;border-radius:25px;}
+.board{padding:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;}
+.category{background:#eee;border-radius:25px;padding:15px;text-align:center;}
+.title{background:#ff7a3d;color:white;padding:8px;border-radius:10px;margin-bottom:10px;font-weight:bold;}
+.points{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
+.point{background:#ccc;padding:10px 20px;border-radius:20px;font-weight:bold;color:#b30000;cursor:pointer;}
+.point.used{visibility:hidden;}
+.bottom{background:#eee;padding:20px;display:flex;justify-content:space-between;}
+.team{background:#b30000;color:white;padding:10px 20px;border-radius:25px;}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;}
+.card{background:#f7f7f7;width:85%;max-width:1000px;height:75%;border:6px solid #e53935;border-radius:30px;padding:40px;display:flex;flex-direction:column;justify-content:space-between;}
+.timer{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#2c2c2c;color:white;padding:10px 25px;border-radius:30px;}
+.question{text-align:center;font-size:28px;font-weight:bold;margin-top:40px;}
+.answer{display:none;text-align:center;font-size:34px;font-weight:bold;}
+.buttons{display:flex;justify-content:space-between;}
+.btn{padding:10px 25px;border:none;border-radius:20px;color:white;cursor:pointer;}
+.green{background:#2e7d32;}
+.red{background:#d32f2f;}
 </style>
 </head>
 <body>
 
+<div class="topbar">
+<div>سين ميم</div>
+<div class="turn" id="turnBox"></div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="bottom">
+<div class="team" id="team1Box"></div>
+<div class="team" id="team2Box"></div>
+</div>
+
 <div class="overlay" id="overlay">
 <div class="card">
-
 <div class="timer" id="timer">60</div>
-<div class="points" id="points"></div>
-
 <div class="question" id="questionText"></div>
-
-<div class="answer-screen" id="answerScreen">
-<div id="answerText"></div>
-</div>
-
+<div class="answer" id="answerText"></div>
 <div class="buttons">
-<button class="btn-green" onclick="showAnswer()">الإجابة</button>
-<button class="btn-red" onclick="closeCard()">رجوع</button>
+<button class="btn green" onclick="showAnswer()">إظهار الإجابة</button>
+<button class="btn red" onclick="closeCard()">إغلاق</button>
 </div>
-
 </div>
 </div>
 
 <script>
 
-let timeLeft = 60;
+const categories=JSON.parse(localStorage.getItem("selectedCategories"));
+if(!categories||categories.length!==6){
+alert("اختر الفئات أولاً");
+window.location.href="select.html";
+}
+
+const team1=localStorage.getItem("team1Name");
+const team2=localStorage.getItem("team2Name");
+
+let currentTeam=1;
 let interval;
+let timeLeft=60;
 
-/* ===== Fake Demo Pick (اربطها مع API عندك) ===== */
+document.getElementById("team1Box").innerText=team1;
+document.getElementById("team2Box").innerText=team2;
 
-function openQuestion(text, answer, points){
+updateTurn();
+
+function updateTurn(){
+document.getElementById("turnBox").innerText=
+"دور فريق: "+(currentTeam===1?team1:team2);
+}
+
+function switchTurn(){
+currentTeam=currentTeam===1?2:1;
+updateTurn();
+}
+
+const board=document.getElementById("board");
+
+categories.forEach(cat=>{
+const div=document.createElement("div");
+div.className="category";
+div.innerHTML=`
+<div class="title">${cat}</div>
+<div class="points">
+<div class="point" onclick="openQ(this,'${cat}',200)">200</div>
+<div class="point" onclick="openQ(this,'${cat}',200)">200</div>
+<div class="point" onclick="openQ(this,'${cat}',400)">400</div>
+<div class="point" onclick="openQ(this,'${cat}',400)">400</div>
+<div class="point" onclick="openQ(this,'${cat}',600)">600</div>
+<div class="point" onclick="openQ(this,'${cat}',600)">600</div>
+</div>`;
+board.appendChild(div);
+});
+
+async function openQ(el,category,points){
+
+el.classList.add("used");
 
 document.getElementById("overlay").style.display="flex";
-document.getElementById("questionText").innerText = text;
-document.getElementById("answerText").innerText = answer;
-document.getElementById("points").innerText = points + " نقطة";
+document.getElementById("questionText").innerText=
+"سؤال "+category+" بقيمة "+points;
+document.getElementById("answerText").innerText=
+"إجابة تجريبية";
 
-document.getElementById("questionText").style.display="block";
-document.getElementById("answerScreen").style.display="none";
+document.getElementById("answerText").style.display="none";
 
 startTimer();
 }
 
 function startTimer(){
-timeLeft = 60;
-document.getElementById("timer").innerText = timeLeft;
-
-interval = setInterval(()=>{
+timeLeft=60;
+document.getElementById("timer").innerText=timeLeft;
+interval=setInterval(()=>{
 timeLeft--;
-document.getElementById("timer").innerText = timeLeft;
-
-if(timeLeft <= 0){
-clearInterval(interval);
-}
+document.getElementById("timer").innerText=timeLeft;
+if(timeLeft<=0)clearInterval(interval);
 },1000);
 }
 
 function showAnswer(){
 clearInterval(interval);
-
-document.getElementById("questionText").style.display="none";
-document.getElementById("answerScreen").style.display="flex";
+document.getElementById("answerText").style.display="block";
 }
 
 function closeCard(){
 clearInterval(interval);
 document.getElementById("overlay").style.display="none";
+switchTurn();
 }
 
 </script>
-
 </body>
 </html>
