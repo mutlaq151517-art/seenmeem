@@ -4,78 +4,36 @@
 <meta charset="UTF-8">
 <title>أسماء الفرق</title>
 <style>
-body{
-  margin:0;
-  font-family:Tahoma;
-  direction:rtl;
-  background:#f4f4f4;
-}
-
-.container{
-  width:90%;
-  max-width:500px;
-  margin:100px auto;
-  background:white;
-  padding:30px;
-  border-radius:20px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
-
-h2{
-  text-align:center;
-  margin-bottom:30px;
-}
-
-input{
-  width:100%;
-  padding:15px;
-  margin-bottom:20px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  font-size:16px;
-}
-
-button{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(to right,#ff3b3b,#ff9c52);
-  color:white;
-  font-size:18px;
-  cursor:pointer;
-}
+body{margin:0;font-family:Tahoma;direction:rtl;background:#f4f4f4;}
+.container{width:90%;max-width:500px;margin:100px auto;background:white;padding:30px;border-radius:20px;box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+h2{text-align:center;margin-bottom:30px;}
+input{width:100%;padding:15px;margin-bottom:20px;border-radius:10px;border:1px solid #ddd;font-size:16px;}
+button{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(to right,#ff3b3b,#ff9c52);color:white;font-size:18px;cursor:pointer;}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h2>إدخال أسماء الفرق</h2>
-
-  <input type="text" id="team1" placeholder="اسم الفريق الأول">
-  <input type="text" id="team2" placeholder="اسم الفريق الثاني">
-
-  <button onclick="startMatch()">ابدأ المباراة</button>
+<h2>إدخال أسماء الفرق</h2>
+<input type="text" id="team1" placeholder="اسم الفريق الأول">
+<input type="text" id="team2" placeholder="اسم الفريق الثاني">
+<button onclick="startMatch()">ابدأ المباراة</button>
 </div>
 
 <script>
 
 function startMatch(){
-  const team1 = document.getElementById("team1").value.trim();
-  const team2 = document.getElementById("team2").value.trim();
+const team1=document.getElementById("team1").value.trim();
+const team2=document.getElementById("team2").value.trim();
 
-  if(!team1 || !team2){
-    alert("الرجاء إدخال اسم الفريقين");
-    return;
-  }
+if(!team1||!team2){alert("اكتب أسماء الفرق");return;}
 
-  localStorage.setItem("team1", team1);
-  localStorage.setItem("team2", team2);
+localStorage.setItem("team1Name",team1);
+localStorage.setItem("team2Name",team2);
 
-  window.location.href="game.html";
+window.location.href="game.html";
 }
 
 </script>
-
 </body>
 </html>
