@@ -13,77 +13,79 @@ direction:rtl;
 background:#f3f3f3;
 }
 
-/* ===== Page Width Like Screenshot ===== */
+/* ===== Container عرض أعرض مثل الصورة ===== */
 
 .container{
-max-width:1350px;
+max-width:1500px;
 margin:auto;
-padding:60px 40px 100px;
+padding:70px 100px 120px;
 }
 
 h2{
 text-align:center;
 font-size:36px;
 font-weight:900;
-margin-bottom:70px;
+margin-bottom:80px;
 }
 
-/* ===== Grid 4 Columns EXACT ===== */
+/* ===== 4 أعمدة بحجم ثابت (مو 1fr) ===== */
 
 .grid{
 display:grid;
-grid-template-columns:repeat(4, 1fr);
-gap:35px;
+grid-template-columns:repeat(4, 260px); /* عرض ثابت مصغّر */
+justify-content:center;
+gap:45px 50px;
 }
 
-/* ===== Card ===== */
+/* ===== Card أصغر ===== */
 
 .card{
 position:relative;
+width:260px;
 background:white;
-border-radius:30px;
+border-radius:22px;
 overflow:hidden;
 cursor:pointer;
 transition:0.25s;
-box-shadow:0 6px 15px rgba(0,0,0,0.08);
+box-shadow:0 5px 12px rgba(0,0,0,0.08);
 }
 
 .card:hover{
-transform:translateY(-4px);
+transform:translateY(-3px);
 }
 
 .card.selected{
 box-shadow:0 0 0 4px #ff7a3d;
 }
 
-/* ===== Image Size EXACT ===== */
+/* ===== صورة أقصر ===== */
 
 .card img{
 width:100%;
-height:180px;   /* نفس الارتفاع تقريباً */
+height:160px; /* أقصر مثل الصورة */
 object-fit:cover;
 display:block;
 }
 
-/* ===== Bottom Orange Bar ===== */
+/* ===== الشريط البرتقالي أنحف ===== */
 
 .card-title{
 background:#ff7a3d;
 color:white;
 text-align:center;
-padding:14px;
-font-size:20px;
+padding:12px;
+font-size:18px;
 font-weight:bold;
 }
 
-/* ===== Blue Info Circle ===== */
+/* ===== دائرة المعلومات أصغر ===== */
 
 .info{
 position:absolute;
-top:12px;
-left:12px;
-width:32px;
-height:32px;
+top:10px;
+left:10px;
+width:28px;
+height:28px;
 background:#2d8cff;
 color:white;
 border-radius:50%;
@@ -91,13 +93,13 @@ display:flex;
 align-items:center;
 justify-content:center;
 font-weight:bold;
-font-size:16px;
+font-size:14px;
 }
 
-/* ===== Button ===== */
+/* ===== زر التالي ===== */
 
 button{
-margin:80px auto 0;
+margin:90px auto 0;
 display:block;
 padding:16px 45px;
 background:#b30000;
@@ -117,7 +119,7 @@ background:#8f0000;
 
 @media(max-width:1200px){
 .grid{
-grid-template-columns:repeat(2,1fr);
+grid-template-columns:repeat(2, 260px);
 }
 }
 
