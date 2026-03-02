@@ -4,58 +4,13 @@
 <meta charset="UTF-8">
 <title>اختيار الفئات</title>
 <style>
-body{
-  margin:0;
-  font-family:Tahoma;
-  direction:rtl;
-  background:#f4f4f4;
-}
-
-h2{
-  text-align:center;
-  margin:30px 0;
-}
-
-.container{
-  width:95%;
-  max-width:1000px;
-  margin:auto;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:15px;
-}
-
-.card{
-  background:white;
-  padding:20px;
-  text-align:center;
-  border-radius:15px;
-  cursor:pointer;
-  border:3px solid transparent;
-  font-weight:bold;
-}
-
-.card.selected{
-  border:3px solid #ff3b3b;
-  background:#fff0ea;
-}
-
-button{
-  margin:40px auto;
-  display:block;
-  width:300px;
-  padding:15px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(to right,#ff3b3b,#ff9c52);
-  color:white;
-  font-size:18px;
-  cursor:pointer;
-  display:none;
-}
+body{margin:0;font-family:Tahoma;direction:rtl;background:#f4f4f4;}
+h2{text-align:center;margin:30px 0;}
+.container{width:95%;max-width:1000px;margin:auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:15px;}
+.card{background:white;padding:20px;text-align:center;border-radius:15px;cursor:pointer;border:3px solid transparent;font-weight:bold;}
+.card.selected{border:3px solid #ff3b3b;background:#fff0ea;}
+button{margin:40px auto;display:block;width:300px;padding:15px;border:none;border-radius:12px;background:linear-gradient(to right,#ff3b3b,#ff9c52);color:white;font-size:18px;cursor:pointer;display:none;}
 </style>
 </head>
 <body>
@@ -63,63 +18,47 @@ button{
 <h2>اختر 6 فئات</h2>
 
 <div class="container">
-  <div class="grid" id="grid"></div>
-  <button id="startBtn" onclick="goNext()">بدء اللعبة</button>
+<div class="grid" id="grid"></div>
+<button id="startBtn" onclick="goNext()">التالي</button>
 </div>
 
 <script>
 
-const categories = [
-  "قهاوي",
-  "مجسمات الكويت",
-  "جيل الطيبين",
-  "دعايات",
-  "مجلس الأمة",
-  "نفط الكويت",
-  "مرور الكويت",
-  "معلومات عامة",
-  "تاريخ",
-  "عالم الشعر",
-  "لغة وأدب",
-  "تكنولوجيا"
+const categories=[
+"قهاوي","مجسمات الكويت","جيل الطيبين","دعايات",
+"مجلس الأمة","نفط الكويت","مرور الكويت",
+"معلومات عامة","تاريخ","عالم الشعر","لغة وأدب","تكنولوجيا"
 ];
 
-let selected = [];
-
-const grid = document.getElementById("grid");
+let selected=[];
+const grid=document.getElementById("grid");
 
 categories.forEach(cat=>{
-  const div = document.createElement("div");
-  div.className="card";
-  div.innerText=cat;
-  div.onclick=()=>toggle(div,cat);
-  grid.appendChild(div);
+const div=document.createElement("div");
+div.className="card";
+div.innerText=cat;
+div.onclick=()=>toggle(div,cat);
+grid.appendChild(div);
 });
 
-function toggle(element,name){
-
-  if(selected.includes(name)){
-    selected = selected.filter(c=>c!==name);
-    element.classList.remove("selected");
-  }else{
-    if(selected.length>=6){
-      alert("تقدر تختار 6 فقط");
-      return;
-    }
-    selected.push(name);
-    element.classList.add("selected");
-  }
-
-  document.getElementById("startBtn").style.display =
-    selected.length===6 ? "block":"none";
+function toggle(el,name){
+if(selected.includes(name)){
+selected=selected.filter(c=>c!==name);
+el.classList.remove("selected");
+}else{
+if(selected.length>=6){alert("اختر 6 فقط");return;}
+selected.push(name);
+el.classList.add("selected");
+}
+document.getElementById("startBtn").style.display=
+selected.length===6?"block":"none";
 }
 
 function goNext(){
-  localStorage.setItem("selectedCategories",JSON.stringify(selected));
-  window.location.href="teams.html";
+localStorage.setItem("selectedCategories",JSON.stringify(selected));
+window.location.href="teams.html";
 }
 
 </script>
-
 </body>
 </html>
