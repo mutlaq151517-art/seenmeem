@@ -16,7 +16,7 @@ app.use(express.json());
 /* ================= OpenAI ================= */
 
 if (!process.env.OPENAI_API_KEY) {
-  console.log("❌ OPENAI_API_KEY NOT FOUND");
+  console.log("OPENAI_API_KEY NOT FOUND");
 }
 
 const openai = new OpenAI({
@@ -26,8 +26,8 @@ const openai = new OpenAI({
 /* ================= Mongo ================= */
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected ✅"))
-.catch(err => console.log("MongoDB Error ❌", err));
+.then(() => console.log("MongoDB Connected"))
+.catch(err => console.log("MongoDB Error", err));
 
 /* ================= Schemas ================= */
 
@@ -65,10 +65,9 @@ app.post("/api/register", async (req, res) => {
       password: hashed
     });
 
-    res.json({ message: "تم إنشاء الحساب ✅" });
+    res.json({ message: "تم إنشاء الحساب" });
 
   } catch (err) {
-    console.log("Register Error:", err);
     res.status(500).json({ message: "خطأ في التسجيل" });
   }
 });
@@ -89,10 +88,9 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ message: "كلمة المرور غير صحيحة" });
     }
 
-    res.json({ message: "تم تسجيل الدخول ✅", name: user.name });
+    res.json({ message: "تم تسجيل الدخول", name: user.name });
 
   } catch (err) {
-    console.log("Login Error:", err);
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
   }
 });
@@ -108,34 +106,55 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
-/* ================= Question (Always New) ================= */
+/* ================= Question Generation ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
 
     const { category, difficulty } = req.body;
 
-    const level =
-      difficulty == 200 ? "سهل جداً" :
-      difficulty == 400 ? "متوسط" :
-      "صعب";
+    let levelText = "";
+
+    if(difficulty == 200){
+      levelText = "سؤال سهل لكن ليس بديهي";
+    }
+    else if(difficulty == 400){
+      levelText = "سؤال صعب يحتاج معرفة دقيقة وتفكير";
+    }
+    else if(difficulty == 600){
+      levelText = "سؤال صعب جداً جداً لا يعرفه إلا واسع الاطلاع أو المتخصص";
+    }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
+      temperature: 1.0,
       messages: [
         {
           role: "system",
-          content: "أنت مولد أسئلة لعبة ثقافية عربية. أعد الرد بصيغة JSON فقط."
+          content: `
+أنت كاتب أسئلة لبرنامج مسابقات تلفزيوني احترافي.
+لا تكتب أسئلة بدائية.
+لا تكرر الأسئلة المشهورة.
+اجعل السؤال مناسباً تماماً لمستوى الصعوبة.
+أعد الرد بصيغة JSON فقط.
+`
         },
         {
           role: "user",
           content: `
-أنشئ سؤالاً جديداً ومختلفاً باللغة العربية.
+أنشئ سؤالاً جديداً كلياً.
 
 الفئة: ${category}
-مستوى الصعوبة: ${level}
+مستوى النقاط: ${difficulty}
+الوصف: ${levelText}
 
-أعد النتيجة بهذا الشكل فقط:
+الشروط:
+- السؤال غير مكرر.
+- غير سطحي.
+- مناسب لمستوى الصعوبة المطلوب.
+- الإجابة قصيرة جداً ومباشرة.
+
+الرد بهذا الشكل فقط:
 {
   "question": "نص السؤال",
   "answer": "الإجابة المختصرة"
@@ -143,7 +162,6 @@ app.post("/api/start-game", async (req, res) => {
 `
         }
       ],
-      temperature: 0.9,
       response_format: { type: "json_object" }
     });
 
@@ -154,13 +172,12 @@ app.post("/api/start-game", async (req, res) => {
       return fallbackQuestion(res);
     }
 
-    return res.json({
+    res.json({
       question: parsed.question,
       answer: parsed.answer
     });
 
   } catch (err) {
-    console.log("OpenAI Error:", err?.message);
     return fallbackQuestion(res);
   }
 });
@@ -169,7 +186,7 @@ app.post("/api/start-game", async (req, res) => {
 
 function fallbackQuestion(res) {
   return res.json({
-    question: "اذكر عاصمة دولة الكويت؟",
+    question: "ما هي عاصمة دولة الكويت؟",
     answer: "مدينة الكويت"
   });
 }
