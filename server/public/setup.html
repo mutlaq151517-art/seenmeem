@@ -63,7 +63,6 @@ margin-right:auto;
 <body>
 
 <script>
-/* منع الدخول إذا مو مسجل */
 if(!localStorage.getItem("userEmail")){
   window.location.href="login.html";
 }
@@ -78,6 +77,19 @@ if(!localStorage.getItem("userEmail")){
 <script>
 
 let selected = [];
+
+function resetMatch(){
+localStorage.removeItem("score1");
+localStorage.removeItem("score2");
+localStorage.removeItem("turnTeam");
+localStorage.removeItem("usedQuestions");
+localStorage.removeItem("matchStarted");
+localStorage.removeItem("currentQuestion");
+localStorage.removeItem("currentAnswer");
+localStorage.removeItem("currentPoints");
+localStorage.removeItem("currentCategory");
+localStorage.removeItem("currentTeam");
+}
 
 async function loadCategories(){
 try{
@@ -135,6 +147,9 @@ if(selected.length!==6){
 alert("لازم تختار 6 فئات");
 return;
 }
+
+/* تصفير كامل قبل أي لعبة جديدة */
+resetMatch();
 
 localStorage.setItem("selectedCategories",JSON.stringify(selected));
 window.location.href="teams.html";
