@@ -15,10 +15,6 @@ app.use(express.json());
 
 /* ================= OpenAI ================= */
 
-if (!process.env.OPENAI_API_KEY) {
-  console.log("OPENAI_API_KEY NOT FOUND");
-}
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -34,7 +30,13 @@ mongoose.connect(process.env.MONGO_URI)
 const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
-  password: String
+  password: String,
+
+  games_balance: { type: Number, default: 1 },
+  games_played: { type: Number, default: 0 },
+  level: { type: Number, default: 1 },
+  usedQuestions: { type: Array, default: [] },
+  role: { type: String, default: "user" }
 });
 
 const categorySchema = new mongoose.Schema({
@@ -45,6 +47,17 @@ const categorySchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
+
+/* ================= LEVEL 1 FIXED QUESTIONS ================= */
+
+const levelOneQuestions = [
+  { category:"أعلام دول", difficulty:200, question:"ما هي الدولة التي عاصمتها مدريد؟", answer:"إسبانيا" },
+  { category:"مجمعات الكويت", difficulty:200, question:"في أي منطقة يقع مجمع الأفنيوز؟", answer:"الري" },
+  { category:"أعلام دول", difficulty:400, question:"ما الدولة التي يحمل علمها تنيناً أبيض؟", answer:"بوتان" },
+  { category:"مجمعات الكويت", difficulty:400, question:"أي مجمع يقع في منطقة العقيلة ويطل على البحر؟", answer:"الكوت مول" },
+  { category:"أعلام دول", difficulty:600, question:"ما الدولة التي يتكون علمها من مثلثين متداخلين؟", answer:"نيبال" },
+  { category:"مجمعات الكويت", difficulty:600, question:"ما أول مجمع تجاري ضخم افتتح في الكويت الحديثة؟", answer:"سوق شرق" }
+];
 
 /* ================= Register ================= */
 
@@ -59,7 +72,15 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await User.create({ name, email, password: hashed });
+    await User.create({
+      name,
+      email,
+      password: hashed,
+      games_balance: 1,
+      games_played: 0,
+      level: 1,
+      usedQuestions: []
+    });
 
     res.json({ message: "تم إنشاء الحساب" });
 
@@ -84,85 +105,83 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ message: "كلمة المرور غير صحيحة" });
     }
 
-    res.json({ message: "تم تسجيل الدخول", name: user.name });
+    res.json({
+      message: "تم تسجيل الدخول",
+      name: user.name,
+      games_balance: user.games_balance,
+      level: user.level
+    });
 
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
   }
 });
 
-/* ================= Categories ================= */
+/* ================= Start Match (خصم رصيد) ================= */
 
-app.get("/api/categories", async (req, res) => {
+app.post("/api/start-match", async (req, res) => {
   try {
-    const categories = await Category.find();
-    res.json(categories);
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
+
+    if (user.games_balance <= 0) {
+      return res.status(403).json({ message:"لا يوجد رصيد ألعاب" });
+    }
+
+    user.games_balance -= 1;
+    user.games_played += 1;
+
+    if (user.games_played >= 1) {
+      user.level = 2;
+    }
+
+    await user.save();
+
+    res.json({
+      message:"تم بدء المباراة",
+      level:user.level,
+      games_balance:user.games_balance
+    });
+
   } catch {
-    res.json([]);
+    res.status(500).json({ message:"خطأ في بدء المباراة" });
   }
 });
 
-/* ================= ADMIN ADD CATEGORY ================= */
-
-app.post("/api/admin/add-category", async (req, res) => {
-  try {
-
-    const { section, name, image } = req.body;
-
-    if(!section || !name){
-      return res.status(400).json({ message: "بيانات ناقصة" });
-    }
-
-    const exists = await Category.findOne({ name });
-    if(exists){
-      return res.status(400).json({ message: "الفئة موجودة مسبقاً" });
-    }
-
-    await Category.create({ section, name, image });
-
-    res.json({ message: "تمت إضافة الفئة بنجاح" });
-
-  } catch (err) {
-    console.log("Add Category Error:", err);
-    res.status(500).json({ message: "خطأ في إضافة الفئة" });
-  }
-});
-
-/* ================= ADMIN DELETE CATEGORY ================= */
-
-app.post("/api/admin/delete-category", async (req, res) => {
-  try {
-
-    const { id } = req.body;
-
-    await Category.findByIdAndDelete(id);
-
-    res.json({ message: "تم حذف الفئة" });
-
-  } catch (err) {
-    console.log("Delete Category Error:", err);
-    res.status(500).json({ message: "خطأ في الحذف" });
-  }
-});
-
-/* ================= Question Generation ================= */
+/* ================= Start Question ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
 
-    const { category, difficulty } = req.body;
+    const { email, category, difficulty } = req.body;
 
-    let levelText = "";
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
 
-    if(difficulty == 200){
-      levelText = "سؤال سهل لكن ليس بديهي";
+    /* ===== Level 1 Fixed ===== */
+
+    if (user.level === 1) {
+
+      const question = levelOneQuestions.find(q =>
+        q.category === category && q.difficulty == difficulty
+      );
+
+      if (question) {
+        return res.json({
+          question: question.question,
+          answer: question.answer
+        });
+      }
+
+      return res.json({
+        question:"سؤال غير متوفر",
+        answer:"غير متوفر"
+      });
     }
-    else if(difficulty == 400){
-      levelText = "سؤال صعب يحتاج معرفة دقيقة وتفكير";
-    }
-    else if(difficulty == 600){
-      levelText = "سؤال صعب جداً جداً لا يعرفه إلا واسع الاطلاع أو المتخصص";
-    }
+
+    /* ===== Level 2+ OpenAI ===== */
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -170,27 +189,17 @@ app.post("/api/start-game", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `
-أنت كاتب أسئلة لبرنامج مسابقات تلفزيوني احترافي.
-لا تكتب أسئلة بدائية.
-لا تكرر الأسئلة المشهورة.
-اجعل السؤال مناسباً تماماً لمستوى الصعوبة.
-أعد الرد بصيغة JSON فقط.
-`
+          content: "أنت كاتب أسئلة مسابقات احترافي. لا تكرر الأسئلة."
         },
         {
           role: "user",
           content: `
-أنشئ سؤالاً جديداً كلياً.
-
 الفئة: ${category}
 مستوى النقاط: ${difficulty}
-الوصف: ${levelText}
-
-الرد بهذا الشكل فقط:
+أعد الرد بصيغة JSON فقط:
 {
-  "question": "نص السؤال",
-  "answer": "الإجابة المختصرة"
+  "question":"...",
+  "answer":"..."
 }
 `
         }
@@ -198,12 +207,7 @@ app.post("/api/start-game", async (req, res) => {
       response_format: { type: "json_object" }
     });
 
-    const content = completion.choices[0].message.content;
-    const parsed = JSON.parse(content);
-
-    if (!parsed.question || !parsed.answer) {
-      return fallbackQuestion(res);
-    }
+    const parsed = JSON.parse(completion.choices[0].message.content);
 
     res.json({
       question: parsed.question,
@@ -211,18 +215,12 @@ app.post("/api/start-game", async (req, res) => {
     });
 
   } catch {
-    return fallbackQuestion(res);
+    res.json({
+      question:"سؤال احتياطي",
+      answer:"إجابة احتياطية"
+    });
   }
 });
-
-/* ================= Fallback ================= */
-
-function fallbackQuestion(res) {
-  return res.json({
-    question: "ما هي عاصمة دولة الكويت؟",
-    answer: "مدينة الكويت"
-  });
-}
 
 /* ================= Serve ================= */
 
