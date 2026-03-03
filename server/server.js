@@ -76,6 +76,7 @@ app.post("/api/admin/users", async (req, res) => {
   }
 });
 
+/* 🔥 التعديل هنا فقط */
 app.post("/api/admin/update-user", async (req, res) => {
   try {
     const { password, userId, games_balance, role } = req.body;
@@ -84,10 +85,17 @@ app.post("/api/admin/update-user", async (req, res) => {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
-    await User.findByIdAndUpdate(userId, {
-      games_balance,
-      role
-    });
+    const updateFields = {};
+
+    if (games_balance !== undefined && games_balance !== "") {
+      updateFields.games_balance = Number(games_balance);
+    }
+
+    if (role !== undefined) {
+      updateFields.role = role;
+    }
+
+    await User.findByIdAndUpdate(userId, updateFields);
 
     res.json({ message: "تم التحديث" });
 
@@ -143,7 +151,7 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
-/* ================= START GAME (الإضافة المهمة) ================= */
+/* ================= START GAME ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
@@ -155,8 +163,8 @@ app.post("/api/start-game", async (req, res) => {
     }
 
     const question = await Question.findOne({
-      category: category,
-      difficulty: difficulty,
+      category,
+      difficulty,
       season: CURRENT_SEASON,
       isActive: true
     });
@@ -170,7 +178,7 @@ app.post("/api/start-game", async (req, res) => {
       answer: question.answer
     });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "خطأ في تحميل السؤال" });
   }
 });
