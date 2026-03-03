@@ -78,6 +78,7 @@ font-weight:bold;
 
 .red{background:#b30000;color:white;}
 .white{background:white;color:#b30000;}
+
 .disabled{
 opacity:0.5;
 pointer-events:none;
@@ -87,7 +88,6 @@ pointer-events:none;
 <body>
 
 <script>
-// منع الدخول إذا غير مسجل
 if(!localStorage.getItem("userEmail")){
   window.location.href = "login.html";
 }
@@ -116,24 +116,49 @@ if(!localStorage.getItem("userEmail")){
 <script>
 
 const email = localStorage.getItem("userEmail");
-let balance = parseInt(localStorage.getItem("games_balance")) || 0;
-let level = parseInt(localStorage.getItem("level")) || 1;
+
+let balance = 0;
+let level = 1;
 
 const balanceBox = document.getElementById("balanceBox");
 const levelBox = document.getElementById("levelBox");
 const startBtn = document.getElementById("startBtn");
 
+/* ===== جلب البيانات الحقيقية من السيرفر ===== */
+
+async function loadUserData(){
+
+const res = await fetch("/api/login-data",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ email })
+});
+
+if(res.ok){
+const data = await res.json();
+balance = data.games_balance;
+level = data.level;
+
+localStorage.setItem("games_balance",balance);
+localStorage.setItem("level",level);
+}
+
+updateUI();
+}
+
 function updateUI(){
+
 balanceBox.innerText = "رصيد الألعاب: " + balance;
 levelBox.innerText = "المستوى: " + level;
 
 if(balance <= 0){
 startBtn.classList.add("disabled");
 startBtn.innerText = "لا يوجد رصيد";
+}else{
+startBtn.classList.remove("disabled");
+startBtn.innerText = "إنشاء لعبة";
 }
 }
-
-updateUI();
 
 async function startGame(){
 
@@ -170,6 +195,8 @@ function logout(){
 localStorage.clear();
 window.location.href="login.html";
 }
+
+loadUserData();
 
 </script>
 
