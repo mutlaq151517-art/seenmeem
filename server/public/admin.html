@@ -12,6 +12,39 @@ direction:rtl;
 background:#f2f2f2;
 }
 
+/* شاشة القفل */
+.lock-screen{
+position:fixed;
+inset:0;
+background:#111;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+color:white;
+z-index:9999;
+}
+
+.lock-screen input{
+padding:12px;
+border-radius:8px;
+border:none;
+width:250px;
+margin-top:10px;
+text-align:center;
+}
+
+.lock-screen button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#ff3b3b;
+color:white;
+cursor:pointer;
+}
+
+/* اللوحة */
 .container{
 max-width:900px;
 margin:60px auto;
@@ -19,6 +52,7 @@ background:white;
 padding:30px;
 border-radius:20px;
 box-shadow:0 5px 20px rgba(0,0,0,0.1);
+display:none;
 }
 
 h2{
@@ -64,58 +98,27 @@ background:black;
 font-size:12px;
 padding:5px 10px;
 }
-
-.progress-container{
-background:#ddd;
-height:15px;
-border-radius:20px;
-overflow:hidden;
-margin-top:8px;
-}
-
-.progress-bar{
-height:100%;
-background:linear-gradient(to right,#ff3b3b,#b30000);
-width:0%;
-transition:0.4s;
-}
-
-.progress-text{
-font-size:12px;
-margin-top:4px;
-}
 </style>
 </head>
 
 <body>
 
-<script>
-if(localStorage.getItem("role") !== "admin"){
-alert("غير مصرح لك بالدخول");
-window.location.href="home.html";
-}
-</script>
-
-<div class="container">
-
-<h2>لوحة تحكم SeenMeem</h2>
-
-<!-- ================= تقدم بنك الأسئلة ================= -->
-
-<div class="section">
-<h3>تقدم بنك الأسئلة (من 1000 لكل فئة)</h3>
-<button onclick="loadProgress()">تحديث التقدم</button>
-<div id="progressList"></div>
+<!-- شاشة كلمة السر -->
+<div class="lock-screen" id="lockScreen">
+<h2>دخول لوحة المدير</h2>
+<input type="password" id="adminPassword" placeholder="أدخل كلمة السر">
+<button onclick="checkAdmin()">دخول</button>
 </div>
 
-<!-- ================= المستخدمين ================= -->
+<!-- اللوحة -->
+<div class="container" id="adminPanel">
+
+<h2>لوحة تحكم SeenMeem</h2>
 
 <div class="section">
 <h3>إدارة المستخدمين</h3>
 <div id="usersList"></div>
 </div>
-
-<!-- ================= الفئات ================= -->
 
 <div class="section">
 <h3>إضافة فئة جديدة</h3>
@@ -134,40 +137,36 @@ window.location.href="home.html";
 
 <script>
 
-const adminEmail = localStorage.getItem("userEmail");
+async function checkAdmin(){
 
-/* ================= Progress ================= */
+const password = document.getElementById("adminPassword").value;
 
-async function loadProgress(){
-
-const res = await fetch("/api/admin/questions-progress",{
+const res = await fetch("/api/admin/master-login",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ adminEmail })
+body:JSON.stringify({ password })
 });
 
-const data = await res.json();
-const list = document.getElementById("progressList");
-list.innerHTML="";
+if(!res.ok){
+alert("كلمة السر غير صحيحة");
+return;
+}
 
-data.forEach(item=>{
+localStorage.setItem("adminAccess","true");
 
-const percent = Math.min((item.count/1000)*100,100).toFixed(1);
+document.getElementById("lockScreen").style.display="none";
+document.getElementById("adminPanel").style.display="block";
 
-list.innerHTML+=`
-<div class="card" style="flex-direction:column; align-items:stretch;">
-<div><b>${item.category}</b></div>
+loadUsers();
+loadCategories();
+}
 
-<div class="progress-container">
-<div class="progress-bar" style="width:${percent}%"></div>
-</div>
-
-<div class="progress-text">
-${item.count} / 1000 (${percent}%)
-</div>
-</div>
-`;
-});
+/* إذا سبق دخل */
+if(localStorage.getItem("adminAccess")==="true"){
+document.getElementById("lockScreen").style.display="none";
+document.getElementById("adminPanel").style.display="block";
+loadUsers();
+loadCategories();
 }
 
 /* ================= المستخدمين ================= */
@@ -176,10 +175,13 @@ async function loadUsers(){
 const res = await fetch("/api/admin/users",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:adminEmail })
+body:JSON.stringify({ email:"master" })
 });
 
+if(!res.ok) return;
+
 const users = await res.json();
+
 const list = document.getElementById("usersList");
 list.innerHTML="";
 
@@ -209,18 +211,28 @@ const balance = document.getElementById("balance-"+userEmail).value;
 await fetch("/api/admin/update-balance",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ adminEmail,userEmail,balance })
+body:JSON.stringify({
+adminEmail:"master",
+userEmail,
+balance
+})
 });
 
 loadUsers();
 }
 
 async function changeRole(userEmail,role){
+
 await fetch("/api/admin/change-role",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ adminEmail,userEmail,role })
+body:JSON.stringify({
+adminEmail:"master",
+userEmail,
+role
+})
 });
+
 loadUsers();
 }
 
@@ -246,6 +258,7 @@ ${cat.section} - ${cat.name}
 }
 
 async function addCategory(){
+
 const section=document.getElementById("section").value;
 const name=document.getElementById("name").value;
 const image=document.getElementById("image").value;
@@ -253,25 +266,22 @@ const image=document.getElementById("image").value;
 await fetch("/api/admin/add-category",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:adminEmail,section,name,image })
+body:JSON.stringify({ email:"master",section,name,image })
 });
 
 loadCategories();
 }
 
 async function deleteCategory(id){
+
 await fetch("/api/admin/delete-category",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:adminEmail,id })
+body:JSON.stringify({ email:"master",id })
 });
+
 loadCategories();
 }
-
-/* تحميل البيانات */
-loadUsers();
-loadCategories();
-loadProgress();
 
 </script>
 
