@@ -20,11 +20,7 @@ align-items:center;
 .turn{background:#b30000;padding:8px 18px;border-radius:25px;font-weight:bold;}
 .end-btn{background:black;color:white;padding:8px 18px;border-radius:25px;cursor:pointer;font-size:14px;}
 
-.main-container{
-display:flex;
-gap:30px;
-padding:40px;
-}
+.main-container{display:flex;gap:30px;padding:40px;}
 
 .wrapper{flex:1;display:flex;justify-content:center;}
 
@@ -82,11 +78,7 @@ padding:0 30px;
 .green{background:#2e7d32;}
 .orange{background:#ff7a3d;}
 
-/* ===== Sidebar ===== */
-
-.sidebar{
-width:280px;
-}
+.sidebar{width:280px;}
 
 .team-box{
 background:#b30000;
@@ -98,18 +90,9 @@ font-weight:bold;
 margin-bottom:10px;
 }
 
-.score{
-text-align:center;
-font-size:24px;
-margin-bottom:20px;
-}
+.score{text-align:center;font-size:24px;margin-bottom:20px;}
 
-.helpers{
-display:flex;
-justify-content:center;
-gap:10px;
-margin-bottom:30px;
-}
+.helpers{display:flex;justify-content:center;gap:10px;margin-bottom:30px;}
 
 .helper{
 width:45px;
@@ -120,6 +103,7 @@ display:flex;
 align-items:center;
 justify-content:center;
 cursor:pointer;
+font-size:18px;
 }
 
 .helper.used{
@@ -163,24 +147,22 @@ pointer-events:none;
 </div>
 </div>
 
-<!-- ===== Sidebar ===== -->
-
 <div class="sidebar">
 
 <div class="team-box" id="team1NameBox"></div>
 <div class="score" id="score1Box"></div>
 <div class="helpers">
-<div class="helper" id="double1">✌</div>
-<div class="helper" id="steal1">🕵</div>
-<div class="helper" id="hole1">🕳</div>
+<div class="helper" onclick="useDouble(1)" id="double1">✌</div>
+<div class="helper" onclick="useSteal(1)" id="steal1">🕵</div>
+<div class="helper" onclick="useHole(1)" id="hole1">🕳</div>
 </div>
 
 <div class="team-box" id="team2NameBox"></div>
 <div class="score" id="score2Box"></div>
 <div class="helpers">
-<div class="helper" id="double2">✌</div>
-<div class="helper" id="steal2">🕵</div>
-<div class="helper" id="hole2">🕳</div>
+<div class="helper" onclick="useDouble(2)" id="double2">✌</div>
+<div class="helper" onclick="useSteal(2)" id="steal2">🕵</div>
+<div class="helper" onclick="useHole(2)" id="hole2">🕳</div>
 </div>
 
 </div>
@@ -189,25 +171,115 @@ pointer-events:none;
 
 <script>
 
-/* ===== بيانات ===== */
+/* ===== جلب بيانات السؤال ===== */
+
+const question = localStorage.getItem("currentQuestion");
+const points = localStorage.getItem("currentPoints");
+const category = localStorage.getItem("currentCategory");
+const image = localStorage.getItem("currentQuestionImage");
+
+if(!question){
+window.location.href="game.html";
+}
+
+document.getElementById("questionText").innerText = question;
+document.getElementById("pointsBox").innerText = points + " نقطة";
+document.getElementById("categoryBtn").innerText = category;
+
+if(image && image !== "null"){
+document.getElementById("questionImageBox").style.display="block";
+document.getElementById("questionImage").src = image;
+}
+
+/* ===== بيانات الفرق ===== */
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
+let currentTeam = localStorage.getItem("currentTeam");
 
 document.getElementById("team1NameBox").innerText = team1;
 document.getElementById("team2NameBox").innerText = team2;
 document.getElementById("score1Box").innerText = localStorage.getItem("score1") || 0;
 document.getElementById("score2Box").innerText = localStorage.getItem("score2") || 0;
 
-/* تعطيل الوسائل المستخدمة */
+document.getElementById("turnBox").innerText =
+"دور فريق: " + (currentTeam === "1" ? team1 : team2);
 
-if(localStorage.getItem("doubleUsed1")) document.getElementById("double1").classList.add("used");
-if(localStorage.getItem("stealUsed1")) document.getElementById("steal1").classList.add("used");
-if(localStorage.getItem("holeUsed1")) document.getElementById("hole1").classList.add("used");
+/* ===== وسائل المساعدة ===== */
 
-if(localStorage.getItem("doubleUsed2")) document.getElementById("double2").classList.add("used");
-if(localStorage.getItem("stealUsed2")) document.getElementById("steal2").classList.add("used");
-if(localStorage.getItem("holeUsed2")) document.getElementById("hole2").classList.add("used");
+function useDouble(team){
+if(currentTeam != team) return alert("مو دورك");
+if(localStorage.getItem("doubleUsed"+team)) return;
+localStorage.setItem("doubleActive","true");
+localStorage.setItem("doubleUsed"+team,"true");
+document.getElementById("double"+team).classList.add("used");
+}
+
+function useSteal(team){
+if(currentTeam == team) return alert("ما تقدر تسرق دورك");
+if(localStorage.getItem("stealUsed"+team)) return;
+localStorage.setItem("stealActive","true");
+localStorage.setItem("stealTeam",team);
+localStorage.setItem("stealUsed"+team,"true");
+document.getElementById("steal"+team).classList.add("used");
+}
+
+function useHole(team){
+if(currentTeam != team) return alert("مو دورك");
+if(localStorage.getItem("holeUsed"+team)) return;
+localStorage.setItem("holeActive","true");
+localStorage.setItem("holeUsed"+team,"true");
+document.getElementById("hole"+team).classList.add("used");
+}
+
+/* ===== Timer ===== */
+
+let timeLeft = 60;
+let interval;
+let paused = false;
+
+function formatTime(sec){
+let m = Math.floor(sec/60);
+let s = sec%60;
+return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+}
+
+function startTimer(){
+interval = setInterval(()=>{
+if(!paused){
+timeLeft--;
+document.getElementById("timer").innerText = formatTime(timeLeft);
+if(timeLeft <= 0){
+clearInterval(interval);
+}
+}
+},1000);
+}
+
+document.getElementById("timer").innerText = formatTime(timeLeft);
+startTimer();
+
+document.getElementById("pauseBtn").onclick = ()=>{
+paused = !paused;
+document.getElementById("pauseBtn").innerText = paused ? "▶" : "⏸";
+}
+
+document.getElementById("resetBtn").onclick = ()=>{
+timeLeft = 60;
+document.getElementById("timer").innerText = formatTime(timeLeft);
+}
+
+/* ===== أزرار ===== */
+
+function goAnswer(){
+clearInterval(interval);
+window.location.href="answer.html";
+}
+
+function endGame(){
+localStorage.removeItem("matchStarted");
+window.location.href="game.html";
+}
 
 </script>
 
