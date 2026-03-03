@@ -29,6 +29,15 @@ border-radius:25px;
 font-weight:bold;
 }
 
+.end-btn{
+background:black;
+color:white;
+padding:8px 18px;
+border-radius:25px;
+cursor:pointer;
+font-size:14px;
+}
+
 .wrapper{
 padding:40px;
 display:flex;
@@ -50,6 +59,15 @@ text-align:center;
 font-size:38px;
 font-weight:900;
 margin-bottom:40px;
+}
+
+.answer-image{
+margin-top:20px;
+}
+
+.answer-image img{
+max-width:300px;
+border-radius:20px;
 }
 
 .buttons{
@@ -78,6 +96,7 @@ font-weight:bold;
 <body>
 
 <div class="topbar">
+<div class="end-btn" onclick="endGame()">إنهاء اللعبة</div>
 <div>سين ميم</div>
 <div class="turn" id="turnBox"></div>
 </div>
@@ -87,9 +106,13 @@ font-weight:bold;
 
 <div class="answer-title" id="answerText"></div>
 
+<div class="answer-image" id="answerImageBox" style="display:none;">
+<img id="answerImage">
+</div>
+
 <div class="buttons">
 <button class="btn blue" onclick="goWinner()">أي فريق ؟</button>
-<button class="btn red" onclick="goBack()">العودة للإجابة</button>
+<button class="btn red" onclick="goBack()">العودة للسؤال</button>
 </div>
 
 </div>
@@ -99,9 +122,21 @@ font-weight:bold;
 
 const answer = localStorage.getItem("currentAnswer");
 const teamTurn = localStorage.getItem("currentTeam");
+const answerImage = localStorage.getItem("currentAnswerImage");
+
+/* حماية */
+if(!answer){
+window.location.href="game.html";
+}
 
 document.getElementById("answerText").innerText = answer;
 document.getElementById("turnBox").innerText = "دور فريق: " + teamTurn;
+
+/* عرض صورة الإجابة لو موجودة */
+if(answerImage){
+document.getElementById("answerImageBox").style.display="block";
+document.getElementById("answerImage").src = answerImage;
+}
 
 function goWinner(){
 window.location.href="winner.html";
@@ -111,6 +146,14 @@ function goBack(){
 window.location.href="question.html";
 }
 
+function endGame(){
+if(confirm("هل تريد إنهاء اللعبة؟")){
+localStorage.removeItem("matchStarted");
+window.location.href="game.html";
+}
+}
+
 </script>
+
 </body>
 </html>
