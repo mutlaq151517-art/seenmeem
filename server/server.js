@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
   password: String,
-  games_balance: { type: Number, default: 1 }, // ✅ الافتراضي 1
+  games_balance: { type: Number, default: 1 },
   games_played: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
   usedQuestions: { type: Array, default: [] },
@@ -72,7 +72,7 @@ app.post("/api/admin/users", async (req, res) => {
   }
 });
 
-/* ✅ إصلاح إضافة الرصيد نهائيًا */
+/* 🔥 إصلاح الرصيد نهائيًا */
 
 app.post("/api/admin/update-user", async (req, res) => {
   try {
@@ -87,11 +87,11 @@ app.post("/api/admin/update-user", async (req, res) => {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
-    // ✅ إضافة رصيد فوق القديم
+    // إضافة الرصيد فوق القديم
     if (games_balance !== undefined) {
       const amount = Number(games_balance);
       if (!isNaN(amount) && amount > 0) {
-        user.games_balance = user.games_balance + amount;
+        user.games_balance += amount;
       }
     }
 
@@ -101,41 +101,32 @@ app.post("/api/admin/update-user", async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "تمت إضافة الرصيد بنجاح" });
+    res.json({
+      message: "تم التحديث",
+      games_balance: user.games_balance
+    });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "خطأ في التحديث" });
   }
 });
 
-/* ================= ADMIN: PASSWORD ================= */
+/* ================= API لجلب بيانات المستخدم للهوم ================= */
 
-app.post("/api/admin/reset-password", async (req, res) => {
+app.post("/api/login-data", async (req, res) => {
   try {
-    const { password, userId } = req.body;
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
-    const newPassword = Math.random().toString(36).slice(-8);
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(userId, { password: hashed });
+    res.json({
+      games_balance: user.games_balance,
+      level: user.level
+    });
 
-    res.json({ newPassword });
-
-  } catch {
-    res.status(500).json({ message: "خطأ" });
-  }
-});
-
-app.post("/api/admin/delete-user", async (req, res) => {
-  try {
-    const { password, userId } = req.body;
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-    await User.findByIdAndDelete(userId);
-    res.json({ message: "تم الحذف" });
   } catch {
     res.status(500).json({ message: "خطأ" });
   }
@@ -212,7 +203,6 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    // ✅ كل مستخدم جديد يحصل على 1 رصيد
     await User.create({
       name,
       email,
