@@ -137,22 +137,21 @@ border-radius:25px;
 
 <script>
 
-if(!localStorage.getItem("matchStarted")){
+/* ===== تصفير المباراة دائماً ===== */
 localStorage.setItem("score1",0);
 localStorage.setItem("score2",0);
 localStorage.setItem("turnTeam","1");
 localStorage.setItem("usedQuestions",JSON.stringify([]));
-localStorage.setItem("matchStarted","true");
-}
 
+const email = localStorage.getItem("userEmail");
 const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories"));
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
 
-let score1 = parseInt(localStorage.getItem("score1"));
-let score2 = parseInt(localStorage.getItem("score2"));
-let currentTeam = localStorage.getItem("turnTeam");
-let usedQuestions = JSON.parse(localStorage.getItem("usedQuestions"));
+let score1 = 0;
+let score2 = 0;
+let currentTeam = "1";
+let usedQuestions = [];
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
@@ -203,11 +202,6 @@ board.appendChild(div);
 
 });
 
-usedQuestions.forEach(id=>{
-const el=document.querySelector(`[data-id="${id}"]`);
-if(el) el.classList.add("used");
-});
-
 });
 
 function openQ(el,category,points){
@@ -222,7 +216,11 @@ el.classList.add("used");
 fetch("/api/start-game",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ category, difficulty:points })
+body:JSON.stringify({ 
+  email,
+  category, 
+  difficulty:points 
+})
 })
 .then(res=>res.json())
 .then(data=>{
