@@ -6,12 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:'Cairo',sans-serif;
-direction:rtl;
-background:#f4f4f4;
-}
+body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#f4f4f4;}
 
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
@@ -22,31 +17,20 @@ justify-content:space-between;
 align-items:center;
 }
 
-.turn{
-background:#b30000;
-padding:8px 18px;
-border-radius:25px;
-font-weight:bold;
-}
+.turn{background:#b30000;padding:8px 18px;border-radius:25px;font-weight:bold;}
+.end-btn{background:black;color:white;padding:8px 18px;border-radius:25px;cursor:pointer;font-size:14px;}
 
-.end-btn{
-background:black;
-color:white;
-padding:8px 18px;
-border-radius:25px;
-cursor:pointer;
-font-size:14px;
-}
-
-.wrapper{
-padding:40px;
+.main-container{
 display:flex;
-justify-content:center;
+gap:30px;
+padding:40px;
 }
+
+.wrapper{flex:1;display:flex;justify-content:center;}
 
 .card{
 background:white;
-width:85%;
+width:100%;
 border:8px solid #ff5c33;
 border-radius:35px;
 padding:60px 40px;
@@ -70,11 +54,6 @@ gap:20px;
 font-weight:bold;
 }
 
-.timer-btn{
-cursor:pointer;
-font-size:20px;
-}
-
 .points{
 position:absolute;
 top:25px;
@@ -86,23 +65,9 @@ border-radius:20px;
 font-size:14px;
 }
 
-.question{
-text-align:center;
-margin-top:60px;
-font-size:30px;
-font-weight:900;
-line-height:2;
-}
-
-.question-image{
-text-align:center;
-margin-top:30px;
-}
-
-.question-image img{
-max-width:300px;
-border-radius:20px;
-}
+.question{text-align:center;margin-top:60px;font-size:30px;font-weight:900;line-height:2;}
+.question-image{text-align:center;margin-top:30px;}
+.question-image img{max-width:300px;border-radius:20px;}
 
 .buttons{
 position:absolute;
@@ -113,18 +78,54 @@ justify-content:space-between;
 padding:0 30px;
 }
 
-.btn{
-border:none;
-padding:12px 30px;
-border-radius:25px;
-color:white;
-cursor:pointer;
-font-size:18px;
-font-weight:bold;
-}
-
+.btn{border:none;padding:12px 30px;border-radius:25px;color:white;cursor:pointer;font-size:18px;font-weight:bold;}
 .green{background:#2e7d32;}
 .orange{background:#ff7a3d;}
+
+/* ===== Sidebar ===== */
+
+.sidebar{
+width:280px;
+}
+
+.team-box{
+background:#b30000;
+color:white;
+padding:15px;
+border-radius:25px;
+text-align:center;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.score{
+text-align:center;
+font-size:24px;
+margin-bottom:20px;
+}
+
+.helpers{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-bottom:30px;
+}
+
+.helper{
+width:45px;
+height:45px;
+border-radius:50%;
+background:#e0e0e0;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+.helper.used{
+opacity:0.3;
+pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -135,13 +136,15 @@ font-weight:bold;
 <div class="turn" id="turnBox"></div>
 </div>
 
+<div class="main-container">
+
 <div class="wrapper">
 <div class="card">
 
 <div class="timer-box">
-<span class="timer-btn" id="pauseBtn">⏸</span>
+<span id="pauseBtn">⏸</span>
 <span id="timer">01:00</span>
-<span class="timer-btn" id="resetBtn">⟳</span>
+<span id="resetBtn">⟳</span>
 </div>
 
 <div class="points" id="pointsBox"></div>
@@ -160,92 +163,51 @@ font-weight:bold;
 </div>
 </div>
 
+<!-- ===== Sidebar ===== -->
+
+<div class="sidebar">
+
+<div class="team-box" id="team1NameBox"></div>
+<div class="score" id="score1Box"></div>
+<div class="helpers">
+<div class="helper" id="double1">✌</div>
+<div class="helper" id="steal1">🕵</div>
+<div class="helper" id="hole1">🕳</div>
+</div>
+
+<div class="team-box" id="team2NameBox"></div>
+<div class="score" id="score2Box"></div>
+<div class="helpers">
+<div class="helper" id="double2">✌</div>
+<div class="helper" id="steal2">🕵</div>
+<div class="helper" id="hole2">🕳</div>
+</div>
+
+</div>
+
+</div>
+
 <script>
 
-/* ================= جلب البيانات ================= */
-
-const question = localStorage.getItem("currentQuestion");
-const answer = localStorage.getItem("currentAnswer");
-const points = localStorage.getItem("currentPoints");
-const category = localStorage.getItem("currentCategory");
-const teamTurn = localStorage.getItem("currentTeam");
-const image = localStorage.getItem("currentQuestionImage");
-
-/* حماية */
-if(!question || !points){
-window.location.href="game.html";
-}
-
-/* عرض البيانات */
-
-document.getElementById("questionText").innerText = question;
-document.getElementById("pointsBox").innerText = points + " نقطة";
-document.getElementById("categoryBtn").innerText = category;
-
-/* عرض اسم الفريق الصحيح */
+/* ===== بيانات ===== */
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
 
-const teamName = teamTurn === "1" ? team1 : team2;
+document.getElementById("team1NameBox").innerText = team1;
+document.getElementById("team2NameBox").innerText = team2;
+document.getElementById("score1Box").innerText = localStorage.getItem("score1") || 0;
+document.getElementById("score2Box").innerText = localStorage.getItem("score2") || 0;
 
-document.getElementById("turnBox").innerText = "دور فريق: " + teamName;
+/* تعطيل الوسائل المستخدمة */
 
-/* عرض صورة السؤال إن وجدت */
+if(localStorage.getItem("doubleUsed1")) document.getElementById("double1").classList.add("used");
+if(localStorage.getItem("stealUsed1")) document.getElementById("steal1").classList.add("used");
+if(localStorage.getItem("holeUsed1")) document.getElementById("hole1").classList.add("used");
 
-if(image && image !== "null"){
-document.getElementById("questionImageBox").style.display="block";
-document.getElementById("questionImage").src = image;
-}
-
-/* ================= Timer ================= */
-
-let timeLeft = 60;
-let interval;
-let paused = false;
-
-function formatTime(sec){
-let m = Math.floor(sec/60);
-let s = sec%60;
-return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-}
-
-function startTimer(){
-interval = setInterval(()=>{
-if(!paused){
-timeLeft--;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-if(timeLeft <= 0){
-clearInterval(interval);
-}
-}
-},1000);
-}
-
-document.getElementById("timer").innerText = formatTime(timeLeft);
-startTimer();
-
-document.getElementById("pauseBtn").onclick = ()=>{
-paused = !paused;
-document.getElementById("pauseBtn").innerText = paused ? "▶" : "⏸";
-}
-
-document.getElementById("resetBtn").onclick = ()=>{
-timeLeft = 60;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-}
-
-function goAnswer(){
-clearInterval(interval);
-window.location.href="answer.html";
-}
-
-function endGame(){
-if(confirm("هل تريد إنهاء اللعبة؟")){
-localStorage.removeItem("matchStarted");
-window.location.href="game.html";
-}
-}
+if(localStorage.getItem("doubleUsed2")) document.getElementById("double2").classList.add("used");
+if(localStorage.getItem("stealUsed2")) document.getElementById("steal2").classList.add("used");
+if(localStorage.getItem("holeUsed2")) document.getElementById("hole2").classList.add("used");
 
 </script>
 
