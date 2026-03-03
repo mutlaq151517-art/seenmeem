@@ -20,12 +20,7 @@ align-items:center;
 .turn{background:#b30000;padding:8px 18px;border-radius:25px;font-weight:bold;}
 .end-btn{background:black;color:white;padding:8px 18px;border-radius:25px;cursor:pointer;font-size:14px;}
 
-.main-container{
-display:flex;
-gap:30px;
-padding:40px;
-}
-
+.main-container{display:flex;gap:30px;padding:40px;}
 .wrapper{flex:1;display:flex;justify-content:center;}
 
 .card{
@@ -39,16 +34,8 @@ position:relative;
 text-align:center;
 }
 
-.answer-title{
-font-size:38px;
-font-weight:900;
-margin-bottom:40px;
-}
-
-.answer-image img{
-max-width:300px;
-border-radius:20px;
-}
+.answer-title{font-size:38px;font-weight:900;margin-bottom:40px;}
+.answer-image img{max-width:300px;border-radius:20px;}
 
 .buttons{
 position:absolute;
@@ -72,11 +59,7 @@ font-weight:bold;
 .blue{background:#1565c0;}
 .red{background:#d32f2f;}
 
-/* ===== Sidebar ===== */
-
-.sidebar{
-width:280px;
-}
+.sidebar{width:280px;}
 
 .team-box{
 background:#b30000;
@@ -88,11 +71,7 @@ font-weight:bold;
 margin-bottom:10px;
 }
 
-.score{
-text-align:center;
-font-size:24px;
-margin-bottom:20px;
-}
+.score{text-align:center;font-size:24px;margin-bottom:20px;}
 
 .helpers{
 display:flex;
@@ -111,9 +90,7 @@ align-items:center;
 justify-content:center;
 }
 
-.helper.used{
-opacity:0.3;
-}
+.helper.used{opacity:0.3;}
 </style>
 </head>
 <body>
@@ -136,14 +113,12 @@ opacity:0.3;
 </div>
 
 <div class="buttons">
-<button class="btn blue" onclick="goWinner()">أي فريق ؟</button>
+<button class="btn blue" onclick="chooseWinner()">اختيار الفريق الفائز</button>
 <button class="btn red" onclick="goBack()">العودة للسؤال</button>
 </div>
 
 </div>
 </div>
-
-<!-- ===== Sidebar ===== -->
 
 <div class="sidebar">
 
@@ -173,10 +148,14 @@ opacity:0.3;
 
 const answer = localStorage.getItem("currentAnswer");
 const teamTurn = localStorage.getItem("currentTeam");
+const points = parseInt(localStorage.getItem("currentPoints")) || 0;
 const answerImage = localStorage.getItem("currentAnswerImage");
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
+
+let score1 = parseInt(localStorage.getItem("score1")) || 0;
+let score2 = parseInt(localStorage.getItem("score2")) || 0;
 
 document.getElementById("answerText").innerText = answer;
 
@@ -188,29 +167,109 @@ document.getElementById("answerImageBox").style.display="block";
 document.getElementById("answerImage").src = answerImage;
 }
 
-/* ===== عرض السكور ===== */
-
 document.getElementById("team1NameBox").innerText = team1;
 document.getElementById("team2NameBox").innerText = team2;
 
-document.getElementById("score1Box").innerText = localStorage.getItem("score1") || 0;
-document.getElementById("score2Box").innerText = localStorage.getItem("score2") || 0;
+updateScores();
 
 /* ===== تعطيل الوسائل المستخدمة ===== */
 
-if(localStorage.getItem("doubleUsed1")) document.getElementById("double1").classList.add("used");
-if(localStorage.getItem("stealUsed1")) document.getElementById("steal1").classList.add("used");
-if(localStorage.getItem("holeUsed1")) document.getElementById("hole1").classList.add("used");
+["1","2"].forEach(t=>{
+if(localStorage.getItem("doubleUsed"+t)) document.getElementById("double"+t).classList.add("used");
+if(localStorage.getItem("stealUsed"+t)) document.getElementById("steal"+t).classList.add("used");
+if(localStorage.getItem("holeUsed"+t)) document.getElementById("hole"+t).classList.add("used");
+});
 
-if(localStorage.getItem("doubleUsed2")) document.getElementById("double2").classList.add("used");
-if(localStorage.getItem("stealUsed2")) document.getElementById("steal2").classList.add("used");
-if(localStorage.getItem("holeUsed2")) document.getElementById("hole2").classList.add("used");
+/* ===== اختيار الفائز ===== */
+
+function chooseWinner(){
+
+let winner = prompt("اكتب رقم الفريق الفائز (1 أو 2) أو 0 إذا لا أحد");
+
+if(winner === null) return;
+
+winner = winner.trim();
+
+if(!["0","1","2"].includes(winner)) return alert("اختيار غير صحيح");
+
+if(winner === "1") handleWin(1);
+else if(winner === "2") handleWin(2);
+
+finishRound();
+}
+
+/* ===== منطق الفوز ===== */
+
+function handleWin(team){
+
+let stealActive = localStorage.getItem("stealActive");
+let stealTeam = localStorage.getItem("stealTeam");
+let holeActive = localStorage.getItem("holeActive");
+
+if(stealActive && stealTeam == team){
+
+// سرقة صحيحة
+addPoints(team, points);
+
+}
+else if(stealActive && stealTeam != team){
+
+// فشل السرقة
+addPoints(teamTurn, points);
+subtractPoints(stealTeam, points);
+
+}
+else{
+
+addPoints(team, points);
+
+if(holeActive){
+let other = team == 1 ? 2 : 1;
+subtractPoints(other, points);
+}
+
+}
+}
+
+/* ===== إضافة / خصم ===== */
+
+function addPoints(team, pts){
+if(team == 1) score1 += pts;
+else score2 += pts;
+}
+
+function subtractPoints(team, pts){
+if(team == 1) score1 -= pts;
+else score2 -= pts;
+}
+
+/* ===== إنهاء الجولة ===== */
+
+function finishRound(){
+
+localStorage.setItem("score1",score1);
+localStorage.setItem("score2",score2);
+
+localStorage.removeItem("stealActive");
+localStorage.removeItem("stealTeam");
+localStorage.removeItem("holeActive");
+localStorage.removeItem("doubleActive");
+
+updateScores();
+
+setTimeout(()=>{
+window.location.href="game.html";
+},500);
+}
+
+/* ===== تحديث السكور ===== */
+
+function updateScores(){
+document.getElementById("score1Box").innerText = score1;
+document.getElementById("score2Box").innerText = score2;
+}
 
 /* ===== أزرار ===== */
-
-function goWinner(){
-window.location.href="winner.html";
-}
 
 function goBack(){
 window.location.href="question.html";
