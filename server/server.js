@@ -132,57 +132,7 @@ app.post("/api/admin/delete-user", async (req, res) => {
   }
 });
 
-/* ================= ADMIN: CATEGORIES ================= */
-
-app.post("/api/admin/categories", async (req, res) => {
-  try {
-    const { password } = req.body;
-
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    const categories = await Category.find();
-    res.json(categories);
-
-  } catch {
-    res.status(500).json([]);
-  }
-});
-
-app.post("/api/admin/add-category", async (req, res) => {
-  try {
-    const { password, section, name, image } = req.body;
-
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await Category.create({ section, name, image });
-    res.json({ message: "تمت الإضافة" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ" });
-  }
-});
-
-app.post("/api/admin/delete-category", async (req, res) => {
-  try {
-    const { password, id } = req.body;
-
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await Category.findByIdAndDelete(id);
-    res.json({ message: "تم الحذف" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ" });
-  }
-});
-
-/* ================= Categories (Public) ================= */
+/* ================= Categories ================= */
 
 app.get("/api/categories", async (req, res) => {
   try {
@@ -190,6 +140,68 @@ app.get("/api/categories", async (req, res) => {
     res.json(categories);
   } catch {
     res.status(500).json([]);
+  }
+});
+
+/* ================= START GAME (الإضافة المهمة) ================= */
+
+app.post("/api/start-game", async (req, res) => {
+  try {
+    const { email, category, difficulty } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    const question = await Question.findOne({
+      category: category,
+      difficulty: difficulty,
+      season: CURRENT_SEASON,
+      isActive: true
+    });
+
+    if (!question) {
+      return res.status(404).json({ message: "لا يوجد سؤال" });
+    }
+
+    res.json({
+      question: question.question,
+      answer: question.answer
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: "خطأ في تحميل السؤال" });
+  }
+});
+
+/* ================= START MATCH ================= */
+
+app.post("/api/start-match", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+
+    if (user.games_balance <= 0) {
+      return res.status(403).json({ message: "لا يوجد رصيد ألعاب" });
+    }
+
+    user.games_balance -= 1;
+    user.games_played += 1;
+    user.level = user.games_played + 1;
+
+    await user.save();
+
+    res.json({
+      message: "تم بدء المباراة",
+      games_balance: user.games_balance,
+      level: user.level
+    });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في بدء المباراة" });
   }
 });
 
@@ -230,54 +242,6 @@ app.post("/api/login", async (req, res) => {
     });
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
-  }
-});
-
-/* ================= Login Data ================= */
-
-app.post("/api/login-data", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
-
-    res.json({
-      games_balance: user.games_balance,
-      level: user.level
-    });
-  } catch {
-    res.status(500).json({ message: "خطأ" });
-  }
-});
-
-/* ================= START MATCH (الإضافة الناقصة) ================= */
-
-app.post("/api/start-match", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
-
-    if (user.games_balance <= 0) {
-      return res.status(403).json({ message: "لا يوجد رصيد ألعاب" });
-    }
-
-    user.games_balance -= 1;
-    user.games_played += 1;
-    user.level = user.games_played + 1;
-
-    await user.save();
-
-    res.json({
-      message: "تم بدء المباراة",
-      games_balance: user.games_balance,
-      level: user.level
-    });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في بدء المباراة" });
   }
 });
 
