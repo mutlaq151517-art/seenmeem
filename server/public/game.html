@@ -4,24 +4,176 @@
 <meta charset="UTF-8">
 <title>سين ميم</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
 <style>
-body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#d9d9d9;}
-.topbar{background:linear-gradient(to right,#ff3b3b,#ff7a3d);color:white;padding:15px 25px;display:flex;justify-content:space-between;align-items:center;}
-.turn{background:#b30000;padding:8px 18px;border-radius:25px;font-weight:bold;}
-.board{padding:30px;display:grid;grid-template-columns:repeat(3,1fr);gap:35px;}
-.category{background:#e5e5e5;border-radius:30px;padding:15px;display:flex;align-items:center;justify-content:space-between;}
-.points-col{display:flex;flex-direction:column;gap:15px;}
-.point{background:#cfcfcf;padding:12px 25px;border-radius:25px;font-size:22px;font-weight:bold;color:#b30000;cursor:pointer;text-align:center;min-width:90px;transition:0.3s;}
-.point.used{opacity:0.35;pointer-events:none;}
-.category-center{text-align:center;}
-.category-center img{width:130px;height:130px;object-fit:contain;}
-.category-title{background:#ff7a3d;color:white;padding:10px;border-radius:15px;margin-top:10px;font-weight:bold;}
-.bottom{background:#eee;padding:25px;display:flex;justify-content:space-between;align-items:center;}
-.team{background:#b30000;color:white;padding:12px 25px;border-radius:25px;display:flex;flex-direction:column;align-items:center;gap:10px;font-weight:bold;}
-.score{background:white;color:black;padding:5px 15px;border-radius:25px;}
-.helpers{display:flex;gap:10px;margin-top:8px;}
-.helper-btn{background:white;color:black;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:14px;}
-.helper-btn.used{opacity:0.3;pointer-events:none;}
+body{
+margin:0;
+font-family:'Cairo',sans-serif;
+direction:rtl;
+background:#e0e0e0;
+overflow-x:hidden;
+}
+
+/* ===== Top Bar ===== */
+
+.topbar{
+background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+color:white;
+padding:18px 30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
+}
+
+.turn{
+background:#b30000;
+padding:8px 20px;
+border-radius:30px;
+}
+
+/* ===== Board ===== */
+
+.board{
+padding:40px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:35px;
+}
+
+.category{
+display:flex;
+align-items:center;
+justify-content:center;
+gap:20px;
+}
+
+.points-col{
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.point{
+background:#d3d3d3;
+padding:15px 35px;
+border-radius:40px;
+font-size:26px;
+font-weight:900;
+color:#b30000;
+cursor:pointer;
+transition:0.3s;
+min-width:120px;
+text-align:center;
+}
+
+.point:hover{
+transform:scale(1.05);
+}
+
+.point.used{
+opacity:0.3;
+pointer-events:none;
+}
+
+.category-center{
+text-align:center;
+}
+
+.category-center img{
+width:150px;
+height:150px;
+object-fit:contain;
+}
+
+.category-title{
+background:#ff7a3d;
+color:white;
+padding:10px;
+border-radius:12px;
+margin-top:10px;
+font-weight:bold;
+}
+
+/* ===== Bottom Section ===== */
+
+.bottom{
+background:#f5f5f5;
+padding:30px 60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.team{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:10px;
+}
+
+.team-name{
+background:#b30000;
+color:white;
+padding:12px 35px;
+border-radius:30px;
+font-weight:bold;
+}
+
+.score-box{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.score-btn{
+width:35px;
+height:35px;
+border-radius:50%;
+border:none;
+font-weight:bold;
+font-size:18px;
+cursor:pointer;
+background:#b30000;
+color:white;
+}
+
+.score{
+background:white;
+padding:8px 25px;
+border-radius:30px;
+font-size:20px;
+font-weight:bold;
+}
+
+.helpers{
+display:flex;
+gap:12px;
+margin-top:10px;
+}
+
+.helper{
+width:45px;
+height:45px;
+border-radius:50%;
+background:#e0e0e0;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+font-size:18px;
+}
+
+.helper.used{
+opacity:0.3;
+pointer-events:none;
+}
+
+.logo{
+font-size:32px;
+font-weight:bold;
+color:#555;
+}
 </style>
 </head>
 <body>
@@ -35,35 +187,47 @@ body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#d9d9d9;}
 
 <div class="bottom">
 
+<!-- Team 1 -->
 <div class="team">
-<span id="team1Name"></span>
+<div class="team-name" id="team1Name"></div>
+
+<div class="score-box">
+<button class="score-btn" onclick="changeScore(1,-100)">-</button>
 <div class="score" id="score1">0</div>
+<button class="score-btn" onclick="changeScore(1,100)">+</button>
+</div>
+
 <div class="helpers">
-<div class="helper-btn" onclick="doubleAnswer(1)" id="double1">✌ إجابتين</div>
-<div class="helper-btn" onclick="stealQuestion(1)" id="steal1">🕵 سرقة</div>
-<div class="helper-btn" onclick="holeMode(1)" id="hole1">🕳 حفرة</div>
+<div class="helper" onclick="doubleAnswer(1)" id="double1">✌</div>
+<div class="helper" onclick="stealQuestion(1)" id="steal1">🕵</div>
+<div class="helper" onclick="holeMode(1)" id="hole1">🕳</div>
 </div>
 </div>
 
+<div class="logo">Boubyan</div>
+
+<!-- Team 2 -->
 <div class="team">
-<span id="team2Name"></span>
+<div class="team-name" id="team2Name"></div>
+
+<div class="score-box">
+<button class="score-btn" onclick="changeScore(2,-100)">-</button>
 <div class="score" id="score2">0</div>
+<button class="score-btn" onclick="changeScore(2,100)">+</button>
+</div>
+
 <div class="helpers">
-<div class="helper-btn" onclick="doubleAnswer(2)" id="double2">✌ إجابتين</div>
-<div class="helper-btn" onclick="stealQuestion(2)" id="steal2">🕵 سرقة</div>
-<div class="helper-btn" onclick="holeMode(2)" id="hole2">🕳 حفرة</div>
+<div class="helper" onclick="doubleAnswer(2)" id="double2">✌</div>
+<div class="helper" onclick="stealQuestion(2)" id="steal2">🕵</div>
+<div class="helper" onclick="holeMode(2)" id="hole2">🕳</div>
 </div>
 </div>
 
 </div>
-
-<button onclick="endGame()" style="position:fixed;bottom:20px;left:20px;padding:10px 25px;background:black;color:white;border:none;border-radius:12px;font-weight:bold;cursor:pointer;z-index:999;">
-إنهاء اللعبة
-</button>
 
 <script>
 
-/* ===== تهيئة ذكية ===== */
+/* ===== Initialization ===== */
 
 if(!localStorage.getItem("matchStarted")){
 localStorage.setItem("score1",0);
@@ -75,13 +239,14 @@ localStorage.setItem("matchStarted","true");
 
 const email = localStorage.getItem("userEmail");
 const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories")) || [];
-const team1 = localStorage.getItem("team1Name") || "الفريق الأول";
-const team2 = localStorage.getItem("team2Name") || "الفريق الثاني";
 
 let currentTeam = localStorage.getItem("turnTeam") || "1";
 let score1 = parseInt(localStorage.getItem("score1")) || 0;
 let score2 = parseInt(localStorage.getItem("score2")) || 0;
 let usedQuestions = JSON.parse(localStorage.getItem("usedQuestions")) || [];
+
+const team1 = localStorage.getItem("team1Name") || "الفريق الأول";
+const team2 = localStorage.getItem("team2Name") || "الفريق الثاني";
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
@@ -95,29 +260,41 @@ document.getElementById("turnBox").innerText =
 "دور فريق: " + (currentTeam === "1" ? team1 : team2);
 }
 
-/* ===== وسائل المساعدة ===== */
+/* ===== Score Control ===== */
+
+function changeScore(team,value){
+if(team==1){ score1+=value; }
+else{ score2+=value; }
+
+localStorage.setItem("score1",score1);
+localStorage.setItem("score2",score2);
+
+document.getElementById("score1").innerText = score1;
+document.getElementById("score2").innerText = score2;
+}
+
+/* ===== Helpers ===== */
 
 function doubleAnswer(team){
-if(currentTeam != team) return alert("مو دورك");
+if(currentTeam != team) return;
 localStorage.setItem("doubleActive","true");
 document.getElementById("double"+team).classList.add("used");
 }
 
 function stealQuestion(team){
-if(currentTeam == team) return alert("ما تقدر تسرق دورك");
+if(currentTeam == team) return;
 localStorage.setItem("stealActive","true");
 localStorage.setItem("stealTeam",team);
-localStorage.setItem("originalTeam",currentTeam);
 document.getElementById("steal"+team).classList.add("used");
 }
 
 function holeMode(team){
-if(currentTeam != team) return alert("مو دورك");
+if(currentTeam != team) return;
 localStorage.setItem("holeActive","true");
 document.getElementById("hole"+team).classList.add("used");
 }
 
-/* ===== تحميل الفئات ===== */
+/* ===== Load Categories ===== */
 
 fetch("/api/categories")
 .then(res=>res.json())
@@ -160,8 +337,6 @@ const usedClass = usedQuestions.includes(id) ? "used" : "";
 return `<div class="point ${usedClass}" data-id="${id}" onclick="openQ(this,'${category}',${points})">${points}</div>`;
 }
 
-/* ===== فتح السؤال ===== */
-
 function openQ(el,category,points){
 
 const id = el.getAttribute("data-id");
@@ -188,14 +363,6 @@ localStorage.setItem("currentTeam",currentTeam);
 window.location.href="question.html";
 
 });
-}
-
-/* ===== إنهاء اللعبة ===== */
-
-function endGame(){
-localStorage.removeItem("matchStarted");
-localStorage.removeItem("usedQuestions");
-window.location.href="home.html";
 }
 
 </script>
