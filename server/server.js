@@ -23,6 +23,10 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log("MongoDB Error", err));
 
+/* ================= ADMIN MASTER PASSWORD ================= */
+
+const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
+
 /* ================= CURRENT SEASON ================= */
 
 let CURRENT_SEASON = "season1";
@@ -36,7 +40,7 @@ const userSchema = new mongoose.Schema({
   games_balance: { type: Number, default: 1 },
   games_played: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
-  usedQuestions: { type: Array, default: [] }, // نخزن questionId
+  usedQuestions: { type: Array, default: [] },
   role: { type: String, default: "user" }
 });
 
@@ -59,16 +63,26 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= LEVEL 1 FIXED ================= */
+/* ================= ADMIN MASTER LOGIN ================= */
 
-const levelOneQuestions = [
-  { category:"أعلام دول", difficulty:200, question:"ما هي الدولة التي عاصمتها مدريد؟", answer:"إسبانيا" },
-  { category:"مجمعات الكويت", difficulty:200, question:"في أي منطقة يقع مجمع الأفنيوز؟", answer:"الري" },
-  { category:"أعلام دول", difficulty:400, question:"ما الدولة التي يحمل علمها تنيناً أبيض؟", answer:"بوتان" },
-  { category:"مجمعات الكويت", difficulty:400, question:"أي مجمع يقع في منطقة العقيلة ويطل على البحر؟", answer:"الكوت مول" },
-  { category:"أعلام دول", difficulty:600, question:"ما الدولة التي يتكون علمها من مثلثين متداخلين؟", answer:"نيبال" },
-  { category:"مجمعات الكويت", difficulty:600, question:"ما أول مجمع تجاري ضخم افتتح في الكويت الحديثة؟", answer:"سوق شرق" }
-];
+app.post("/api/admin/master-login", async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!ADMIN_MASTER_PASSWORD) {
+      return res.status(500).json({ message: "ADMIN_MASTER_PASSWORD غير معرف في السيرفر" });
+    }
+
+    if (password !== ADMIN_MASTER_PASSWORD) {
+      return res.status(401).json({ message: "كلمة السر غير صحيحة" });
+    }
+
+    res.json({ success: true });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في تسجيل دخول المدير" });
+  }
+});
 
 /* ================= Register ================= */
 
@@ -120,62 +134,6 @@ app.post("/api/login", async (req, res) => {
 
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
-  }
-});
-
-/* ================= Admin: Progress ================= */
-
-app.post("/api/admin/questions-progress", async (req, res) => {
-  try {
-    const { adminEmail } = req.body;
-
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    const categories = await Category.find();
-    let result = [];
-
-    for (const cat of categories) {
-      const count = await Question.countDocuments({
-        category: cat.name,
-        season: CURRENT_SEASON
-      });
-
-      result.push({
-        category: cat.name,
-        count
-      });
-    }
-
-    res.json(result);
-
-  } catch {
-    res.status(500).json({ message: "خطأ في التقدم" });
-  }
-});
-
-/* ================= Admin: Start New Season ================= */
-
-app.post("/api/admin/new-season", async (req, res) => {
-  try {
-    const { adminEmail, seasonName } = req.body;
-
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    CURRENT_SEASON = seasonName;
-
-    // تصفير سجل الأسئلة للمستخدمين
-    await User.updateMany({}, { usedQuestions: [] });
-
-    res.json({ message: "تم بدء موسم جديد", season: CURRENT_SEASON });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في تغيير الموسم" });
   }
 });
 
