@@ -13,7 +13,6 @@ direction:rtl;
 background:#f4f4f4;
 }
 
-/* Top Bar */
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
 color:white;
@@ -39,7 +38,6 @@ cursor:pointer;
 font-size:14px;
 }
 
-/* Card */
 .wrapper{
 padding:40px;
 display:flex;
@@ -56,7 +54,6 @@ position:relative;
 min-height:520px;
 }
 
-/* Timer */
 .timer-box{
 position:absolute;
 top:-30px;
@@ -78,7 +75,6 @@ cursor:pointer;
 font-size:20px;
 }
 
-/* Points */
 .points{
 position:absolute;
 top:25px;
@@ -90,7 +86,6 @@ border-radius:20px;
 font-size:14px;
 }
 
-/* Question */
 .question{
 text-align:center;
 margin-top:60px;
@@ -99,7 +94,6 @@ font-weight:900;
 line-height:2;
 }
 
-/* Image */
 .question-image{
 text-align:center;
 margin-top:30px;
@@ -110,7 +104,6 @@ max-width:300px;
 border-radius:20px;
 }
 
-/* Buttons */
 .buttons{
 position:absolute;
 bottom:25px;
@@ -169,30 +162,43 @@ font-weight:bold;
 
 <script>
 
+/* ================= جلب البيانات ================= */
+
 const question = localStorage.getItem("currentQuestion");
 const answer = localStorage.getItem("currentAnswer");
 const points = localStorage.getItem("currentPoints");
 const category = localStorage.getItem("currentCategory");
 const teamTurn = localStorage.getItem("currentTeam");
-const image = localStorage.getItem("currentImage");
+const image = localStorage.getItem("currentQuestionImage");
 
 /* حماية */
-if(!question){
+if(!question || !points){
 window.location.href="game.html";
 }
+
+/* عرض البيانات */
 
 document.getElementById("questionText").innerText = question;
 document.getElementById("pointsBox").innerText = points + " نقطة";
 document.getElementById("categoryBtn").innerText = category;
-document.getElementById("turnBox").innerText = "دور فريق: " + teamTurn;
 
-/* عرض صورة لو موجودة */
-if(image){
+/* عرض اسم الفريق الصحيح */
+
+const team1 = localStorage.getItem("team1Name");
+const team2 = localStorage.getItem("team2Name");
+
+const teamName = teamTurn === "1" ? team1 : team2;
+
+document.getElementById("turnBox").innerText = "دور فريق: " + teamName;
+
+/* عرض صورة السؤال إن وجدت */
+
+if(image && image !== "null"){
 document.getElementById("questionImageBox").style.display="block";
 document.getElementById("questionImage").src = image;
 }
 
-/* Timer */
+/* ================= Timer ================= */
 
 let timeLeft = 60;
 let interval;
