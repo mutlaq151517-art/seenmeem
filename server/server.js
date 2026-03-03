@@ -235,6 +235,25 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+/* ================= NEW: Login Data (بدون تخريب أي شيء) ================= */
+
+app.post("/api/login-data", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+
+    res.json({
+      games_balance: user.games_balance,
+      level: user.level
+    });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
 /* ================= Serve ================= */
 
 const __filename = fileURLToPath(import.meta.url);
