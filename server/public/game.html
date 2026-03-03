@@ -17,15 +17,12 @@ body{
 font-family:'Cairo',sans-serif;
 direction:rtl;
 background:#cfcfcf;
-overflow-x:hidden;
 }
 
 /* ===== TOP BAR ===== */
 
 .topbar{
-width:100vw;
-margin-right:calc(50% - 50vw);
-margin-left:calc(50% - 50vw);
+width:100%;
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
 height:85px;
 display:flex;
@@ -83,12 +80,9 @@ font-size:24px;
 font-weight:900;
 color:#b30000;
 cursor:pointer;
-transition:.2s;
 }
 
-.point:hover{
-background:#cfcfcf;
-}
+/* ===== IMAGE ===== */
 
 .category-center{
 text-align:center;
@@ -121,14 +115,14 @@ justify-content:space-between;
 align-items:center;
 }
 
-/* كل فريق */
-.team-block{
+/* الفريق */
+.team-side{
 display:flex;
 flex-direction:column;
-gap:12px;
+gap:15px;
 }
 
-.team-header{
+.team-name{
 background:#c40000;
 color:white;
 padding:14px 90px;
@@ -138,10 +132,45 @@ font-size:22px;
 text-align:center;
 }
 
-.team-content{
+/* صف داخلي */
+.team-row{
 display:flex;
 align-items:center;
-gap:25px;
+gap:30px;
+}
+
+/* وسائل المساعدة */
+.helpers-box{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:10px;
+}
+
+.helpers-title{
+font-size:18px;
+font-weight:700;
+}
+
+.helpers{
+display:flex;
+gap:12px;
+}
+
+.helper{
+width:45px;
+height:45px;
+background:#d8d8d8;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+.helper.active{
+background:#c40000;
+color:white;
 }
 
 /* النقاط */
@@ -172,41 +201,6 @@ width:30px;
 text-align:center;
 }
 
-/* وسائل المساعدة */
-.helpers-section{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:8px;
-}
-
-.helpers-title{
-font-size:18px;
-font-weight:700;
-}
-
-.helpers{
-display:flex;
-gap:12px;
-}
-
-.helper{
-width:45px;
-height:45px;
-background:#d8d8d8;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-font-size:18px;
-}
-
-.helper.active{
-background:#c40000;
-color:white;
-}
-
 /* اسم اللعبة بالنص */
 .center-title{
 font-size:50px;
@@ -229,10 +223,10 @@ color:#444;
 <div class="bottom">
 
 <!-- الفريق اليمين -->
-<div class="team-block">
-<div class="team-header" id="team1Name"></div>
-<div class="team-content">
-<div class="helpers-section">
+<div class="team-side">
+<div class="team-name" id="team1Name"></div>
+<div class="team-row">
+<div class="helpers-box">
 <div class="helpers-title">وسائل المساعدة</div>
 <div class="helpers">
 <div class="helper" onclick="activateHelper(this)">🔁</div>
@@ -251,15 +245,15 @@ color:#444;
 <div class="center-title">سين ميم</div>
 
 <!-- الفريق اليسار -->
-<div class="team-block">
-<div class="team-header" id="team2Name"></div>
-<div class="team-content">
+<div class="team-side">
+<div class="team-name" id="team2Name"></div>
+<div class="team-row">
 <div class="score-box">
 <button class="score-btn" onclick="changeScore(2,-100)">-</button>
 <div class="score-value" id="score2">0</div>
 <button class="score-btn" onclick="changeScore(2,100)">+</button>
 </div>
-<div class="helpers-section">
+<div class="helpers-box">
 <div class="helpers-title">وسائل المساعدة</div>
 <div class="helpers">
 <div class="helper" onclick="activateHelper(this)">🔁</div>
