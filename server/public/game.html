@@ -23,7 +23,12 @@ overflow-x:hidden;
 /* ===== TOP BAR ===== */
 
 .topbar{
-width:100%;
+position:relative;
+left:50%;
+right:50%;
+margin-left:-50vw;
+margin-right:-50vw;
+width:100vw;                 /* يمتد فعلياً لنهاية الشاشة */
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
 height:85px;
 display:flex;
@@ -120,13 +125,21 @@ font-size:18px;
 margin-top:40px;
 background:#e6e6e6;
 padding:40px 100px;
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
+display:grid;
+grid-template-columns:1fr auto 1fr; /* يمين - وسط - يسار */
+align-items:start;
 }
 
-.team-right,
+.team-right{
+justify-self:end;   /* يثبت الفريق الأول يمين */
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:15px;
+}
+
 .team-left{
+justify-self:start; /* يثبت الفريق الثاني يسار */
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -200,6 +213,7 @@ color:white;
 font-size:50px;
 font-weight:900;
 color:#444;
+align-self:center;
 }
 </style>
 </head>
@@ -218,13 +232,11 @@ color:#444;
 
 <div class="team-right">
 <div class="team-name" id="team1Name"></div>
-
 <div class="score-box">
 <button class="score-btn" onclick="changeScore(1,-100)">-</button>
 <div class="score-value" id="score1">0</div>
 <button class="score-btn" onclick="changeScore(1,100)">+</button>
 </div>
-
 <div class="helpers-title">وسائل المساعدة</div>
 <div class="helpers">
 <div class="helper" onclick="activateHelper(this)">🔁</div>
@@ -237,13 +249,11 @@ color:#444;
 
 <div class="team-left">
 <div class="team-name" id="team2Name"></div>
-
 <div class="score-box">
 <button class="score-btn" onclick="changeScore(2,-100)">-</button>
 <div class="score-value" id="score2">0</div>
 <button class="score-btn" onclick="changeScore(2,100)">+</button>
 </div>
-
 <div class="helpers-title">وسائل المساعدة</div>
 <div class="helpers">
 <div class="helper" onclick="activateHelper(this)">🔁</div>
