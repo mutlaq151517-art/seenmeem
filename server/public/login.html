@@ -110,8 +110,20 @@ alert("خطأ في السيرفر");
 return;
 }
 
+/* بعد التسجيل نسوي تسجيل دخول تلقائي */
+const loginRes = await fetch("/api/login",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ email,password })
+});
+
+const loginData = await loginRes.json();
+
 localStorage.setItem("userEmail",email);
-localStorage.setItem("userName",name);
+localStorage.setItem("userName",loginData.name);
+localStorage.setItem("games_balance",loginData.games_balance);
+localStorage.setItem("level",loginData.level);
+
 window.location.href="home.html";
 
 }else{
@@ -139,8 +151,12 @@ alert("خطأ في السيرفر");
 return;
 }
 
+/* تخزين بيانات الحساب */
 localStorage.setItem("userEmail",email);
 localStorage.setItem("userName",data.name);
+localStorage.setItem("games_balance",data.games_balance);
+localStorage.setItem("level",data.level);
+
 window.location.href="home.html";
 
 }
