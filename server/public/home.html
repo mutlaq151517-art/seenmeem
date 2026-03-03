@@ -7,20 +7,87 @@
 
 <style>
 body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#fff;}
-.navbar{background:#f3f3f3;display:flex;justify-content:space-between;align-items:center;padding:15px 40px;font-weight:bold;}
-.logo{font-size:28px;color:#e33b2e;font-weight:900;}
-.hero{height:85vh;background:linear-gradient(135deg,#ff3b3b,#ff7a3d,#ffb347);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:white;}
-.hero h1{font-size:70px;margin:0;font-weight:900;}
-.hero p{font-size:22px;margin:20px 0;}
-.btn{padding:15px 30px;border:none;border-radius:15px;font-size:18px;cursor:pointer;font-weight:bold;}
+
+.navbar{
+background:#f3f3f3;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px 40px;
+font-weight:bold;
+}
+
+.logo{
+font-size:28px;
+color:#e33b2e;
+font-weight:900;
+}
+
+.user-info{
+display:flex;
+gap:20px;
+align-items:center;
+}
+
+.balance-box{
+background:#b30000;
+color:white;
+padding:8px 18px;
+border-radius:20px;
+font-size:14px;
+}
+
+.level-box{
+background:#ff7a3d;
+color:white;
+padding:8px 18px;
+border-radius:20px;
+font-size:14px;
+}
+
+.hero{
+height:85vh;
+background:linear-gradient(135deg,#ff3b3b,#ff7a3d,#ffb347);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+color:white;
+}
+
+.hero h1{
+font-size:70px;
+margin:0;
+font-weight:900;
+}
+
+.hero p{
+font-size:22px;
+margin:20px 0;
+}
+
+.btn{
+padding:15px 30px;
+border:none;
+border-radius:15px;
+font-size:18px;
+cursor:pointer;
+font-weight:bold;
+}
+
 .red{background:#b30000;color:white;}
 .white{background:white;color:#b30000;}
+.disabled{
+opacity:0.5;
+pointer-events:none;
+}
 </style>
 </head>
 <body>
 
 <script>
-// يمنع الدخول إذا مو مسجل
+// منع الدخول إذا غير مسجل
 if(!localStorage.getItem("userEmail")){
   window.location.href = "login.html";
 }
@@ -28,6 +95,11 @@ if(!localStorage.getItem("userEmail")){
 
 <div class="navbar">
 <div class="logo">سين ميم</div>
+
+<div class="user-info">
+<div class="balance-box" id="balanceBox"></div>
+<div class="level-box" id="levelBox"></div>
+</div>
 </div>
 
 <div class="hero">
@@ -35,17 +107,70 @@ if(!localStorage.getItem("userEmail")){
 <p>الجواب عليك، والسؤال علينا</p>
 
 <div style="margin-top:30px;display:flex;gap:20px;">
-<button class="btn red" onclick="location.href='setup.html'">إنشاء لعبة</button>
+<button class="btn red" id="startBtn" onclick="startGame()">إنشاء لعبة</button>
 <button class="btn white" onclick="logout()">تسجيل خروج</button>
 </div>
 
 </div>
 
 <script>
+
+const email = localStorage.getItem("userEmail");
+let balance = parseInt(localStorage.getItem("games_balance")) || 0;
+let level = parseInt(localStorage.getItem("level")) || 1;
+
+const balanceBox = document.getElementById("balanceBox");
+const levelBox = document.getElementById("levelBox");
+const startBtn = document.getElementById("startBtn");
+
+function updateUI(){
+balanceBox.innerText = "رصيد الألعاب: " + balance;
+levelBox.innerText = "المستوى: " + level;
+
+if(balance <= 0){
+startBtn.classList.add("disabled");
+startBtn.innerText = "لا يوجد رصيد";
+}
+}
+
+updateUI();
+
+async function startGame(){
+
+if(balance <= 0){
+alert("لا يوجد لديك رصيد ألعاب");
+return;
+}
+
+const res = await fetch("/api/start-match",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body: JSON.stringify({ email })
+});
+
+const data = await res.json();
+
+if(!res.ok){
+alert(data.message || "خطأ في بدء المباراة");
+return;
+}
+
+balance = data.games_balance;
+level = data.level;
+
+localStorage.setItem("games_balance",balance);
+localStorage.setItem("level",level);
+
+updateUI();
+
+window.location.href="setup.html";
+}
+
 function logout(){
 localStorage.clear();
 window.location.href="login.html";
 }
+
 </script>
 
 </body>
