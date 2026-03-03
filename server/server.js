@@ -23,6 +23,10 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log("MongoDB Error", err));
 
+/* ================= CURRENT SEASON ================= */
+
+const CURRENT_SEASON = "season1";
+
 /* ================= Schemas ================= */
 
 const userSchema = new mongoose.Schema({
@@ -32,7 +36,7 @@ const userSchema = new mongoose.Schema({
   games_balance: { type: Number, default: 1 },
   games_played: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
-  usedQuestions: { type: Array, default: [] }, // نخزن نص السؤال هنا
+  usedQuestions: { type: Array, default: [] }, // نخزن questionId
   role: { type: String, default: "user" }
 });
 
@@ -42,8 +46,20 @@ const categorySchema = new mongoose.Schema({
   image: String
 });
 
+/* ===== NEW Question Schema ===== */
+
+const questionSchema = new mongoose.Schema({
+  category: String,
+  difficulty: Number,
+  question: String,
+  answer: String,
+  season: String,
+  isActive: { type: Boolean, default: true }
+});
+
 const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
+const Question = mongoose.model("Question", questionSchema);
 
 /* ================= LEVEL 1 FIXED ================= */
 
@@ -109,6 +125,109 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+/* ================= Admin: Generate Questions (Batch 100) ================= */
+
+app.post("/api/admin/generate-questions", async (req, res) => {
+  try {
+
+    const { adminEmail } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const categories = await Category.find();
+    const BATCH_SIZE = 100;
+    const TARGET = 1000;
+
+    let results = [];
+
+    for (const cat of categories) {
+
+      const existing = await Question.countDocuments({
+        category: cat.name,
+        season: CURRENT_SEASON
+      });
+
+      if (existing >= TARGET) {
+        results.push(`${cat.name} مكتملة`);
+        continue;
+      }
+
+      const remaining = TARGET - existing;
+      const generateNow = Math.min(BATCH_SIZE, remaining);
+
+      const insertData = [];
+
+      for (let i = 0; i < generateNow; i++) {
+
+        let difficulty;
+        const r = Math.random();
+        if (r < 0.3) difficulty = 200;
+        else if (r < 0.65) difficulty = 400;
+        else difficulty = 600;
+
+        let extra = "";
+        if (cat.name === "دعايات") {
+          extra = "الأسئلة يجب أن تكون عن إعلانات كويتية فقط.";
+        }
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          temperature: 1,
+          messages: [
+            {
+              role: "system",
+              content: `
+أنت كاتب أسئلة مسابقات احترافي جداً.
+اجعل 400 صعب.
+اجعل 600 صعب جداً جداً.
+لا تكرر الأسئلة.
+${extra}
+أعد الرد بصيغة JSON فقط.
+`
+            },
+            {
+              role: "user",
+              content: `
+الفئة: ${cat.name}
+مستوى النقاط: ${difficulty}
+
+{
+"question":"...",
+"answer":"..."
+}
+`
+            }
+          ],
+          response_format: { type: "json_object" }
+        });
+
+        const parsed = JSON.parse(completion.choices[0].message.content);
+
+        insertData.push({
+          category: cat.name,
+          difficulty,
+          question: parsed.question,
+          answer: parsed.answer,
+          season: CURRENT_SEASON
+        });
+      }
+
+      await Question.insertMany(insertData);
+
+      results.push(`${cat.name} +${generateNow}`);
+    }
+
+    res.json({ results });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "خطأ في التوليد" });
+  }
+});
+
 /* ================= Start Question ================= */
 
 app.post("/api/start-game", async (req, res) => {
@@ -128,10 +247,7 @@ app.post("/api/start-game", async (req, res) => {
       );
 
       if (question) {
-        return res.json({
-          question: question.question,
-          answer: question.answer
-        });
+        return res.json(question);
       }
 
       return res.json({
@@ -140,61 +256,30 @@ app.post("/api/start-game", async (req, res) => {
       });
     }
 
-    /* ===== Level 2+ (منع التكرار) ===== */
+    /* ===== Level 2+ (من بنك الأسئلة) ===== */
 
-    let attempts = 0;
-    let generatedQuestion = null;
+    const questions = await Question.find({
+      category,
+      difficulty,
+      season: CURRENT_SEASON,
+      _id: { $nin: user.usedQuestions }
+    });
 
-    while(attempts < 5){
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        temperature: 1.0,
-        messages: [
-          {
-            role: "system",
-            content: "أنت كاتب أسئلة مسابقات احترافي جداً. لا تكرر الأسئلة."
-          },
-          {
-            role: "user",
-            content: `
-الفئة: ${category}
-مستوى النقاط: ${difficulty}
-أعد الرد بصيغة JSON فقط:
-{
-  "question":"...",
-  "answer":"..."
-}
-`
-          }
-        ],
-        response_format: { type: "json_object" }
-      });
-
-      const parsed = JSON.parse(completion.choices[0].message.content);
-
-      if(!user.usedQuestions.includes(parsed.question)){
-        generatedQuestion = parsed;
-        break;
-      }
-
-      attempts++;
-    }
-
-    if(!generatedQuestion){
+    if (questions.length === 0) {
       return res.json({
         question:"لا يوجد سؤال جديد حالياً",
         answer:"حاول لاحقاً"
       });
     }
 
-    /* حفظ السؤال لمنع تكراره مستقبلاً */
-    user.usedQuestions.push(generatedQuestion.question);
+    const random = questions[Math.floor(Math.random() * questions.length)];
+
+    user.usedQuestions.push(random._id);
     await user.save();
 
     res.json({
-      question: generatedQuestion.question,
-      answer: generatedQuestion.answer
+      question: random.question,
+      answer: random.answer
     });
 
   } catch {
