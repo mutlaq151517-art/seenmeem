@@ -120,23 +120,37 @@ font-weight:bold;
 
 <script>
 
+/* ================= جلب البيانات ================= */
+
 const answer = localStorage.getItem("currentAnswer");
 const teamTurn = localStorage.getItem("currentTeam");
 const answerImage = localStorage.getItem("currentAnswerImage");
+
+const team1 = localStorage.getItem("team1Name");
+const team2 = localStorage.getItem("team2Name");
 
 /* حماية */
 if(!answer){
 window.location.href="game.html";
 }
 
-document.getElementById("answerText").innerText = answer;
-document.getElementById("turnBox").innerText = "دور فريق: " + teamTurn;
+/* عرض الإجابة */
 
-/* عرض صورة الإجابة لو موجودة */
-if(answerImage){
+document.getElementById("answerText").innerText = answer;
+
+/* عرض اسم الفريق الصحيح */
+
+const teamName = teamTurn === "1" ? team1 : team2;
+document.getElementById("turnBox").innerText = "دور فريق: " + teamName;
+
+/* عرض صورة الإجابة إن وجدت */
+
+if(answerImage && answerImage !== "null"){
 document.getElementById("answerImageBox").style.display="block";
 document.getElementById("answerImage").src = answerImage;
 }
+
+/* ================= أزرار ================= */
 
 function goWinner(){
 window.location.href="winner.html";
