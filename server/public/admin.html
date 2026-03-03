@@ -12,7 +12,6 @@ direction:rtl;
 background:#f2f2f2;
 }
 
-/* شاشة القفل */
 .lock-screen{
 position:fixed;
 inset:0;
@@ -44,7 +43,6 @@ color:white;
 cursor:pointer;
 }
 
-/* اللوحة */
 .container{
 max-width:1100px;
 margin:60px auto;
@@ -109,7 +107,6 @@ border:1px solid #ccc;
 </div>
 
 <div class="container" id="adminPanel">
-
 <h2>لوحة تحكم SeenMeem</h2>
 
 <div class="section">
@@ -121,24 +118,15 @@ border:1px solid #ccc;
 
 <script>
 
-/* ================= دخول المدير ================= */
+let adminPassword = null;
+
+/* ===== دخول الأدمن ===== */
 
 async function checkAdmin(){
 
-const password = document.getElementById("adminPassword").value;
+adminPassword = document.getElementById("adminPassword").value;
 
-const res = await fetch("/api/admin/master-login",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ password })
-});
-
-if(!res.ok){
-alert("كلمة السر غير صحيحة");
-return;
-}
-
-localStorage.setItem("adminAccess","true");
+localStorage.setItem("adminPassword",adminPassword);
 
 document.getElementById("lockScreen").style.display="none";
 document.getElementById("adminPanel").style.display="block";
@@ -146,26 +134,27 @@ document.getElementById("adminPanel").style.display="block";
 loadUsers();
 }
 
-if(localStorage.getItem("adminAccess")==="true"){
+if(localStorage.getItem("adminPassword")){
+adminPassword = localStorage.getItem("adminPassword");
 document.getElementById("lockScreen").style.display="none";
 document.getElementById("adminPanel").style.display="block";
 loadUsers();
 }
 
-/* ================= المستخدمين ================= */
+/* ===== جلب المستخدمين ===== */
 
 async function loadUsers(){
-
-const adminEmail = prompt("أدخل إيميل حساب الأدمن");
 
 const res = await fetch("/api/admin/users",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email: adminEmail })
+body:JSON.stringify({ password: adminPassword })
 });
 
 if(!res.ok){
-alert("غير مصرح");
+alert("كلمة السر غير صحيحة");
+localStorage.removeItem("adminPassword");
+location.reload();
 return;
 }
 
@@ -178,7 +167,6 @@ users.forEach(user=>{
 
 list.innerHTML+=`
 <div class="card">
-
 <div style="min-width:250px;">
 <b>${user.name}</b><br>
 ${user.email}<br>
@@ -189,30 +177,28 @@ ${user.email}<br>
 
 <div>
 <input type="number" id="balance-${user._id}" placeholder="رصيد جديد">
-<button class="small-btn blue" onclick="updateUser('${user._id}','${user.email}')">تحديث</button>
-<button class="small-btn green" onclick="makeAdmin('${user._id}','${user.email}')">Admin</button>
-<button class="small-btn orange" onclick="makeUser('${user._id}','${user.email}')">User</button>
-<button class="small-btn red" onclick="resetPass('${user._id}','${user.email}')">إعادة كلمة السر</button>
-<button class="small-btn" onclick="deleteUser('${user._id}','${user.email}')">حذف</button>
+<button class="small-btn blue" onclick="updateUser('${user._id}')">تحديث</button>
+<button class="small-btn green" onclick="makeAdmin('${user._id}')">Admin</button>
+<button class="small-btn orange" onclick="makeUser('${user._id}')">User</button>
+<button class="small-btn red" onclick="resetPass('${user._id}')">إعادة كلمة السر</button>
+<button class="small-btn" onclick="deleteUser('${user._id}')">حذف</button>
 </div>
-
 </div>
 `;
 });
 }
 
-/* ===== تعديل الرصيد ===== */
+/* ===== تحديث ===== */
 
-async function updateUser(userId,userEmail){
+async function updateUser(userId){
 
-const adminEmail = prompt("أدخل إيميل الأدمن");
 const balance = document.getElementById("balance-"+userId).value;
 
 await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail,
+password: adminPassword,
 userId,
 games_balance: balance
 })
@@ -221,51 +207,39 @@ games_balance: balance
 loadUsers();
 }
 
-/* ===== تغيير صلاحية ===== */
-
 async function makeAdmin(userId){
-const adminEmail = prompt("أدخل إيميل الأدمن");
-
 await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail,
+password: adminPassword,
 userId,
 role:"admin"
 })
 });
-
 loadUsers();
 }
 
 async function makeUser(userId){
-const adminEmail = prompt("أدخل إيميل الأدمن");
-
 await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail,
+password: adminPassword,
 userId,
 role:"user"
 })
 });
-
 loadUsers();
 }
 
-/* ===== إعادة تعيين كلمة السر ===== */
-
 async function resetPass(userId){
-
-const adminEmail = prompt("أدخل إيميل الأدمن");
 
 const res = await fetch("/api/admin/reset-password",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail,
+password: adminPassword,
 userId
 })
 });
@@ -275,22 +249,17 @@ const data = await res.json();
 if(data.newPassword){
 alert("كلمة السر الجديدة: " + data.newPassword);
 }
-
 }
-
-/* ===== حذف مستخدم ===== */
 
 async function deleteUser(userId){
 
 if(!confirm("متأكد من حذف المستخدم؟")) return;
 
-const adminEmail = prompt("أدخل إيميل الأدمن");
-
 await fetch("/api/admin/delete-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail,
+password: adminPassword,
 userId
 })
 });
