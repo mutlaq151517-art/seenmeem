@@ -13,7 +13,7 @@ background:#f2f2f2;
 }
 
 .container{
-max-width:600px;
+max-width:900px;
 margin:60px auto;
 background:white;
 padding:30px;
@@ -28,24 +28,26 @@ margin-bottom:30px;
 
 input{
 width:100%;
-padding:12px;
-margin-bottom:15px;
+padding:10px;
+margin-bottom:10px;
 border-radius:10px;
 border:1px solid #ddd;
 }
 
 button{
-width:100%;
-padding:12px;
+padding:8px 15px;
 border:none;
-border-radius:12px;
+border-radius:8px;
 background:linear-gradient(to right,#ff3b3b,#b30000);
 color:white;
-font-size:16px;
 cursor:pointer;
 }
 
-.category{
+.section{
+margin-top:40px;
+}
+
+.card{
 background:#eee;
 padding:10px;
 border-radius:10px;
@@ -53,51 +55,143 @@ margin-top:10px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+flex-wrap:wrap;
+gap:10px;
 }
 
-img{
-width:40px;
-height:40px;
-border-radius:8px;
+.small-btn{
+background:black;
+font-size:12px;
+padding:5px 10px;
 }
 </style>
 </head>
 
 <body>
 
+<script>
+/* حماية */
+if(localStorage.getItem("role") !== "admin"){
+alert("غير مصرح لك بالدخول");
+window.location.href="home.html";
+}
+</script>
+
 <div class="container">
 
-<h2>إضافة فئة جديدة</h2>
+<h2>لوحة تحكم SeenMeem</h2>
 
-<input type="text" id="section" placeholder="اسم القسم (مثال: الكويت)">
+<!-- ================= المستخدمين ================= -->
+
+<div class="section">
+<h3>إدارة المستخدمين</h3>
+<div id="usersList"></div>
+</div>
+
+<!-- ================= الفئات ================= -->
+
+<div class="section">
+<h3>إضافة فئة جديدة</h3>
+
+<input type="text" id="section" placeholder="اسم القسم">
 <input type="text" id="name" placeholder="اسم الفئة">
 <input type="text" id="image" placeholder="رابط صورة الفئة">
 
-<button onclick="addCategory()">إضافة</button>
+<button onclick="addCategory()">إضافة فئة</button>
 
-<hr>
-
-<h3>الفئات الحالية</h3>
-<div id="list"></div>
+<h3 style="margin-top:30px;">الفئات الحالية</h3>
+<div id="categoriesList"></div>
+</div>
 
 </div>
 
 <script>
 
-const API = "";
+const adminEmail = localStorage.getItem("userEmail");
+
+/* ================= تحميل المستخدمين ================= */
+
+async function loadUsers(){
+const res = await fetch("/api/admin/users",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({ email:adminEmail })
+});
+
+const users = await res.json();
+
+const list = document.getElementById("usersList");
+list.innerHTML="";
+
+users.forEach(user=>{
+list.innerHTML+=`
+<div class="card">
+<div>
+<b>${user.name}</b><br>
+${user.email}<br>
+رصيد: ${user.games_balance} | مستوى: ${user.level} | صلاحية: ${user.role}
+</div>
+
+<div>
+<input type="number" id="balance-${user.email}" placeholder="رصيد جديد">
+<button class="small-btn" onclick="updateBalance('${user.email}')">تعديل الرصيد</button>
+<button class="small-btn" onclick="changeRole('${user.email}','admin')">جعله Admin</button>
+<button class="small-btn" onclick="changeRole('${user.email}','user')">جعله User</button>
+</div>
+</div>
+`;
+});
+}
+
+/* ================= تعديل الرصيد ================= */
+
+async function updateBalance(userEmail){
+
+const balance = document.getElementById("balance-"+userEmail).value;
+
+await fetch("/api/admin/update-balance",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+adminEmail,
+userEmail,
+balance
+})
+});
+
+loadUsers();
+}
+
+/* ================= تغيير الصلاحية ================= */
+
+async function changeRole(userEmail,role){
+
+await fetch("/api/admin/change-role",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+adminEmail,
+userEmail,
+role
+})
+});
+
+loadUsers();
+}
+
+/* ================= تحميل الفئات ================= */
 
 async function loadCategories(){
 const res = await fetch("/api/categories");
 const data = await res.json();
 
-const list = document.getElementById("list");
+const list = document.getElementById("categoriesList");
 list.innerHTML="";
 
 data.forEach(cat=>{
 list.innerHTML+=`
-<div class="category">
+<div class="card">
 <div>
-<img src="${cat.image}">
 ${cat.section} - ${cat.name}
 </div>
 <button onclick="deleteCategory('${cat._id}')">حذف</button>
@@ -106,34 +200,38 @@ ${cat.section} - ${cat.name}
 });
 }
 
+/* ================= إضافة فئة ================= */
+
 async function addCategory(){
+
 const section=document.getElementById("section").value;
 const name=document.getElementById("name").value;
 const image=document.getElementById("image").value;
 
-const email=localStorage.getItem("userEmail");
-
 await fetch("/api/admin/add-category",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email,section,name,image })
+body:JSON.stringify({ email:adminEmail,section,name,image })
 });
 
 loadCategories();
 }
 
+/* ================= حذف فئة ================= */
+
 async function deleteCategory(id){
-const email=localStorage.getItem("userEmail");
 
 await fetch("/api/admin/delete-category",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email,id })
+body:JSON.stringify({ email:adminEmail,id })
 });
 
 loadCategories();
 }
 
+/* تحميل البيانات */
+loadUsers();
 loadCategories();
 
 </script>
