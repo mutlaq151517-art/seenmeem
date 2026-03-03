@@ -23,41 +23,40 @@ background:#cfcfcf;
 .topbar{
 width:100%;
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
-height:85px;
+height:90px;
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 60px;
+padding:0 70px;
 color:white;
 font-weight:700;
 }
 
 .turn{
 background:#c40000;
-padding:10px 25px;
-border-radius:40px;
+padding:12px 30px;
+border-radius:50px;
 font-weight:900;
-font-size:16px;
 }
 
 /* ===== BOARD ===== */
 
 .board-wrapper{
-padding:50px 80px 30px 80px;
+padding:60px 100px;
 }
 
 .board{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:45px;
+gap:60px;
 }
 
 /* ===== CARD ===== */
 
 .category-card{
 background:#e6e6e6;
-border-radius:35px;
-padding:25px;
+border-radius:40px;
+padding:30px;
 display:flex;
 align-items:center;
 justify-content:space-between;
@@ -68,18 +67,18 @@ justify-content:space-between;
 .points-col{
 display:flex;
 flex-direction:column;
-gap:18px;
+gap:22px;
 }
 
 .point{
 background:#d8d8d8;
-height:55px;
-min-width:150px;
-border-radius:50px;
+height:60px;
+min-width:170px;
+border-radius:60px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:24px;
+font-size:26px;
 font-weight:900;
 color:#b30000;
 cursor:pointer;
@@ -97,27 +96,27 @@ text-align:center;
 }
 
 .category-center img{
-width:140px;
-height:140px;
+width:160px;
+height:160px;
 object-fit:contain;
 }
 
 .category-title{
-margin-top:12px;
+margin-top:15px;
 background:#ff7a3d;
 color:white;
-padding:10px 28px;
-border-radius:25px;
+padding:12px 40px;
+border-radius:30px;
 font-weight:900;
-font-size:18px;
+font-size:20px;
 }
 
 /* ===== BOTTOM ===== */
 
 .bottom{
-margin-top:40px;
+margin-top:50px;
 background:#e6e6e6;
-padding:40px 100px;
+padding:50px 120px;
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -127,64 +126,63 @@ align-items:center;
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:15px;
+gap:18px;
 }
 
 .team-name{
 background:#c40000;
 color:white;
-padding:14px 90px;
-border-radius:45px;
+padding:16px 110px;
+border-radius:60px;
 font-weight:900;
-font-size:22px;
+font-size:24px;
 }
 
 .score-box{
 background:#d8d8d8;
-border-radius:50px;
+border-radius:60px;
 display:flex;
 align-items:center;
-padding:8px 18px;
-gap:18px;
+padding:10px 25px;
+gap:25px;
 }
 
 .score-btn{
 background:#c40000;
 color:white;
 border:none;
-width:35px;
-height:35px;
+width:40px;
+height:40px;
 border-radius:50%;
-font-size:20px;
+font-size:22px;
 cursor:pointer;
 }
 
 .score-value{
-font-size:22px;
+font-size:24px;
 font-weight:900;
-width:30px;
+width:35px;
 text-align:center;
 }
 
 .helpers-title{
-font-size:18px;
+font-size:20px;
 font-weight:700;
 }
 
 .helpers{
 display:flex;
-gap:15px;
+gap:20px;
 }
 
 .helper{
-width:42px;
-height:42px;
+width:50px;
+height:50px;
 background:#d8d8d8;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:18px;
 cursor:pointer;
 }
 
@@ -194,7 +192,7 @@ color:white;
 }
 
 .center-title{
-font-size:48px;
+font-size:60px;
 font-weight:900;
 color:#444;
 }
@@ -254,6 +252,7 @@ color:#444;
 <script>
 const team1 = localStorage.getItem("team1Name") || "الفريق الأول";
 const team2 = localStorage.getItem("team2Name") || "الفريق الثاني";
+const selected = JSON.parse(localStorage.getItem("selectedCategories")) || [];
 
 let score1 = parseInt(localStorage.getItem("score1")) || 0;
 let score2 = parseInt(localStorage.getItem("score2")) || 0;
@@ -288,7 +287,11 @@ fetch("/api/categories")
 .then(res=>res.json())
 .then(data=>{
 const board=document.getElementById("board");
-data.forEach(cat=>{
+
+selected.slice(0,6).forEach(catName=>{
+const cat=data.find(c=>c.name===catName);
+if(!cat) return;
+
 const div=document.createElement("div");
 div.className="category-card";
 
@@ -298,10 +301,12 @@ div.innerHTML=`
 <div class="point">400</div>
 <div class="point">600</div>
 </div>
+
 <div class="category-center">
 <img src="${cat.image}">
 <div class="category-title">${cat.name}</div>
 </div>
+
 <div class="points-col">
 <div class="point">200</div>
 <div class="point">400</div>
