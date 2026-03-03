@@ -38,11 +38,23 @@ const categorySchema = new mongoose.Schema({
   image: String
 });
 
+/* 🔥 تطوير سكيمة السؤال بدون تخريب القديم */
+
 const questionSchema = new mongoose.Schema({
   category: String,
-  difficulty: Number,
+  difficulty: Number, // 200 / 400 / 600
+
   question: String,
   answer: String,
+
+  questionImage: { type: String, default: null },
+  answerImage: { type: String, default: null },
+
+  levelRequired: { type: Number, default: 1 }, // مستوى مطلوب
+  forNewUsers: { type: Boolean, default: false }, // أسئلة ثابتة لأول مرة
+
+  timesUsed: { type: Number, default: 0 },
+
   season: String,
   isActive: { type: Boolean, default: true }
 });
@@ -72,7 +84,7 @@ app.post("/api/admin/users", async (req, res) => {
   }
 });
 
-/* 🔥 إصلاح الرصيد نهائيًا */
+/* ================= UPDATE USER ================= */
 
 app.post("/api/admin/update-user", async (req, res) => {
   try {
@@ -87,7 +99,6 @@ app.post("/api/admin/update-user", async (req, res) => {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
-    // إضافة الرصيد فوق القديم
     if (games_balance !== undefined) {
       const amount = Number(games_balance);
       if (!isNaN(amount) && amount > 0) {
@@ -111,7 +122,7 @@ app.post("/api/admin/update-user", async (req, res) => {
   }
 });
 
-/* ================= API لجلب بيانات المستخدم للهوم ================= */
+/* ================= LOGIN DATA ================= */
 
 app.post("/api/login-data", async (req, res) => {
   try {
@@ -148,6 +159,7 @@ app.post("/api/start-match", async (req, res) => {
     user.games_balance -= 1;
     user.games_played += 1;
     user.level = user.games_played + 1;
+    user.usedQuestions = [];
 
     await user.save();
 
@@ -162,7 +174,7 @@ app.post("/api/start-match", async (req, res) => {
   }
 });
 
-/* ================= START GAME ================= */
+/* ================= START GAME (ذكي) ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
@@ -171,28 +183,58 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
 
-    const question = await Question.findOne({
+    // أول مباراة = أسئلة ثابتة
+    const isFirstGame = user.games_played <= 1;
+
+    let query = {
       category,
       difficulty,
       season: CURRENT_SEASON,
-      isActive: true
-    });
+      isActive: true,
+      _id: { $nin: user.usedQuestions }
+    };
+
+    if (isFirstGame) {
+      query.forNewUsers = true;
+    } else {
+      query.levelRequired = { $lte: user.level };
+    }
+
+    let question = await Question.findOne(query).sort({ timesUsed: 1 });
+
+    // fallback إذا ما حصل
+    if (!question) {
+      question = await Question.findOne({
+        category,
+        difficulty,
+        season: CURRENT_SEASON,
+        isActive: true
+      });
+    }
 
     if (!question) {
-      return res.status(404).json({ message: "لا يوجد سؤال" });
+      return res.status(404).json({ message: "لا يوجد سؤال متاح حالياً" });
     }
+
+    question.timesUsed += 1;
+    await question.save();
+
+    user.usedQuestions.push(question._id);
+    await user.save();
 
     res.json({
       question: question.question,
-      answer: question.answer
+      answer: question.answer,
+      questionImage: question.questionImage,
+      answerImage: question.answerImage
     });
 
-  } catch {
+  } catch (err) {
     res.status(500).json({ message: "خطأ في تحميل السؤال" });
   }
 });
 
-/* ================= Register ================= */
+/* ================= REGISTER ================= */
 
 app.post("/api/register", async (req, res) => {
   try {
@@ -220,7 +262,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-/* ================= Login ================= */
+/* ================= LOGIN ================= */
 
 app.post("/api/login", async (req, res) => {
   try {
@@ -244,7 +286,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Categories ================= */
+/* ================= CATEGORIES ================= */
 
 app.get("/api/categories", async (req, res) => {
   try {
