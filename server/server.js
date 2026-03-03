@@ -17,7 +17,6 @@ mongoose.connect(process.env.MONGO_URI)
 .catch(err => console.log("MongoDB Error", err));
 
 const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
-
 let CURRENT_SEASON = "season1";
 
 /* ================= Schemas ================= */
@@ -26,7 +25,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
   password: String,
-  games_balance: { type: Number, default: 1 },
+  games_balance: { type: Number, default: 1 }, // ✅ الافتراضي 1
   games_played: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
   usedQuestions: { type: Array, default: [] },
@@ -52,7 +51,7 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= ADMIN AUTH CHECK ================= */
+/* ================= ADMIN AUTH ================= */
 
 function checkAdmin(password) {
   return password === ADMIN_MASTER_PASSWORD;
@@ -63,20 +62,17 @@ function checkAdmin(password) {
 app.post("/api/admin/users", async (req, res) => {
   try {
     const { password } = req.body;
-
     if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
-
     const users = await User.find().select("-password");
     res.json(users);
-
   } catch {
     res.status(500).json([]);
   }
 });
 
-/* 🔥 الإصلاح هنا (إضافة رصيد حقيقي) */
+/* ✅ إصلاح إضافة الرصيد نهائيًا */
 
 app.post("/api/admin/update-user", async (req, res) => {
   try {
@@ -92,39 +88,37 @@ app.post("/api/admin/update-user", async (req, res) => {
     }
 
     // ✅ إضافة رصيد فوق القديم
-    if (games_balance !== undefined && games_balance !== "") {
+    if (games_balance !== undefined) {
       const amount = Number(games_balance);
-
       if (!isNaN(amount) && amount > 0) {
-        user.games_balance += amount;
+        user.games_balance = user.games_balance + amount;
       }
     }
 
-    // ✅ تعديل الصلاحية إذا موجودة
     if (role !== undefined) {
       user.role = role;
     }
 
     await user.save();
 
-    res.json({ message: "تم التحديث بنجاح" });
+    res.json({ message: "تمت إضافة الرصيد بنجاح" });
 
   } catch (err) {
     res.status(500).json({ message: "خطأ في التحديث" });
   }
 });
 
+/* ================= ADMIN: PASSWORD ================= */
+
 app.post("/api/admin/reset-password", async (req, res) => {
   try {
     const { password, userId } = req.body;
-
     if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
     const newPassword = Math.random().toString(36).slice(-8);
     const hashed = await bcrypt.hash(newPassword, 10);
-
     await User.findByIdAndUpdate(userId, { password: hashed });
 
     res.json({ newPassword });
@@ -137,59 +131,13 @@ app.post("/api/admin/reset-password", async (req, res) => {
 app.post("/api/admin/delete-user", async (req, res) => {
   try {
     const { password, userId } = req.body;
-
     if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
-
     await User.findByIdAndDelete(userId);
     res.json({ message: "تم الحذف" });
-
   } catch {
     res.status(500).json({ message: "خطأ" });
-  }
-});
-
-/* ================= Categories ================= */
-
-app.get("/api/categories", async (req, res) => {
-  try {
-    const categories = await Category.find();
-    res.json(categories);
-  } catch {
-    res.status(500).json([]);
-  }
-});
-
-/* ================= START GAME ================= */
-
-app.post("/api/start-game", async (req, res) => {
-  try {
-    const { email, category, difficulty } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "المستخدم غير موجود" });
-    }
-
-    const question = await Question.findOne({
-      category,
-      difficulty,
-      season: CURRENT_SEASON,
-      isActive: true
-    });
-
-    if (!question) {
-      return res.status(404).json({ message: "لا يوجد سؤال" });
-    }
-
-    res.json({
-      question: question.question,
-      answer: question.answer
-    });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في تحميل السؤال" });
   }
 });
 
@@ -198,8 +146,8 @@ app.post("/api/start-game", async (req, res) => {
 app.post("/api/start-match", async (req, res) => {
   try {
     const { email } = req.body;
-
     const user = await User.findOne({ email });
+
     if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
 
     if (user.games_balance <= 0) {
@@ -223,6 +171,36 @@ app.post("/api/start-match", async (req, res) => {
   }
 });
 
+/* ================= START GAME ================= */
+
+app.post("/api/start-game", async (req, res) => {
+  try {
+    const { email, category, difficulty } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+
+    const question = await Question.findOne({
+      category,
+      difficulty,
+      season: CURRENT_SEASON,
+      isActive: true
+    });
+
+    if (!question) {
+      return res.status(404).json({ message: "لا يوجد سؤال" });
+    }
+
+    res.json({
+      question: question.question,
+      answer: question.answer
+    });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في تحميل السؤال" });
+  }
+});
+
 /* ================= Register ================= */
 
 app.post("/api/register", async (req, res) => {
@@ -233,9 +211,20 @@ app.post("/api/register", async (req, res) => {
     if (existing) return res.status(400).json({ message: "المستخدم موجود مسبقاً" });
 
     const hashed = await bcrypt.hash(password, 10);
-    await User.create({ name, email, password: hashed });
+
+    // ✅ كل مستخدم جديد يحصل على 1 رصيد
+    await User.create({
+      name,
+      email,
+      password: hashed,
+      games_balance: 1,
+      games_played: 0,
+      level: 1,
+      role: "user"
+    });
 
     res.json({ message: "تم إنشاء الحساب" });
+
   } catch {
     res.status(500).json({ message: "خطأ في التسجيل" });
   }
@@ -256,10 +245,23 @@ app.post("/api/login", async (req, res) => {
     res.json({
       name: user.name,
       role: user.role,
-      games_balance: user.games_balance
+      games_balance: user.games_balance,
+      level: user.level
     });
+
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
+  }
+});
+
+/* ================= Categories ================= */
+
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch {
+    res.status(500).json([]);
   }
 });
 
