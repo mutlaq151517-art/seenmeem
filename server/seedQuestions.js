@@ -10,16 +10,19 @@ const questionSchema = new mongoose.Schema({
   difficulty: Number,
   question: String,
   answer: String,
-  questionImage: String,
-  answerImage: String,
+  questionImage: { type: String, default: null },
+  answerImage: { type: String, default: null },
+  levelRequired: { type: Number, default: 1 },
+  forNewUsers: { type: Boolean, default: false },
+  timesUsed: { type: Number, default: 0 },
   season: String,
   isActive: { type: Boolean, default: true }
 });
 
 const Question = mongoose.model("Question", questionSchema);
 
-/* ===== مسح الأسئلة القديمة (اختياري) ===== */
-// await Question.deleteMany({});
+/* 🔥 نحذف كل الأسئلة القديمة عشان ما يصير تضارب */
+await Question.deleteMany({});
 
 const questions = [
 
@@ -32,7 +35,8 @@ question: "ما اسم هذه الدولة؟",
 questionImage: "https://flagcdn.com/w320/fr.png",
 answer: "فرنسا",
 answerImage: "https://flagcdn.com/w320/fr.png",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "أعلام الدول",
@@ -41,7 +45,8 @@ question: "ما اسم هذه الدولة؟",
 questionImage: "https://flagcdn.com/w320/br.png",
 answer: "البرازيل",
 answerImage: "https://flagcdn.com/w320/br.png",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "أعلام الدول",
@@ -50,7 +55,8 @@ question: "ما اسم هذه الدولة؟",
 questionImage: "https://flagcdn.com/w320/za.png",
 answer: "جنوب أفريقيا",
 answerImage: "https://flagcdn.com/w320/za.png",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 
 /* ================= عواصم ================= */
@@ -60,21 +66,24 @@ category: "عواصم",
 difficulty: 200,
 question: "ما عاصمة فرنسا؟",
 answer: "باريس",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "عواصم",
 difficulty: 400,
 question: "ما عاصمة البرازيل؟",
 answer: "برازيليا",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "عواصم",
 difficulty: 600,
 question: "ما عاصمة كندا؟",
 answer: "أوتاوا",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 
 /* ================= الكويت ================= */
@@ -84,21 +93,24 @@ category: "الكويت",
 difficulty: 200,
 question: "في أي سنة تم استقلال الكويت؟",
 answer: "1961",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "الكويت",
 difficulty: 400,
 question: "ما اسم أكبر جزيرة في الكويت؟",
 answer: "بوبيان",
-season: "season1"
+season: "season1",
+forNewUsers: true
 },
 {
 category: "الكويت",
 difficulty: 600,
 question: "من هو أمير الكويت الحالي؟",
 answer: "الشيخ مشعل الأحمد الجابر الصباح",
-season: "season1"
+season: "season1",
+forNewUsers: true
 }
 
 ];
