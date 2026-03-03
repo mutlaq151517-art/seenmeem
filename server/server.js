@@ -206,7 +206,6 @@ app.post("/api/register", async (req, res) => {
     await User.create({ name, email, password: hashed });
 
     res.json({ message: "تم إنشاء الحساب" });
-
   } catch {
     res.status(500).json({ message: "خطأ في التسجيل" });
   }
@@ -229,13 +228,12 @@ app.post("/api/login", async (req, res) => {
       role: user.role,
       games_balance: user.games_balance
     });
-
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
   }
 });
 
-/* ================= NEW: Login Data (بدون تخريب أي شيء) ================= */
+/* ================= Login Data ================= */
 
 app.post("/api/login-data", async (req, res) => {
   try {
@@ -248,9 +246,38 @@ app.post("/api/login-data", async (req, res) => {
       games_balance: user.games_balance,
       level: user.level
     });
-
   } catch {
     res.status(500).json({ message: "خطأ" });
+  }
+});
+
+/* ================= START MATCH (الإضافة الناقصة) ================= */
+
+app.post("/api/start-match", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+
+    if (user.games_balance <= 0) {
+      return res.status(403).json({ message: "لا يوجد رصيد ألعاب" });
+    }
+
+    user.games_balance -= 1;
+    user.games_played += 1;
+    user.level = user.games_played + 1;
+
+    await user.save();
+
+    res.json({
+      message: "تم بدء المباراة",
+      games_balance: user.games_balance,
+      level: user.level
+    });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في بدء المباراة" });
   }
 });
 
