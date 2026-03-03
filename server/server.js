@@ -59,6 +59,14 @@ const levelOneQuestions = [
   { category:"مجمعات الكويت", difficulty:600, question:"ما أول مجمع تجاري ضخم افتتح في الكويت الحديثة؟", answer:"سوق شرق" }
 ];
 
+/* ================= Helper: Admin Check ================= */
+
+async function isAdmin(email){
+  const user = await User.findOne({ email });
+  if(!user) return false;
+  return user.role === "admin";
+}
+
 /* ================= Register ================= */
 
 app.post("/api/register", async (req, res) => {
@@ -79,7 +87,8 @@ app.post("/api/register", async (req, res) => {
       games_balance: 1,
       games_played: 0,
       level: 1,
-      usedQuestions: []
+      usedQuestions: [],
+      role: "user"
     });
 
     res.json({ message: "تم إنشاء الحساب" });
@@ -109,7 +118,8 @@ app.post("/api/login", async (req, res) => {
       message: "تم تسجيل الدخول",
       name: user.name,
       games_balance: user.games_balance,
-      level: user.level
+      level: user.level,
+      role: user.role
     });
 
   } catch {
@@ -117,7 +127,71 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Start Match (خصم رصيد) ================= */
+/* ================= Admin: Get Users ================= */
+
+app.post("/api/admin/users", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if(!(await isAdmin(email))){
+      return res.status(403).json({ message:"غير مصرح" });
+    }
+
+    const users = await User.find().select("-password");
+    res.json(users);
+
+  } catch {
+    res.status(500).json({ message:"خطأ في جلب المستخدمين" });
+  }
+});
+
+/* ================= Admin: Update Balance ================= */
+
+app.post("/api/admin/update-balance", async (req, res) => {
+  try {
+    const { adminEmail, userEmail, balance } = req.body;
+
+    if(!(await isAdmin(adminEmail))){
+      return res.status(403).json({ message:"غير مصرح" });
+    }
+
+    const user = await User.findOne({ email:userEmail });
+    if(!user) return res.status(404).json({ message:"المستخدم غير موجود" });
+
+    user.games_balance = balance;
+    await user.save();
+
+    res.json({ message:"تم تحديث الرصيد" });
+
+  } catch {
+    res.status(500).json({ message:"خطأ في تعديل الرصيد" });
+  }
+});
+
+/* ================= Admin: Change Role ================= */
+
+app.post("/api/admin/change-role", async (req, res) => {
+  try {
+    const { adminEmail, userEmail, role } = req.body;
+
+    if(!(await isAdmin(adminEmail))){
+      return res.status(403).json({ message:"غير مصرح" });
+    }
+
+    const user = await User.findOne({ email:userEmail });
+    if(!user) return res.status(404).json({ message:"المستخدم غير موجود" });
+
+    user.role = role;
+    await user.save();
+
+    res.json({ message:"تم تغيير الصلاحية" });
+
+  } catch {
+    res.status(500).json({ message:"خطأ في تغيير الصلاحية" });
+  }
+});
+
+/* ================= Start Match ================= */
 
 app.post("/api/start-match", async (req, res) => {
   try {
@@ -160,8 +234,6 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
 
-    /* ===== Level 1 Fixed ===== */
-
     if (user.level === 1) {
 
       const question = levelOneQuestions.find(q =>
@@ -181,15 +253,13 @@ app.post("/api/start-game", async (req, res) => {
       });
     }
 
-    /* ===== Level 2+ OpenAI ===== */
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 1.0,
       messages: [
         {
           role: "system",
-          content: "أنت كاتب أسئلة مسابقات احترافي. لا تكرر الأسئلة."
+          content: "أنت كاتب أسئلة مسابقات احترافي جداً. لا تكرر الأسئلة."
         },
         {
           role: "user",
