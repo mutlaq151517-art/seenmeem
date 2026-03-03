@@ -59,15 +59,11 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
-      email,
-      password: hashed
-    });
+    await User.create({ name, email, password: hashed });
 
     res.json({ message: "تم إنشاء الحساب" });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "خطأ في التسجيل" });
   }
 });
@@ -90,7 +86,7 @@ app.post("/api/login", async (req, res) => {
 
     res.json({ message: "تم تسجيل الدخول", name: user.name });
 
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
   }
 });
@@ -101,8 +97,51 @@ app.get("/api/categories", async (req, res) => {
   try {
     const categories = await Category.find();
     res.json(categories);
-  } catch (err) {
+  } catch {
     res.json([]);
+  }
+});
+
+/* ================= ADMIN ADD CATEGORY ================= */
+
+app.post("/api/admin/add-category", async (req, res) => {
+  try {
+
+    const { section, name, image } = req.body;
+
+    if(!section || !name){
+      return res.status(400).json({ message: "بيانات ناقصة" });
+    }
+
+    const exists = await Category.findOne({ name });
+    if(exists){
+      return res.status(400).json({ message: "الفئة موجودة مسبقاً" });
+    }
+
+    await Category.create({ section, name, image });
+
+    res.json({ message: "تمت إضافة الفئة بنجاح" });
+
+  } catch (err) {
+    console.log("Add Category Error:", err);
+    res.status(500).json({ message: "خطأ في إضافة الفئة" });
+  }
+});
+
+/* ================= ADMIN DELETE CATEGORY ================= */
+
+app.post("/api/admin/delete-category", async (req, res) => {
+  try {
+
+    const { id } = req.body;
+
+    await Category.findByIdAndDelete(id);
+
+    res.json({ message: "تم حذف الفئة" });
+
+  } catch (err) {
+    console.log("Delete Category Error:", err);
+    res.status(500).json({ message: "خطأ في الحذف" });
   }
 });
 
@@ -148,12 +187,6 @@ app.post("/api/start-game", async (req, res) => {
 مستوى النقاط: ${difficulty}
 الوصف: ${levelText}
 
-الشروط:
-- السؤال غير مكرر.
-- غير سطحي.
-- مناسب لمستوى الصعوبة المطلوب.
-- الإجابة قصيرة جداً ومباشرة.
-
 الرد بهذا الشكل فقط:
 {
   "question": "نص السؤال",
@@ -177,7 +210,7 @@ app.post("/api/start-game", async (req, res) => {
       answer: parsed.answer
     });
 
-  } catch (err) {
+  } catch {
     return fallbackQuestion(res);
   }
 });
