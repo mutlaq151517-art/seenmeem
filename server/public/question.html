@@ -6,93 +6,190 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#f4f4f4;}
+body{
+margin:0;
+font-family:'Cairo',sans-serif;
+direction:rtl;
+background:#e6e6e6;
+}
+
+/* ===== Top Bar ===== */
 
 .topbar{
-background:linear-gradient(to right,#ff3b3b,#ff7a3d);
+background:linear-gradient(to right,#ff2e2e,#ff7a3d);
 color:white;
-padding:15px 25px;
+padding:15px 30px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-}
-
-.turn{background:#b30000;padding:8px 18px;border-radius:25px;font-weight:bold;}
-.end-btn{background:black;color:white;padding:8px 18px;border-radius:25px;cursor:pointer;font-size:14px;}
-
-.main-container{display:flex;gap:30px;padding:40px;}
-
-.wrapper{flex:1;display:flex;justify-content:center;}
-
-.card{
-background:white;
-width:100%;
-border:8px solid #ff5c33;
-border-radius:35px;
-padding:60px 40px;
-position:relative;
-min-height:520px;
-}
-
-.timer-box{
-position:absolute;
-top:-30px;
-left:50%;
-transform:translateX(-50%);
-background:#2d2b3a;
-color:white;
-padding:12px 35px;
-border-radius:40px;
-font-size:22px;
-display:flex;
-align-items:center;
-gap:20px;
 font-weight:bold;
 }
 
-.points{
+.topbar .left,
+.topbar .right{
+display:flex;
+gap:20px;
+align-items:center;
+}
+
+.exit-btn{
+background:black;
+padding:8px 20px;
+border-radius:20px;
+cursor:pointer;
+}
+
+/* ===== Main Layout ===== */
+
+.container{
+display:flex;
+padding:30px;
+gap:30px;
+}
+
+/* ===== Question Board ===== */
+
+.board-wrapper{
+flex:1;
+position:relative;
+}
+
+.board{
+background:white;
+border:8px solid #ff3b3b;
+border-radius:40px;
+padding:80px 40px 80px 40px;
+min-height:500px;
+position:relative;
+}
+
+/* Timer */
+
+.timer{
 position:absolute;
-top:25px;
-left:25px;
+top:-35px;
+left:50%;
+transform:translateX(-50%);
+background:#2e2b3f;
+color:white;
+padding:12px 35px;
+border-radius:40px;
+display:flex;
+align-items:center;
+gap:20px;
+font-size:20px;
+font-weight:bold;
+}
+
+.timer span{
+cursor:pointer;
+}
+
+/* Points */
+
+.points-box{
+position:absolute;
+top:20px;
+right:20px;
 background:black;
 color:white;
-padding:8px 18px;
+padding:8px 20px;
 border-radius:20px;
 font-size:14px;
 }
 
-.question{text-align:center;margin-top:60px;font-size:30px;font-weight:900;line-height:2;}
-.question-image{text-align:center;margin-top:30px;}
-.question-image img{max-width:300px;border-radius:20px;}
+/* VAR */
 
-.buttons{
+.var-box{
 position:absolute;
-bottom:25px;
+top:20px;
+left:20px;
+background:#cfcfcf;
+color:black;
+padding:6px 14px;
+border-radius:10px;
+font-weight:bold;
+}
+
+/* Question */
+
+.question{
+text-align:center;
+font-size:30px;
+font-weight:900;
+line-height:2;
+margin-top:40px;
+}
+
+.question-image{
+text-align:center;
+margin-top:30px;
+}
+
+.question-image img{
+max-width:350px;
+border-radius:20px;
+}
+
+/* Bottom Buttons */
+
+.bottom-buttons{
+position:absolute;
+bottom:20px;
 width:100%;
 display:flex;
 justify-content:space-between;
-padding:0 30px;
+padding:0 40px;
 }
 
-.btn{border:none;padding:12px 30px;border-radius:25px;color:white;cursor:pointer;font-size:18px;font-weight:bold;}
-.green{background:#2e7d32;}
-.orange{background:#ff7a3d;}
+.btn{
+border:none;
+padding:12px 30px;
+border-radius:25px;
+color:white;
+cursor:pointer;
+font-weight:bold;
+font-size:16px;
+}
 
-.sidebar{width:280px;}
+.answer-btn{
+background:#2e7d32;
+}
 
-.team-box{
+.category-btn{
+background:#ff7a3d;
+}
+
+/* ===== Sidebar ===== */
+
+.sidebar{
+width:280px;
+}
+
+.team-card{
+margin-bottom:30px;
+}
+
+.team-name{
 background:#b30000;
 color:white;
-padding:15px;
-border-radius:25px;
+padding:12px;
+border-radius:30px;
 text-align:center;
 font-weight:bold;
-margin-bottom:10px;
 }
 
-.score{text-align:center;font-size:24px;margin-bottom:20px;}
+.team-score{
+text-align:center;
+font-size:24px;
+margin:10px 0;
+}
 
-.helpers{display:flex;justify-content:center;gap:10px;margin-bottom:30px;}
+.helpers{
+display:flex;
+justify-content:center;
+gap:12px;
+}
 
 .helper{
 width:45px;
@@ -115,23 +212,27 @@ pointer-events:none;
 <body>
 
 <div class="topbar">
-<div class="end-btn" onclick="endGame()">إنهاء اللعبة</div>
+<div class="left">
+<div class="exit-btn" onclick="endGame()">إنهاء اللعبة</div>
+</div>
 <div>سين ميم</div>
-<div class="turn" id="turnBox"></div>
+<div class="right" id="turnBox"></div>
 </div>
 
-<div class="main-container">
+<div class="container">
 
-<div class="wrapper">
-<div class="card">
+<div class="board-wrapper">
 
-<div class="timer-box">
+<div class="board">
+
+<div class="timer">
 <span id="pauseBtn">⏸</span>
 <span id="timer">01:00</span>
 <span id="resetBtn">⟳</span>
 </div>
 
-<div class="points" id="pointsBox"></div>
+<div class="points-box" id="pointsBox"></div>
+<div class="var-box">VAR</div>
 
 <div class="question" id="questionText"></div>
 
@@ -139,9 +240,9 @@ pointer-events:none;
 <img id="questionImage">
 </div>
 
-<div class="buttons">
-<button class="btn green" onclick="goAnswer()">الإجابة</button>
-<button class="btn orange" id="categoryBtn"></button>
+<div class="bottom-buttons">
+<button class="btn answer-btn" onclick="goAnswer()">الإجابة</button>
+<button class="btn category-btn" id="categoryBtn"></button>
 </div>
 
 </div>
@@ -149,20 +250,24 @@ pointer-events:none;
 
 <div class="sidebar">
 
-<div class="team-box" id="team1NameBox"></div>
-<div class="score" id="score1Box"></div>
+<div class="team-card">
+<div class="team-name" id="team1Name"></div>
+<div class="team-score" id="score1"></div>
 <div class="helpers">
 <div class="helper" onclick="useDouble(1)" id="double1">✌</div>
 <div class="helper" onclick="useSteal(1)" id="steal1">🕵</div>
 <div class="helper" onclick="useHole(1)" id="hole1">🕳</div>
 </div>
+</div>
 
-<div class="team-box" id="team2NameBox"></div>
-<div class="score" id="score2Box"></div>
+<div class="team-card">
+<div class="team-name" id="team2Name"></div>
+<div class="team-score" id="score2"></div>
 <div class="helpers">
 <div class="helper" onclick="useDouble(2)" id="double2">✌</div>
 <div class="helper" onclick="useSteal(2)" id="steal2">🕵</div>
 <div class="helper" onclick="useHole(2)" id="hole2">🕳</div>
+</div>
 </div>
 
 </div>
@@ -171,16 +276,14 @@ pointer-events:none;
 
 <script>
 
-/* ===== جلب بيانات السؤال ===== */
+/* ===== Load Question ===== */
 
 const question = localStorage.getItem("currentQuestion");
 const points = localStorage.getItem("currentPoints");
 const category = localStorage.getItem("currentCategory");
 const image = localStorage.getItem("currentQuestionImage");
 
-if(!question){
-window.location.href="game.html";
-}
+if(!question){ window.location.href="game.html"; }
 
 document.getElementById("questionText").innerText = question;
 document.getElementById("pointsBox").innerText = points + " نقطة";
@@ -191,21 +294,21 @@ document.getElementById("questionImageBox").style.display="block";
 document.getElementById("questionImage").src = image;
 }
 
-/* ===== بيانات الفرق ===== */
+/* ===== Teams ===== */
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
 let currentTeam = localStorage.getItem("currentTeam");
 
-document.getElementById("team1NameBox").innerText = team1;
-document.getElementById("team2NameBox").innerText = team2;
-document.getElementById("score1Box").innerText = localStorage.getItem("score1") || 0;
-document.getElementById("score2Box").innerText = localStorage.getItem("score2") || 0;
+document.getElementById("team1Name").innerText = team1;
+document.getElementById("team2Name").innerText = team2;
+document.getElementById("score1").innerText = localStorage.getItem("score1") || 0;
+document.getElementById("score2").innerText = localStorage.getItem("score2") || 0;
 
 document.getElementById("turnBox").innerText =
 "دور فريق: " + (currentTeam === "1" ? team1 : team2);
 
-/* ===== وسائل المساعدة ===== */
+/* ===== Helpers ===== */
 
 function useDouble(team){
 if(currentTeam != team) return alert("مو دورك");
@@ -239,37 +342,35 @@ let interval;
 let paused = false;
 
 function formatTime(sec){
-let m = Math.floor(sec/60);
-let s = sec%60;
+let m=Math.floor(sec/60);
+let s=sec%60;
 return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
 }
 
 function startTimer(){
-interval = setInterval(()=>{
+interval=setInterval(()=>{
 if(!paused){
 timeLeft--;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-if(timeLeft <= 0){
-clearInterval(interval);
-}
+document.getElementById("timer").innerText=formatTime(timeLeft);
+if(timeLeft<=0) clearInterval(interval);
 }
 },1000);
 }
 
-document.getElementById("timer").innerText = formatTime(timeLeft);
+document.getElementById("timer").innerText=formatTime(timeLeft);
 startTimer();
 
-document.getElementById("pauseBtn").onclick = ()=>{
-paused = !paused;
-document.getElementById("pauseBtn").innerText = paused ? "▶" : "⏸";
-}
+document.getElementById("pauseBtn").onclick=()=>{
+paused=!paused;
+document.getElementById("pauseBtn").innerText=paused?"▶":"⏸";
+};
 
-document.getElementById("resetBtn").onclick = ()=>{
-timeLeft = 60;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-}
+document.getElementById("resetBtn").onclick=()=>{
+timeLeft=60;
+document.getElementById("timer").innerText=formatTime(timeLeft);
+};
 
-/* ===== أزرار ===== */
+/* ===== Navigation ===== */
 
 function goAnswer(){
 clearInterval(interval);
