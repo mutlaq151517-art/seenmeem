@@ -70,7 +70,7 @@ app.post("/api/admin/master-login", async (req, res) => {
     const { password } = req.body;
 
     if (!ADMIN_MASTER_PASSWORD) {
-      return res.status(500).json({ message: "ADMIN_MASTER_PASSWORD غير معرف في السيرفر" });
+      return res.status(500).json({ message: "ADMIN_MASTER_PASSWORD غير معرف" });
     }
 
     if (password !== ADMIN_MASTER_PASSWORD) {
@@ -137,25 +137,126 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+/* ================= ADMIN: USERS ================= */
+
+app.post("/api/admin/users", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const admin = await User.findOne({ email });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const users = await User.find().select("-password");
+    res.json(users);
+
+  } catch {
+    res.status(500).json({ message: "خطأ في جلب المستخدمين" });
+  }
+});
+
+/* ================= ADMIN: UPDATE BALANCE ================= */
+
+app.post("/api/admin/update-balance", async (req, res) => {
+  try {
+    const { adminEmail, userEmail, balance } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await User.updateOne(
+      { email: userEmail },
+      { games_balance: Number(balance) }
+    );
+
+    res.json({ message: "تم تعديل الرصيد" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في تعديل الرصيد" });
+  }
+});
+
+/* ================= ADMIN: CHANGE ROLE ================= */
+
+app.post("/api/admin/change-role", async (req, res) => {
+  try {
+    const { adminEmail, userEmail, role } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await User.updateOne({ email: userEmail }, { role });
+
+    res.json({ message: "تم تغيير الصلاحية" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في تغيير الصلاحية" });
+  }
+});
+
+/* ================= CATEGORIES ================= */
+
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json(categories);
+  } catch {
+    res.json([]);
+  }
+});
+
+app.post("/api/admin/add-category", async (req, res) => {
+  try {
+    const { email, section, name, image } = req.body;
+
+    const admin = await User.findOne({ email });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const exists = await Category.findOne({ name });
+    if (exists) return res.status(400).json({ message: "الفئة موجودة مسبقاً" });
+
+    await Category.create({ section, name, image });
+
+    res.json({ message: "تمت إضافة الفئة" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في إضافة الفئة" });
+  }
+});
+
+app.post("/api/admin/delete-category", async (req, res) => {
+  try {
+    const { email, id } = req.body;
+
+    const admin = await User.findOne({ email });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await Category.findByIdAndDelete(id);
+
+    res.json({ message: "تم حذف الفئة" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في الحذف" });
+  }
+});
+
 /* ================= Start Question ================= */
 
 app.post("/api/start-game", async (req, res) => {
   try {
-
     const { email, category, difficulty } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
-
-    if (user.level === 1) {
-      const question = levelOneQuestions.find(q =>
-        q.category === category && q.difficulty == difficulty
-      );
-
-      if (question) return res.json(question);
-
-      return res.json({ question:"سؤال غير متوفر", answer:"غير متوفر" });
-    }
 
     const questions = await Question.find({
       category,
