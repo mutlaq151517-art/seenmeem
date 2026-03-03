@@ -13,8 +13,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ================= OpenAI ================= */
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -31,11 +29,10 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
   password: String,
-
   games_balance: { type: Number, default: 1 },
   games_played: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
-  usedQuestions: { type: Array, default: [] },
+  usedQuestions: { type: Array, default: [] }, // نخزن نص السؤال هنا
   role: { type: String, default: "user" }
 });
 
@@ -48,7 +45,7 @@ const categorySchema = new mongoose.Schema({
 const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 
-/* ================= LEVEL 1 FIXED QUESTIONS ================= */
+/* ================= LEVEL 1 FIXED ================= */
 
 const levelOneQuestions = [
   { category:"أعلام دول", difficulty:200, question:"ما هي الدولة التي عاصمتها مدريد؟", answer:"إسبانيا" },
@@ -59,14 +56,6 @@ const levelOneQuestions = [
   { category:"مجمعات الكويت", difficulty:600, question:"ما أول مجمع تجاري ضخم افتتح في الكويت الحديثة؟", answer:"سوق شرق" }
 ];
 
-/* ================= Helper: Admin Check ================= */
-
-async function isAdmin(email){
-  const user = await User.findOne({ email });
-  if(!user) return false;
-  return user.role === "admin";
-}
-
 /* ================= Register ================= */
 
 app.post("/api/register", async (req, res) => {
@@ -74,9 +63,7 @@ app.post("/api/register", async (req, res) => {
     const { name, email, password } = req.body;
 
     const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "المستخدم موجود مسبقاً" });
-    }
+    if (existing) return res.status(400).json({ message: "المستخدم موجود مسبقاً" });
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -105,17 +92,12 @@ app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "المستخدم غير موجود" });
-    }
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(401).json({ message: "كلمة المرور غير صحيحة" });
-    }
+    if (!match) return res.status(401).json({ message: "كلمة المرور غير صحيحة" });
 
     res.json({
-      message: "تم تسجيل الدخول",
       name: user.name,
       games_balance: user.games_balance,
       level: user.level,
@@ -124,103 +106,6 @@ app.post("/api/login", async (req, res) => {
 
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
-  }
-});
-
-/* ================= Admin: Get Users ================= */
-
-app.post("/api/admin/users", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if(!(await isAdmin(email))){
-      return res.status(403).json({ message:"غير مصرح" });
-    }
-
-    const users = await User.find().select("-password");
-    res.json(users);
-
-  } catch {
-    res.status(500).json({ message:"خطأ في جلب المستخدمين" });
-  }
-});
-
-/* ================= Admin: Update Balance ================= */
-
-app.post("/api/admin/update-balance", async (req, res) => {
-  try {
-    const { adminEmail, userEmail, balance } = req.body;
-
-    if(!(await isAdmin(adminEmail))){
-      return res.status(403).json({ message:"غير مصرح" });
-    }
-
-    const user = await User.findOne({ email:userEmail });
-    if(!user) return res.status(404).json({ message:"المستخدم غير موجود" });
-
-    user.games_balance = balance;
-    await user.save();
-
-    res.json({ message:"تم تحديث الرصيد" });
-
-  } catch {
-    res.status(500).json({ message:"خطأ في تعديل الرصيد" });
-  }
-});
-
-/* ================= Admin: Change Role ================= */
-
-app.post("/api/admin/change-role", async (req, res) => {
-  try {
-    const { adminEmail, userEmail, role } = req.body;
-
-    if(!(await isAdmin(adminEmail))){
-      return res.status(403).json({ message:"غير مصرح" });
-    }
-
-    const user = await User.findOne({ email:userEmail });
-    if(!user) return res.status(404).json({ message:"المستخدم غير موجود" });
-
-    user.role = role;
-    await user.save();
-
-    res.json({ message:"تم تغيير الصلاحية" });
-
-  } catch {
-    res.status(500).json({ message:"خطأ في تغيير الصلاحية" });
-  }
-});
-
-/* ================= Start Match ================= */
-
-app.post("/api/start-match", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
-
-    if (user.games_balance <= 0) {
-      return res.status(403).json({ message:"لا يوجد رصيد ألعاب" });
-    }
-
-    user.games_balance -= 1;
-    user.games_played += 1;
-
-    if (user.games_played >= 1) {
-      user.level = 2;
-    }
-
-    await user.save();
-
-    res.json({
-      message:"تم بدء المباراة",
-      level:user.level,
-      games_balance:user.games_balance
-    });
-
-  } catch {
-    res.status(500).json({ message:"خطأ في بدء المباراة" });
   }
 });
 
@@ -233,6 +118,8 @@ app.post("/api/start-game", async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
+
+    /* ===== Level 1 ===== */
 
     if (user.level === 1) {
 
@@ -253,17 +140,24 @@ app.post("/api/start-game", async (req, res) => {
       });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 1.0,
-      messages: [
-        {
-          role: "system",
-          content: "أنت كاتب أسئلة مسابقات احترافي جداً. لا تكرر الأسئلة."
-        },
-        {
-          role: "user",
-          content: `
+    /* ===== Level 2+ (منع التكرار) ===== */
+
+    let attempts = 0;
+    let generatedQuestion = null;
+
+    while(attempts < 5){
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 1.0,
+        messages: [
+          {
+            role: "system",
+            content: "أنت كاتب أسئلة مسابقات احترافي جداً. لا تكرر الأسئلة."
+          },
+          {
+            role: "user",
+            content: `
 الفئة: ${category}
 مستوى النقاط: ${difficulty}
 أعد الرد بصيغة JSON فقط:
@@ -272,16 +166,35 @@ app.post("/api/start-game", async (req, res) => {
   "answer":"..."
 }
 `
-        }
-      ],
-      response_format: { type: "json_object" }
-    });
+          }
+        ],
+        response_format: { type: "json_object" }
+      });
 
-    const parsed = JSON.parse(completion.choices[0].message.content);
+      const parsed = JSON.parse(completion.choices[0].message.content);
+
+      if(!user.usedQuestions.includes(parsed.question)){
+        generatedQuestion = parsed;
+        break;
+      }
+
+      attempts++;
+    }
+
+    if(!generatedQuestion){
+      return res.json({
+        question:"لا يوجد سؤال جديد حالياً",
+        answer:"حاول لاحقاً"
+      });
+    }
+
+    /* حفظ السؤال لمنع تكراره مستقبلاً */
+    user.usedQuestions.push(generatedQuestion.question);
+    await user.save();
 
     res.json({
-      question: parsed.question,
-      answer: parsed.answer
+      question: generatedQuestion.question,
+      answer: generatedQuestion.answer
     });
 
   } catch {
