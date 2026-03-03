@@ -46,7 +46,7 @@ cursor:pointer;
 
 /* اللوحة */
 .container{
-max-width:900px;
+max-width:1100px;
 margin:60px auto;
 background:white;
 padding:30px;
@@ -60,57 +60,54 @@ text-align:center;
 margin-bottom:30px;
 }
 
-input{
-width:100%;
-padding:10px;
-margin-bottom:10px;
-border-radius:10px;
-border:1px solid #ddd;
-}
-
-button{
-padding:8px 15px;
-border:none;
-border-radius:8px;
-background:linear-gradient(to right,#ff3b3b,#b30000);
-color:white;
-cursor:pointer;
-}
-
 .section{
 margin-top:40px;
 }
 
 .card{
 background:#eee;
-padding:10px;
-border-radius:10px;
-margin-top:10px;
+padding:15px;
+border-radius:12px;
+margin-top:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 flex-wrap:wrap;
-gap:10px;
+gap:15px;
 }
 
 .small-btn{
 background:black;
+color:white;
 font-size:12px;
-padding:5px 10px;
+padding:6px 10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
 }
+
+input{
+padding:6px;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+.red{ background:#b30000; }
+.green{ background:#2e7d32; }
+.blue{ background:#1565c0; }
+.orange{ background:#ff7a3d; }
+
 </style>
 </head>
 
 <body>
 
-<!-- شاشة كلمة السر -->
 <div class="lock-screen" id="lockScreen">
 <h2>دخول لوحة المدير</h2>
 <input type="password" id="adminPassword" placeholder="أدخل كلمة السر">
 <button onclick="checkAdmin()">دخول</button>
 </div>
 
-<!-- اللوحة -->
 <div class="container" id="adminPanel">
 
 <h2>لوحة تحكم SeenMeem</h2>
@@ -120,22 +117,11 @@ padding:5px 10px;
 <div id="usersList"></div>
 </div>
 
-<div class="section">
-<h3>إضافة فئة جديدة</h3>
-
-<input type="text" id="section" placeholder="اسم القسم">
-<input type="text" id="name" placeholder="اسم الفئة">
-<input type="text" id="image" placeholder="رابط صورة الفئة">
-
-<button onclick="addCategory()">إضافة فئة</button>
-
-<h3 style="margin-top:30px;">الفئات الحالية</h3>
-<div id="categoriesList"></div>
-</div>
-
 </div>
 
 <script>
+
+/* ================= دخول المدير ================= */
 
 async function checkAdmin(){
 
@@ -158,27 +144,30 @@ document.getElementById("lockScreen").style.display="none";
 document.getElementById("adminPanel").style.display="block";
 
 loadUsers();
-loadCategories();
 }
 
-/* إذا سبق دخل */
 if(localStorage.getItem("adminAccess")==="true"){
 document.getElementById("lockScreen").style.display="none";
 document.getElementById("adminPanel").style.display="block";
 loadUsers();
-loadCategories();
 }
 
 /* ================= المستخدمين ================= */
 
 async function loadUsers(){
+
+const adminEmail = prompt("أدخل إيميل حساب الأدمن");
+
 const res = await fetch("/api/admin/users",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:"master" })
+body:JSON.stringify({ email: adminEmail })
 });
 
-if(!res.ok) return;
+if(!res.ok){
+alert("غير مصرح");
+return;
+}
 
 const users = await res.json();
 
@@ -186,101 +175,127 @@ const list = document.getElementById("usersList");
 list.innerHTML="";
 
 users.forEach(user=>{
+
 list.innerHTML+=`
 <div class="card">
-<div>
+
+<div style="min-width:250px;">
 <b>${user.name}</b><br>
 ${user.email}<br>
-رصيد: ${user.games_balance} | مستوى: ${user.level} | صلاحية: ${user.role}
+الرصيد: ${user.games_balance} |
+المستوى: ${user.level} |
+الصلاحية: ${user.role}
 </div>
 
 <div>
-<input type="number" id="balance-${user.email}" placeholder="رصيد جديد">
-<button class="small-btn" onclick="updateBalance('${user.email}')">تعديل الرصيد</button>
-<button class="small-btn" onclick="changeRole('${user.email}','admin')">جعله Admin</button>
-<button class="small-btn" onclick="changeRole('${user.email}','user')">جعله User</button>
+<input type="number" id="balance-${user._id}" placeholder="رصيد جديد">
+<button class="small-btn blue" onclick="updateUser('${user._id}','${user.email}')">تحديث</button>
+<button class="small-btn green" onclick="makeAdmin('${user._id}','${user.email}')">Admin</button>
+<button class="small-btn orange" onclick="makeUser('${user._id}','${user.email}')">User</button>
+<button class="small-btn red" onclick="resetPass('${user._id}','${user.email}')">إعادة كلمة السر</button>
+<button class="small-btn" onclick="deleteUser('${user._id}','${user.email}')">حذف</button>
 </div>
+
 </div>
 `;
 });
 }
 
-async function updateBalance(userEmail){
-const balance = document.getElementById("balance-"+userEmail).value;
+/* ===== تعديل الرصيد ===== */
 
-await fetch("/api/admin/update-balance",{
+async function updateUser(userId,userEmail){
+
+const adminEmail = prompt("أدخل إيميل الأدمن");
+const balance = document.getElementById("balance-"+userId).value;
+
+await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail:"master",
-userEmail,
-balance
+adminEmail,
+userId,
+games_balance: balance
 })
 });
 
 loadUsers();
 }
 
-async function changeRole(userEmail,role){
+/* ===== تغيير صلاحية ===== */
 
-await fetch("/api/admin/change-role",{
+async function makeAdmin(userId){
+const adminEmail = prompt("أدخل إيميل الأدمن");
+
+await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
-adminEmail:"master",
-userEmail,
-role
+adminEmail,
+userId,
+role:"admin"
 })
 });
 
 loadUsers();
 }
 
-/* ================= الفئات ================= */
+async function makeUser(userId){
+const adminEmail = prompt("أدخل إيميل الأدمن");
 
-async function loadCategories(){
-const res = await fetch("/api/categories");
+await fetch("/api/admin/update-user",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+adminEmail,
+userId,
+role:"user"
+})
+});
+
+loadUsers();
+}
+
+/* ===== إعادة تعيين كلمة السر ===== */
+
+async function resetPass(userId){
+
+const adminEmail = prompt("أدخل إيميل الأدمن");
+
+const res = await fetch("/api/admin/reset-password",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+adminEmail,
+userId
+})
+});
+
 const data = await res.json();
 
-const list = document.getElementById("categoriesList");
-list.innerHTML="";
-
-data.forEach(cat=>{
-list.innerHTML+=`
-<div class="card">
-<div>
-${cat.section} - ${cat.name}
-</div>
-<button onclick="deleteCategory('${cat._id}')">حذف</button>
-</div>
-`;
-});
+if(data.newPassword){
+alert("كلمة السر الجديدة: " + data.newPassword);
 }
 
-async function addCategory(){
-
-const section=document.getElementById("section").value;
-const name=document.getElementById("name").value;
-const image=document.getElementById("image").value;
-
-await fetch("/api/admin/add-category",{
-method:"POST",
-headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:"master",section,name,image })
-});
-
-loadCategories();
 }
 
-async function deleteCategory(id){
+/* ===== حذف مستخدم ===== */
 
-await fetch("/api/admin/delete-category",{
+async function deleteUser(userId){
+
+if(!confirm("متأكد من حذف المستخدم؟")) return;
+
+const adminEmail = prompt("أدخل إيميل الأدمن");
+
+await fetch("/api/admin/delete-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
-body:JSON.stringify({ email:"master",id })
+body:JSON.stringify({
+adminEmail,
+userId
+})
 });
 
-loadCategories();
+loadUsers();
 }
 
 </script>
