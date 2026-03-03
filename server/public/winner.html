@@ -6,104 +6,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:'Cairo',sans-serif;
-direction:rtl;
-background:#d9d9d9;
-}
-
-.topbar{
-background:linear-gradient(to right,#ff3b3b,#ff9c52);
-color:white;
-padding:15px 30px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-font-weight:bold;
-}
-
-.turn{
-background:#b30000;
-padding:8px 20px;
-border-radius:25px;
-}
-
-.container{
-display:flex;
-gap:30px;
-padding:40px;
-}
-
-.main-box{
-flex:1;
-background:#eee;
-border:8px solid #ff6a3d;
-border-radius:40px;
-padding:60px 40px;
-text-align:center;
-position:relative;
-}
-
-.main-box h2{
-font-size:36px;
-margin-bottom:60px;
-}
-
-.btn{
-border:none;
-padding:18px 60px;
-border-radius:35px;
-font-size:24px;
-font-weight:bold;
-cursor:pointer;
-margin:15px;
-min-width:250px;
-}
-
-.red{
-background:#b30000;
-color:white;
-}
-
-.gray{
-background:#9e9e9e;
-color:white;
-width:80%;
-}
-
-.green{
-position:absolute;
-bottom:20px;
-left:20px;
-background:#2e7d32;
-color:white;
-padding:12px 25px;
-border-radius:25px;
-font-size:18px;
-cursor:pointer;
-}
-
-.side{
-width:300px;
-}
-
-.team-box{
-background:#b30000;
-color:white;
-padding:15px;
-border-radius:30px;
-text-align:center;
-font-weight:bold;
-margin-bottom:10px;
-font-size:20px;
-}
-
-.score{
-text-align:center;
-font-size:28px;
-margin-bottom:25px;
-}
+body{margin:0;font-family:'Cairo',sans-serif;direction:rtl;background:#d9d9d9;}
+.topbar{background:linear-gradient(to right,#ff3b3b,#ff9c52);color:white;padding:15px 30px;display:flex;justify-content:space-between;align-items:center;font-weight:bold;}
+.turn{background:#b30000;padding:8px 20px;border-radius:25px;}
+.container{display:flex;gap:30px;padding:40px;}
+.main-box{flex:1;background:#eee;border:8px solid #ff6a3d;border-radius:40px;padding:60px 40px;text-align:center;position:relative;}
+.main-box h2{font-size:36px;margin-bottom:60px;}
+.btn{border:none;padding:18px 60px;border-radius:35px;font-size:24px;font-weight:bold;cursor:pointer;margin:15px;min-width:250px;}
+.red{background:#b30000;color:white;}
+.gray{background:#9e9e9e;color:white;width:80%;}
+.green{position:absolute;bottom:20px;left:20px;background:#2e7d32;color:white;padding:12px 25px;border-radius:25px;font-size:18px;cursor:pointer;}
+.side{width:300px;}
+.team-box{background:#b30000;color:white;padding:15px;border-radius:30px;text-align:center;font-weight:bold;margin-bottom:10px;font-size:20px;}
+.score{text-align:center;font-size:28px;margin-bottom:25px;}
 </style>
 </head>
 <body>
@@ -147,8 +62,8 @@ margin-bottom:25px;
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
 
-let score1 = parseInt(localStorage.getItem("score1"));
-let score2 = parseInt(localStorage.getItem("score2"));
+let score1 = parseInt(localStorage.getItem("score1")) || 0;
+let score2 = parseInt(localStorage.getItem("score2")) || 0;
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
@@ -158,25 +73,84 @@ document.getElementById("team2Btn").innerText = team2;
 document.getElementById("score1").innerText = score1;
 document.getElementById("score2").innerText = score2;
 
+let turnTeam = localStorage.getItem("turnTeam") || "1";
+
 document.getElementById("turnBox").innerText =
-"دور فريق: " + (localStorage.getItem("turnTeam") === "1" ? team1 : team2);
+"دور فريق: " + (turnTeam === "1" ? team1 : team2);
+
+/* ================= وسائل المساعدة ================= */
+
+let stealActive = localStorage.getItem("stealActive") === "true";
+let holeActive = localStorage.getItem("holeActive") === "true";
 
 function selectWinner(team){
 
-let points = parseInt(localStorage.getItem("currentPoints"));
+let points = parseInt(localStorage.getItem("currentPoints")) || 0;
+
+/* ===== تطبيق السرقة ===== */
+
+if(stealActive){
+
+// إذا الفريق اللي سرق جاوب صح
+if(team.toString() === localStorage.getItem("stealTeam")){
+if(team === 1) score1 += points;
+if(team === 2) score2 += points;
+}else{
+// فشل السرقة → النقطة للفريق الأصلي + خصم من السارق
+let originalTeam = localStorage.getItem("originalTeam");
+
+if(originalTeam === "1") score1 += points;
+if(originalTeam === "2") score2 += points;
+
+if(localStorage.getItem("stealTeam") === "1") score1 -= points;
+if(localStorage.getItem("stealTeam") === "2") score2 -= points;
+}
+
+localStorage.removeItem("stealActive");
+localStorage.removeItem("stealTeam");
+localStorage.removeItem("originalTeam");
+
+}
+
+/* ===== تطبيق الحفرة ===== */
+
+else if(holeActive){
 
 if(team === 1){
 score1 += points;
-localStorage.setItem("score1", score1);
+score2 -= points;
 }
 else if(team === 2){
 score2 += points;
-localStorage.setItem("score2", score2);
+score1 -= points;
 }
 
-let turn = localStorage.getItem("turnTeam");
-turn = turn === "1" ? "2" : "1";
-localStorage.setItem("turnTeam", turn);
+localStorage.removeItem("holeActive");
+
+}
+
+/* ===== طبيعي ===== */
+
+else{
+
+if(team === 1){
+score1 += points;
+}
+else if(team === 2){
+score2 += points;
+}
+
+}
+
+/* ===== حفظ النتائج ===== */
+
+localStorage.setItem("score1", score1);
+localStorage.setItem("score2", score2);
+
+/* ===== تغيير الدور ===== */
+
+turnTeam = turnTeam === "1" ? "2" : "1";
+localStorage.setItem("turnTeam", turnTeam);
 
 window.location.href="game.html";
 }
