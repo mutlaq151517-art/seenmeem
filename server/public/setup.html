@@ -13,8 +13,6 @@ direction:rtl;
 background:#f3f3f3;
 }
 
-/* ===== عرض الصفحة ===== */
-
 .container{
 max-width:1400px;
 margin:auto;
@@ -28,15 +26,11 @@ font-weight:900;
 margin-bottom:70px;
 }
 
-/* ===== 4 أعمدة ثابتة دائماً ===== */
-
 .grid{
 display:grid;
 grid-template-columns:repeat(4, 1fr);
 gap:35px;
 }
-
-/* ===== الكرت ===== */
 
 .card{
 position:relative;
@@ -56,16 +50,18 @@ transform:translateY(-3px);
 box-shadow:0 0 0 4px #ff7a3d;
 }
 
-/* ===== الصورة ===== */
+.card.disabled{
+filter:grayscale(100%);
+opacity:0.5;
+pointer-events:none;
+}
 
 .card img{
 width:100%;
-height:150px;   /* حجم متوسط */
+height:150px;
 object-fit:cover;
 display:block;
 }
-
-/* ===== الشريط البرتقالي ===== */
 
 .card-title{
 background:#ff7a3d;
@@ -75,8 +71,6 @@ padding:12px;
 font-size:18px;
 font-weight:bold;
 }
-
-/* ===== دائرة المعلومات ===== */
 
 .info{
 position:absolute;
@@ -94,8 +88,6 @@ font-weight:bold;
 font-size:13px;
 }
 
-/* ===== زر ===== */
-
 button{
 margin:90px auto 0;
 display:block;
@@ -111,6 +103,51 @@ cursor:pointer;
 
 button:hover{
 background:#8f0000;
+}
+
+/* ===== الشريط الجانبي ===== */
+
+.selected-panel{
+position:fixed;
+right:20px;
+bottom:20px;
+background:white;
+border-radius:20px;
+padding:15px;
+box-shadow:0 5px 20px rgba(0,0,0,0.15);
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.selected-item{
+position:relative;
+width:60px;
+height:60px;
+border-radius:15px;
+overflow:hidden;
+}
+
+.selected-item img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.remove-btn{
+position:absolute;
+top:2px;
+right:2px;
+background:red;
+color:white;
+border-radius:50%;
+width:18px;
+height:18px;
+font-size:12px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
 }
 
 </style>
@@ -134,15 +171,20 @@ if(!localStorage.getItem("userEmail")){
 
 </div>
 
+<div class="selected-panel" id="selectedPanel"></div>
+
 <script>
 
 let selected = [];
+let categoryData = [];
 
 async function loadCategories(){
 try{
 
 const res = await fetch("/api/categories");
 const data = await res.json();
+categoryData = data;
+
 const container = document.getElementById("categories");
 container.innerHTML = "";
 
@@ -150,6 +192,7 @@ data.forEach(cat=>{
 
 const div = document.createElement("div");
 div.className="card";
+div.dataset.name = cat.name;
 
 div.innerHTML=`
 <div class="info">i</div>
@@ -158,17 +201,7 @@ div.innerHTML=`
 `;
 
 div.onclick=()=>{
-if(selected.includes(cat.name)){
-selected = selected.filter(c=>c!==cat.name);
-div.classList.remove("selected");
-}else{
-if(selected.length>=6){
-alert("تقدر تختار 6 فقط");
-return;
-}
-selected.push(cat.name);
-div.classList.add("selected");
-}
+toggleCategory(cat);
 };
 
 container.appendChild(div);
@@ -180,13 +213,73 @@ alert("فشل الاتصال بالسيرفر");
 }
 }
 
+function toggleCategory(cat){
+
+const index = selected.findIndex(c=>c.name===cat.name);
+
+if(index !== -1){
+selected.splice(index,1);
+}else{
+if(selected.length>=6) return;
+selected.push(cat);
+}
+
+updateUI();
+}
+
+function updateUI(){
+
+const cards = document.querySelectorAll(".card");
+
+cards.forEach(card=>{
+const name = card.dataset.name;
+const isSelected = selected.find(c=>c.name===name);
+
+card.classList.remove("selected","disabled");
+
+if(isSelected){
+card.classList.add("selected");
+}
+else if(selected.length===6){
+card.classList.add("disabled");
+}
+});
+
+renderSelectedPanel();
+}
+
+function renderSelectedPanel(){
+
+const panel = document.getElementById("selectedPanel");
+panel.innerHTML="";
+
+selected.forEach(cat=>{
+const div = document.createElement("div");
+div.className="selected-item";
+
+div.innerHTML=`
+<img src="${cat.image}">
+<div class="remove-btn">×</div>
+`;
+
+div.querySelector(".remove-btn").onclick=()=>{
+selected = selected.filter(c=>c.name!==cat.name);
+updateUI();
+};
+
+panel.appendChild(div);
+});
+
+}
+
 function next(){
 if(selected.length!==6){
 alert("لازم تختار 6 فئات");
 return;
 }
 
-localStorage.setItem("selectedCategories",JSON.stringify(selected));
+const names = selected.map(c=>c.name);
+localStorage.setItem("selectedCategories",JSON.stringify(names));
 window.location.href="teams.html";
 }
 
