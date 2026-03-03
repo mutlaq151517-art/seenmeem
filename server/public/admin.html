@@ -64,7 +64,11 @@ input{padding:6px;border-radius:6px;border:1px solid #ccc;margin-bottom:10px;wid
 let adminPassword = null;
 
 function checkAdmin(){
-adminPassword = document.getElementById("adminPassword").value;
+adminPassword = document.getElementById("adminPassword").value.trim();
+if(!adminPassword){
+alert("اكتب كلمة السر");
+return;
+}
 localStorage.setItem("adminPassword",adminPassword);
 document.getElementById("lockScreen").style.display="none";
 document.getElementById("adminPanel").style.display="block";
@@ -99,6 +103,8 @@ body:JSON.stringify({ password: adminPassword })
 
 if(!res.ok){
 alert("كلمة السر غير صحيحة");
+localStorage.removeItem("adminPassword");
+location.reload();
 return;
 }
 
@@ -115,7 +121,7 @@ ${user.email}<br>
 رصيد: ${user.games_balance} | مستوى: ${user.level} | صلاحية: ${user.role}
 </div>
 <div style="min-width:200px;">
-<input type="number" id="bal-${user._id}" placeholder="أدخل عدد الألعاب">
+<input type="number" id="bal-${user._id}" placeholder="عدد الألعاب للإضافة">
 <button class="small-btn blue" onclick="updateUser('${user._id}')">إضافة رصيد</button>
 <button class="small-btn green" onclick="makeAdmin('${user._id}')">Admin</button>
 <button class="small-btn orange" onclick="makeUser('${user._id}')">User</button>
@@ -129,8 +135,8 @@ ${user.email}<br>
 
 async function updateUser(id){
 
-const input=document.getElementById("bal-"+id);
-const balance=input.value.trim();
+const input = document.getElementById("bal-"+id);
+const balance = input.value.trim();
 
 if(balance === ""){
 alert("اكتب رقم أولاً");
@@ -142,7 +148,7 @@ alert("اكتب رقم صحيح أكبر من صفر");
 return;
 }
 
-await fetch("/api/admin/update-user",{
+const res = await fetch("/api/admin/update-user",{
 method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
@@ -151,6 +157,14 @@ userId:id,
 games_balance:Number(balance)
 })
 });
+
+if(!res.ok){
+alert("فشل التحديث — تأكد من كلمة السر");
+return;
+}
+
+const data = await res.json();
+alert(data.message);
 
 input.value="";
 loadUsers();
@@ -203,6 +217,8 @@ method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({ password:adminPassword })
 });
+
+if(!res.ok) return;
 
 const data=await res.json();
 const list=document.getElementById("categoriesList");
