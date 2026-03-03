@@ -16,6 +16,8 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log("MongoDB Error", err));
 
+const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
+
 let CURRENT_SEASON = "season1";
 
 /* ================= Schemas ================= */
@@ -50,20 +52,24 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
+/* ================= ADMIN AUTH CHECK ================= */
+
+function checkAdmin(password) {
+  return password === ADMIN_MASTER_PASSWORD;
+}
+
 /* ================= ADMIN: USERS ================= */
 
 // جلب كل المستخدمين
 app.post("/api/admin/users", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { password } = req.body;
 
-    const admin = await User.findOne({ email });
-    if (!admin || admin.role !== "admin") {
+    if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
     const users = await User.find().select("-password");
-
     res.json(users);
 
   } catch {
@@ -74,10 +80,9 @@ app.post("/api/admin/users", async (req, res) => {
 // تعديل رصيد أو صلاحية
 app.post("/api/admin/update-user", async (req, res) => {
   try {
-    const { adminEmail, userId, games_balance, role } = req.body;
+    const { password, userId, games_balance, role } = req.body;
 
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
+    if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
@@ -96,10 +101,9 @@ app.post("/api/admin/update-user", async (req, res) => {
 // إعادة تعيين كلمة السر
 app.post("/api/admin/reset-password", async (req, res) => {
   try {
-    const { adminEmail, userId } = req.body;
+    const { password, userId } = req.body;
 
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
+    if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
@@ -120,15 +124,13 @@ app.post("/api/admin/reset-password", async (req, res) => {
 // حذف مستخدم
 app.post("/api/admin/delete-user", async (req, res) => {
   try {
-    const { adminEmail, userId } = req.body;
+    const { password, userId } = req.body;
 
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
+    if (!checkAdmin(password)) {
       return res.status(403).json({ message: "غير مصرح" });
     }
 
     await User.findByIdAndDelete(userId);
-
     res.json({ message: "تم الحذف" });
 
   } catch {
