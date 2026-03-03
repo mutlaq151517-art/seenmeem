@@ -12,6 +12,11 @@ padding:0;
 box-sizing:border-box;
 }
 
+html,body{
+width:100%;
+overflow-x:hidden;
+}
+
 body{
 font-family:'Cairo',sans-serif;
 direction:rtl;
@@ -21,42 +26,43 @@ background:#cfcfcf;
 /* ===== TOP BAR ===== */
 
 .topbar{
-width:100%;
+width:100vw; /* يمتد فعلياً لنهاية الشاشة */
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
-height:90px;
+height:95px;
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 70px;
+padding:0 80px;
 color:white;
 font-weight:700;
 }
 
 .turn{
 background:#c40000;
-padding:12px 30px;
-border-radius:50px;
+padding:14px 35px;
+border-radius:60px;
 font-weight:900;
+font-size:18px;
 }
 
 /* ===== BOARD ===== */
 
 .board-wrapper{
-padding:60px 100px;
+padding:60px 120px;
 }
 
 .board{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:60px;
+gap:70px;
 }
 
 /* ===== CARD ===== */
 
 .category-card{
 background:#e6e6e6;
-border-radius:40px;
-padding:30px;
+border-radius:45px;
+padding:35px;
 display:flex;
 align-items:center;
 justify-content:space-between;
@@ -67,18 +73,18 @@ justify-content:space-between;
 .points-col{
 display:flex;
 flex-direction:column;
-gap:22px;
+gap:25px;
 }
 
 .point{
 background:#d8d8d8;
-height:60px;
-min-width:170px;
-border-radius:60px;
+height:65px;
+min-width:190px;
+border-radius:70px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:26px;
+font-size:28px;
 font-weight:900;
 color:#b30000;
 cursor:pointer;
@@ -96,94 +102,103 @@ text-align:center;
 }
 
 .category-center img{
-width:160px;
-height:160px;
+width:170px;
+height:170px;
 object-fit:contain;
 }
 
 .category-title{
-margin-top:15px;
+margin-top:18px;
 background:#ff7a3d;
 color:white;
-padding:12px 40px;
-border-radius:30px;
+padding:14px 50px;
+border-radius:35px;
 font-weight:900;
-font-size:20px;
+font-size:22px;
 }
 
 /* ===== BOTTOM ===== */
 
 .bottom{
-margin-top:50px;
+margin-top:60px;
 background:#e6e6e6;
-padding:50px 120px;
+padding:60px 140px;
 display:flex;
+align-items:flex-start;
 justify-content:space-between;
-align-items:center;
 }
 
-.team-section{
+/* يمين ويسار ثابتين */
+.team-right{
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:18px;
+gap:20px;
+}
+
+.team-left{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:20px;
 }
 
 .team-name{
 background:#c40000;
 color:white;
-padding:16px 110px;
-border-radius:60px;
+padding:18px 130px;
+border-radius:70px;
 font-weight:900;
-font-size:24px;
+font-size:26px;
 }
 
 .score-box{
 background:#d8d8d8;
-border-radius:60px;
+border-radius:70px;
 display:flex;
 align-items:center;
-padding:10px 25px;
-gap:25px;
+padding:12px 30px;
+gap:30px;
 }
 
 .score-btn{
 background:#c40000;
 color:white;
 border:none;
-width:40px;
-height:40px;
+width:45px;
+height:45px;
 border-radius:50%;
-font-size:22px;
+font-size:24px;
 cursor:pointer;
 }
 
 .score-value{
-font-size:24px;
+font-size:26px;
 font-weight:900;
-width:35px;
+width:40px;
 text-align:center;
 }
 
 .helpers-title{
-font-size:20px;
+font-size:22px;
 font-weight:700;
 }
 
 .helpers{
 display:flex;
-gap:20px;
+gap:25px;
 }
 
 .helper{
-width:50px;
-height:50px;
+width:55px;
+height:55px;
 background:#d8d8d8;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
 cursor:pointer;
+font-size:20px;
 }
 
 .helper.active{
@@ -192,7 +207,7 @@ color:white;
 }
 
 .center-title{
-font-size:60px;
+font-size:70px;
 font-weight:900;
 color:#444;
 }
@@ -201,8 +216,8 @@ color:#444;
 <body>
 
 <div class="topbar">
-<div>سين ميم</div>
 <div class="turn" id="turnBox"></div>
+<div>سين ميم</div>
 </div>
 
 <div class="board-wrapper">
@@ -211,7 +226,7 @@ color:#444;
 
 <div class="bottom">
 
-<div class="team-section">
+<div class="team-right">
 <div class="team-name" id="team1Name"></div>
 
 <div class="score-box">
@@ -230,7 +245,7 @@ color:#444;
 
 <div class="center-title">سين ميم</div>
 
-<div class="team-section">
+<div class="team-left">
 <div class="team-name" id="team2Name"></div>
 
 <div class="score-box">
