@@ -2,6 +2,7 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>سين ميم</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -12,57 +13,53 @@ padding:0;
 box-sizing:border-box;
 }
 
-html,body{
-width:100%;
-overflow-x:hidden;
-}
-
 body{
 font-family:'Cairo',sans-serif;
 direction:rtl;
 background:#cfcfcf;
+overflow-x:hidden;
 }
 
 /* ===== TOP BAR ===== */
 
 .topbar{
-width:100vw; /* يمتد فعلياً لنهاية الشاشة */
+width:100%;
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
-height:95px;
+height:85px;
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 80px;
+padding:0 60px;
 color:white;
 font-weight:700;
 }
 
 .turn{
 background:#c40000;
-padding:14px 35px;
-border-radius:60px;
+padding:10px 28px;
+border-radius:50px;
 font-weight:900;
-font-size:18px;
+font-size:16px;
 }
 
 /* ===== BOARD ===== */
 
 .board-wrapper{
-padding:60px 120px;
+padding:50px 80px;
 }
 
 .board{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:70px;
+gap:50px;
 }
 
 /* ===== CARD ===== */
 
 .category-card{
 background:#e6e6e6;
-border-radius:45px;
-padding:35px;
+border-radius:35px;
+padding:25px;
 display:flex;
 align-items:center;
 justify-content:space-between;
@@ -73,18 +70,18 @@ justify-content:space-between;
 .points-col{
 display:flex;
 flex-direction:column;
-gap:25px;
+gap:18px;
 }
 
 .point{
 background:#d8d8d8;
-height:65px;
-min-width:190px;
-border-radius:70px;
+height:55px;
+min-width:150px;
+border-radius:50px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:28px;
+font-size:24px;
 font-weight:900;
 color:#b30000;
 cursor:pointer;
@@ -102,103 +99,96 @@ text-align:center;
 }
 
 .category-center img{
-width:170px;
-height:170px;
+width:140px;
+height:140px;
 object-fit:contain;
 }
 
 .category-title{
-margin-top:18px;
+margin-top:12px;
 background:#ff7a3d;
 color:white;
-padding:14px 50px;
-border-radius:35px;
+padding:10px 35px;
+border-radius:25px;
 font-weight:900;
-font-size:22px;
+font-size:18px;
 }
 
 /* ===== BOTTOM ===== */
 
 .bottom{
-margin-top:60px;
+margin-top:40px;
 background:#e6e6e6;
-padding:60px 140px;
+padding:40px 100px;
 display:flex;
-align-items:flex-start;
 justify-content:space-between;
+align-items:flex-start;
 }
 
-/* يمين ويسار ثابتين */
-.team-right{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:20px;
-}
-
+.team-right,
 .team-left{
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:20px;
+gap:15px;
 }
 
 .team-name{
 background:#c40000;
 color:white;
-padding:18px 130px;
-border-radius:70px;
+padding:14px 90px;
+border-radius:50px;
 font-weight:900;
-font-size:26px;
+font-size:22px;
 }
 
 .score-box{
 background:#d8d8d8;
-border-radius:70px;
+border-radius:50px;
 display:flex;
 align-items:center;
-padding:12px 30px;
-gap:30px;
+padding:8px 20px;
+gap:20px;
 }
 
 .score-btn{
 background:#c40000;
 color:white;
 border:none;
-width:45px;
-height:45px;
+width:35px;
+height:35px;
 border-radius:50%;
-font-size:24px;
+font-size:20px;
 cursor:pointer;
 }
 
 .score-value{
-font-size:26px;
+font-size:22px;
 font-weight:900;
-width:40px;
+width:30px;
 text-align:center;
 }
 
 .helpers-title{
-font-size:22px;
+font-size:18px;
 font-weight:700;
 }
 
 .helpers{
 display:flex;
-gap:25px;
+gap:15px;
 }
 
 .helper{
-width:55px;
-height:55px;
+width:45px;
+height:45px;
 background:#d8d8d8;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
 cursor:pointer;
-font-size:20px;
+font-size:18px;
 }
 
 .helper.active{
@@ -207,7 +197,7 @@ color:white;
 }
 
 .center-title{
-font-size:70px;
+font-size:50px;
 font-weight:900;
 color:#444;
 }
@@ -316,12 +306,10 @@ div.innerHTML=`
 <div class="point">400</div>
 <div class="point">600</div>
 </div>
-
 <div class="category-center">
 <img src="${cat.image}">
 <div class="category-title">${cat.name}</div>
 </div>
-
 <div class="points-col">
 <div class="point">200</div>
 <div class="point">400</div>
