@@ -12,17 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/* ================= Mongo ================= */
-
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
 .catch(err => console.log("MongoDB Error", err));
-
-/* ================= ADMIN MASTER PASSWORD ================= */
-
-const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
-
-/* ================= CURRENT SEASON ================= */
 
 let CURRENT_SEASON = "season1";
 
@@ -58,53 +50,100 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
+/* ================= ADMIN: USERS ================= */
+
+// جلب كل المستخدمين
+app.post("/api/admin/users", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const admin = await User.findOne({ email });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const users = await User.find().select("-password");
+
+    res.json(users);
+
+  } catch {
+    res.status(500).json([]);
+  }
+});
+
+// تعديل رصيد أو صلاحية
+app.post("/api/admin/update-user", async (req, res) => {
+  try {
+    const { adminEmail, userId, games_balance, role } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await User.findByIdAndUpdate(userId, {
+      games_balance,
+      role
+    });
+
+    res.json({ message: "تم التحديث" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
+// إعادة تعيين كلمة السر
+app.post("/api/admin/reset-password", async (req, res) => {
+  try {
+    const { adminEmail, userId } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const newPassword = Math.random().toString(36).slice(-8);
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await User.findByIdAndUpdate(userId, {
+      password: hashed
+    });
+
+    res.json({ newPassword });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
+// حذف مستخدم
+app.post("/api/admin/delete-user", async (req, res) => {
+  try {
+    const { adminEmail, userId } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: "تم الحذف" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
 /* ================= Categories ================= */
 
-// جلب الفئات
 app.get("/api/categories", async (req, res) => {
   try {
     const categories = await Category.find();
     res.json(categories);
   } catch {
     res.status(500).json([]);
-  }
-});
-
-// إضافة فئة (مدير)
-app.post("/api/admin/add-category", async (req, res) => {
-  try {
-    const { email, section, name, image } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await Category.create({ section, name, image });
-
-    res.json({ message: "تمت الإضافة" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في الإضافة" });
-  }
-});
-
-// حذف فئة
-app.post("/api/admin/delete-category", async (req, res) => {
-  try {
-    const { email, id } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await Category.findByIdAndDelete(id);
-
-    res.json({ message: "تم الحذف" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في الحذف" });
   }
 });
 
@@ -119,11 +158,7 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
-      email,
-      password: hashed
-    });
+    await User.create({ name, email, password: hashed });
 
     res.json({ message: "تم إنشاء الحساب" });
 
@@ -146,76 +181,12 @@ app.post("/api/login", async (req, res) => {
 
     res.json({
       name: user.name,
-      role: user.role
+      role: user.role,
+      games_balance: user.games_balance
     });
 
   } catch {
     res.status(500).json({ message: "خطأ في تسجيل الدخول" });
-  }
-});
-
-/* ================= Start Match ================= */
-
-app.post("/api/start-match", async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
-
-    if (user.games_balance <= 0) {
-      return res.status(403).json({ message: "لا يوجد رصيد ألعاب" });
-    }
-
-    user.games_balance -= 1;
-    user.games_played += 1;
-    await user.save();
-
-    res.json({ message: "تم بدء المباراة" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في بدء المباراة" });
-  }
-});
-
-/* ================= Start Question ================= */
-
-app.post("/api/start-game", async (req, res) => {
-  try {
-    const { email, category, difficulty } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
-
-    const questions = await Question.find({
-      category,
-      difficulty,
-      season: CURRENT_SEASON,
-      _id: { $nin: user.usedQuestions }
-    });
-
-    if (!questions.length) {
-      return res.json({
-        question:"لا يوجد سؤال جديد حالياً",
-        answer:"حاول لاحقاً"
-      });
-    }
-
-    const random = questions[Math.floor(Math.random() * questions.length)];
-
-    user.usedQuestions.push(random._id);
-    await user.save();
-
-    res.json({
-      question: random.question,
-      answer: random.answer
-    });
-
-  } catch {
-    res.json({
-      question:"سؤال احتياطي",
-      answer:"إجابة احتياطية"
-    });
   }
 });
 
