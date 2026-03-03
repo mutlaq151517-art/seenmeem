@@ -2,18 +2,16 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>السؤال</title>
+<title>سين ميم</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-
 <style>
 body{
 margin:0;
 font-family:'Cairo',sans-serif;
 direction:rtl;
-background:#f4f4f4;
+background:#d9d9d9;
 }
 
-/* Top Bar */
 .topbar{
 background:linear-gradient(to right,#ff3b3b,#ff7a3d);
 color:white;
@@ -30,88 +28,90 @@ border-radius:25px;
 font-weight:bold;
 }
 
-/* Card */
-.wrapper{
-padding:40px;
+.board{
+padding:30px;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:35px;
+}
+
+.category{
+background:#e5e5e5;
+border-radius:30px;
+padding:15px;
 display:flex;
-justify-content:center;
+align-items:center;
+justify-content:space-between;
 }
 
-.card{
-background:white;
-width:85%;
-border:8px solid #ff5c33;
-border-radius:35px;
-padding:60px 40px;
-position:relative;
-min-height:520px;
+.points-col{
+display:flex;
+flex-direction:column;
+gap:15px;
 }
 
-/* Timer */
-.timer-box{
-position:absolute;
-top:-30px;
-left:50%;
-transform:translateX(-50%);
-background:#2d2b3a;
-color:white;
-padding:12px 35px;
-border-radius:40px;
+.point{
+background:#cfcfcf;
+padding:12px 25px;
+border-radius:25px;
 font-size:22px;
+font-weight:bold;
+color:#b30000;
+cursor:pointer;
+text-align:center;
+min-width:90px;
+transition:0.3s;
+}
+
+.point.used{
+opacity:0.35;
+pointer-events:none;
+}
+
+.category-center{
+text-align:center;
+}
+
+.category-center img{
+width:130px;
+height:130px;
+object-fit:contain;
+}
+
+.category-title{
+background:#ff7a3d;
+color:white;
+padding:10px;
+border-radius:15px;
+margin-top:10px;
+font-weight:bold;
+}
+
+.bottom{
+background:#eee;
+padding:25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.team{
+background:#b30000;
+color:white;
+padding:12px 25px;
+border-radius:25px;
 display:flex;
 align-items:center;
 gap:20px;
 font-weight:bold;
 }
 
-.timer-btn{
-cursor:pointer;
-font-size:20px;
-}
-
-/* Points */
-.points{
-position:absolute;
-top:25px;
-left:25px;
-background:black;
-color:white;
-padding:8px 18px;
-border-radius:20px;
-font-size:14px;
-}
-
-/* Question */
-.question{
-text-align:center;
-margin-top:100px;
-font-size:30px;
-font-weight:900;
-line-height:2;
-}
-
-/* Buttons */
-.buttons{
-position:absolute;
-bottom:25px;
-width:100%;
-display:flex;
-justify-content:space-between;
-padding:0 30px;
-}
-
-.btn{
-border:none;
-padding:12px 30px;
+.score{
+background:white;
+color:black;
+padding:5px 15px;
 border-radius:25px;
-color:white;
-cursor:pointer;
-font-size:18px;
-font-weight:bold;
 }
-
-.green{background:#2e7d32;}
-.orange{background:#ff7a3d;}
 </style>
 </head>
 <body>
@@ -121,77 +121,119 @@ font-weight:bold;
 <div class="turn" id="turnBox"></div>
 </div>
 
-<div class="wrapper">
-<div class="card">
+<div class="board" id="board"></div>
 
-<div class="timer-box">
-<span class="timer-btn" id="pauseBtn">⏸</span>
-<span id="timer">01:00</span>
-<span class="timer-btn" id="resetBtn">⟳</span>
+<div class="bottom">
+<div class="team">
+<span id="team1Name"></span>
+<div class="score" id="score1">0</div>
 </div>
 
-<div class="points" id="pointsBox"></div>
-
-<div class="question" id="questionText"></div>
-
-<div class="buttons">
-<button class="btn green" onclick="goAnswer()">الإجابة</button>
-<button class="btn orange" id="categoryBtn"></button>
-</div>
-
+<div class="team">
+<span id="team2Name"></span>
+<div class="score" id="score2">0</div>
 </div>
 </div>
 
 <script>
 
-let timeLeft = 60;
-let interval;
-let paused = false;
+/* ===== تصفير المباراة دائماً ===== */
+localStorage.setItem("score1",0);
+localStorage.setItem("score2",0);
+localStorage.setItem("turnTeam","1");
+localStorage.setItem("usedQuestions",JSON.stringify([]));
 
-const question = localStorage.getItem("currentQuestion");
-const points = localStorage.getItem("currentPoints");
-const category = localStorage.getItem("currentCategory");
-const teamTurn = localStorage.getItem("currentTeam");
+const email = localStorage.getItem("userEmail");
+const categoriesSelected = JSON.parse(localStorage.getItem("selectedCategories"));
+const team1 = localStorage.getItem("team1Name");
+const team2 = localStorage.getItem("team2Name");
 
-document.getElementById("questionText").innerText = question || "";
-document.getElementById("pointsBox").innerText = points + " نقطة";
-document.getElementById("categoryBtn").innerText = category;
-document.getElementById("turnBox").innerText = "دور فريق: " + teamTurn;
+let score1 = 0;
+let score2 = 0;
+let currentTeam = "1";
+let usedQuestions = [];
 
-function formatTime(sec){
-let m = Math.floor(sec/60);
-let s = sec%60;
-return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+document.getElementById("team1Name").innerText = team1;
+document.getElementById("team2Name").innerText = team2;
+document.getElementById("score1").innerText = score1;
+document.getElementById("score2").innerText = score2;
+
+updateTurn();
+
+function updateTurn(){
+document.getElementById("turnBox").innerText =
+"دور فريق: " + (currentTeam === "1" ? team1 : team2);
 }
 
-function startTimer(){
-interval = setInterval(()=>{
-if(!paused){
-timeLeft--;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-if(timeLeft <= 0){
-clearInterval(interval);
-}
-}
-},1000);
-}
+fetch("/api/categories")
+.then(res=>res.json())
+.then(data=>{
 
-document.getElementById("timer").innerText = formatTime(timeLeft);
-startTimer();
+const board=document.getElementById("board");
 
-document.getElementById("pauseBtn").onclick = ()=>{
-paused = !paused;
-document.getElementById("pauseBtn").innerText = paused ? "▶" : "⏸";
-}
+categoriesSelected.forEach(catName=>{
 
-document.getElementById("resetBtn").onclick = ()=>{
-timeLeft = 60;
-document.getElementById("timer").innerText = formatTime(timeLeft);
-}
+const cat=data.find(c=>c.name===catName);
+if(!cat) return;
 
-function goAnswer(){
-clearInterval(interval);
-window.location.href="answer.html";
+const div=document.createElement("div");
+div.className="category";
+
+div.innerHTML=`
+<div class="points-col">
+<div class="point" data-id="${cat.name}-200" onclick="openQ(this,'${cat.name}',200)">200</div>
+<div class="point" data-id="${cat.name}-400" onclick="openQ(this,'${cat.name}',400)">400</div>
+<div class="point" data-id="${cat.name}-600" onclick="openQ(this,'${cat.name}',600)">600</div>
+</div>
+
+<div class="category-center">
+<img src="${cat.image}">
+<div class="category-title">${cat.name}</div>
+</div>
+
+<div class="points-col">
+<div class="point" data-id="${cat.name}-200-b" onclick="openQ(this,'${cat.name}',200)">200</div>
+<div class="point" data-id="${cat.name}-400-b" onclick="openQ(this,'${cat.name}',400)">400</div>
+<div class="point" data-id="${cat.name}-600-b" onclick="openQ(this,'${cat.name}',600)">600</div>
+</div>
+`;
+
+board.appendChild(div);
+
+});
+
+});
+
+function openQ(el,category,points){
+
+const id = el.getAttribute("data-id");
+if(usedQuestions.includes(id)) return;
+
+usedQuestions.push(id);
+localStorage.setItem("usedQuestions",JSON.stringify(usedQuestions));
+el.classList.add("used");
+
+fetch("/api/start-game",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({ 
+  email,
+  category, 
+  difficulty:points 
+})
+})
+.then(res=>res.json())
+.then(data=>{
+
+localStorage.setItem("currentQuestion",data.question);
+localStorage.setItem("currentAnswer",data.answer);
+localStorage.setItem("currentPoints",points);
+localStorage.setItem("currentCategory",category);
+localStorage.setItem("currentTeam",currentTeam);
+
+window.location.href="question.html";
+
+});
 }
 
 </script>
