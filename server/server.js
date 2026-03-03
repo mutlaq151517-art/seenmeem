@@ -137,115 +137,36 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= ADMIN: USERS ================= */
+/* ================= Start Match (المفقود 👈 هذا سبب المشكلة) ================= */
 
-app.post("/api/admin/users", async (req, res) => {
+app.post("/api/start-match", async (req, res) => {
   try {
     const { email } = req.body;
 
-    const admin = await User.findOne({ email });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+
+    if (user.games_balance <= 0) {
+      return res.status(403).json({ message: "لا يوجد رصيد ألعاب" });
     }
 
-    const users = await User.find().select("-password");
-    res.json(users);
+    user.games_balance -= 1;
+    user.games_played += 1;
 
-  } catch {
-    res.status(500).json({ message: "خطأ في جلب المستخدمين" });
-  }
-});
-
-/* ================= ADMIN: UPDATE BALANCE ================= */
-
-app.post("/api/admin/update-balance", async (req, res) => {
-  try {
-    const { adminEmail, userEmail, balance } = req.body;
-
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
+    if (user.games_played >= 1) {
+      user.level = 2;
     }
 
-    await User.updateOne(
-      { email: userEmail },
-      { games_balance: Number(balance) }
-    );
+    await user.save();
 
-    res.json({ message: "تم تعديل الرصيد" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في تعديل الرصيد" });
-  }
-});
-
-/* ================= ADMIN: CHANGE ROLE ================= */
-
-app.post("/api/admin/change-role", async (req, res) => {
-  try {
-    const { adminEmail, userEmail, role } = req.body;
-
-    const admin = await User.findOne({ email: adminEmail });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await User.updateOne({ email: userEmail }, { role });
-
-    res.json({ message: "تم تغيير الصلاحية" });
+    res.json({
+      message: "تم بدء المباراة",
+      level: user.level,
+      games_balance: user.games_balance
+    });
 
   } catch {
-    res.status(500).json({ message: "خطأ في تغيير الصلاحية" });
-  }
-});
-
-/* ================= CATEGORIES ================= */
-
-app.get("/api/categories", async (req, res) => {
-  try {
-    const categories = await Category.find();
-    res.json(categories);
-  } catch {
-    res.json([]);
-  }
-});
-
-app.post("/api/admin/add-category", async (req, res) => {
-  try {
-    const { email, section, name, image } = req.body;
-
-    const admin = await User.findOne({ email });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    const exists = await Category.findOne({ name });
-    if (exists) return res.status(400).json({ message: "الفئة موجودة مسبقاً" });
-
-    await Category.create({ section, name, image });
-
-    res.json({ message: "تمت إضافة الفئة" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في إضافة الفئة" });
-  }
-});
-
-app.post("/api/admin/delete-category", async (req, res) => {
-  try {
-    const { email, id } = req.body;
-
-    const admin = await User.findOne({ email });
-    if (!admin || admin.role !== "admin") {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    await Category.findByIdAndDelete(id);
-
-    res.json({ message: "تم حذف الفئة" });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في الحذف" });
+    res.status(500).json({ message: "خطأ في بدء المباراة" });
   }
 });
 
