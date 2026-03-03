@@ -60,7 +60,6 @@ function checkAdmin(password) {
 
 /* ================= ADMIN: USERS ================= */
 
-// جلب كل المستخدمين
 app.post("/api/admin/users", async (req, res) => {
   try {
     const { password } = req.body;
@@ -77,7 +76,6 @@ app.post("/api/admin/users", async (req, res) => {
   }
 });
 
-// تعديل رصيد أو صلاحية
 app.post("/api/admin/update-user", async (req, res) => {
   try {
     const { password, userId, games_balance, role } = req.body;
@@ -98,7 +96,6 @@ app.post("/api/admin/update-user", async (req, res) => {
   }
 });
 
-// إعادة تعيين كلمة السر
 app.post("/api/admin/reset-password", async (req, res) => {
   try {
     const { password, userId } = req.body;
@@ -110,9 +107,7 @@ app.post("/api/admin/reset-password", async (req, res) => {
     const newPassword = Math.random().toString(36).slice(-8);
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    await User.findByIdAndUpdate(userId, {
-      password: hashed
-    });
+    await User.findByIdAndUpdate(userId, { password: hashed });
 
     res.json({ newPassword });
 
@@ -121,7 +116,6 @@ app.post("/api/admin/reset-password", async (req, res) => {
   }
 });
 
-// حذف مستخدم
 app.post("/api/admin/delete-user", async (req, res) => {
   try {
     const { password, userId } = req.body;
@@ -138,7 +132,57 @@ app.post("/api/admin/delete-user", async (req, res) => {
   }
 });
 
-/* ================= Categories ================= */
+/* ================= ADMIN: CATEGORIES ================= */
+
+app.post("/api/admin/categories", async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!checkAdmin(password)) {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    const categories = await Category.find();
+    res.json(categories);
+
+  } catch {
+    res.status(500).json([]);
+  }
+});
+
+app.post("/api/admin/add-category", async (req, res) => {
+  try {
+    const { password, section, name, image } = req.body;
+
+    if (!checkAdmin(password)) {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await Category.create({ section, name, image });
+    res.json({ message: "تمت الإضافة" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
+app.post("/api/admin/delete-category", async (req, res) => {
+  try {
+    const { password, id } = req.body;
+
+    if (!checkAdmin(password)) {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await Category.findByIdAndDelete(id);
+    res.json({ message: "تم الحذف" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ" });
+  }
+});
+
+/* ================= Categories (Public) ================= */
 
 app.get("/api/categories", async (req, res) => {
   try {
@@ -159,7 +203,6 @@ app.post("/api/register", async (req, res) => {
     if (existing) return res.status(400).json({ message: "المستخدم موجود مسبقاً" });
 
     const hashed = await bcrypt.hash(password, 10);
-
     await User.create({ name, email, password: hashed });
 
     res.json({ message: "تم إنشاء الحساب" });
