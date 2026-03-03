@@ -38,11 +38,9 @@ const categorySchema = new mongoose.Schema({
   image: String
 });
 
-/* 🔥 تطوير سكيمة السؤال بدون تخريب القديم */
-
 const questionSchema = new mongoose.Schema({
   category: String,
-  difficulty: Number, // 200 / 400 / 600
+  difficulty: Number,
 
   question: String,
   answer: String,
@@ -50,8 +48,8 @@ const questionSchema = new mongoose.Schema({
   questionImage: { type: String, default: null },
   answerImage: { type: String, default: null },
 
-  levelRequired: { type: Number, default: 1 }, // مستوى مطلوب
-  forNewUsers: { type: Boolean, default: false }, // أسئلة ثابتة لأول مرة
+  levelRequired: { type: Number, default: 1 },
+  forNewUsers: { type: Boolean, default: false },
 
   timesUsed: { type: Number, default: 0 },
 
@@ -63,75 +61,74 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= ADMIN AUTH ================= */
+/* ================= START GAME ================= */
 
-function checkAdmin(password) {
-  return password === ADMIN_MASTER_PASSWORD;
-}
-
-/* ================= ADMIN: USERS ================= */
-
-app.post("/api/admin/users", async (req, res) => {
+app.post("/api/start-game", async (req, res) => {
   try {
-    const { password } = req.body;
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-    const users = await User.find().select("-password");
-    res.json(users);
-  } catch {
-    res.status(500).json([]);
-  }
-});
-
-/* ================= UPDATE USER ================= */
-
-app.post("/api/admin/update-user", async (req, res) => {
-  try {
-    const { password, userId, games_balance, role } = req.body;
-
-    if (!checkAdmin(password)) {
-      return res.status(403).json({ message: "غير مصرح" });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "المستخدم غير موجود" });
-    }
-
-    if (games_balance !== undefined) {
-      const amount = Number(games_balance);
-      if (!isNaN(amount) && amount > 0) {
-        user.games_balance += amount;
-      }
-    }
-
-    if (role !== undefined) {
-      user.role = role;
-    }
-
-    await user.save();
-
-    res.json({
-      message: "تم التحديث",
-      games_balance: user.games_balance
-    });
-
-  } catch {
-    res.status(500).json({ message: "خطأ في التحديث" });
-  }
-});
-
-/* ================= LOGIN DATA ================= */
-
-app.post("/api/login-data", async (req, res) => {
-  try {
-    const { email } = req.body;
+    const { email, category, difficulty } = req.body;
 
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
+
+    const isFirstGame = user.games_played <= 1;
+
+    let query = {
+      category,
+      difficulty,
+      season: CURRENT_SEASON,
+      isActive: true,
+      _id: { $nin: user.usedQuestions }
+    };
+
+    if (isFirstGame) {
+      query.forNewUsers = true;
+    } else {
+      query.levelRequired = { $lte: user.level };
+    }
+
+    let question = await Question.findOne(query).sort({ timesUsed: 1 });
+
+    if (!question) {
+      question = await Question.findOne({
+        category,
+        difficulty,
+        season: CURRENT_SEASON,
+        isActive: true
+      });
+    }
+
+    if (!question) {
+      return res.status(404).json({ message: "لا يوجد سؤال متاح حالياً" });
+    }
+
+    question.timesUsed += 1;
+    await question.save();
+
+    user.usedQuestions.push(question._id);
+    await user.save();
+
+    return res.json({
+      question: question.question,
+      answer: question.answer,
+      questionImage: question.questionImage || null,
+      answerImage: question.answerImage || null
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطأ في تحميل السؤال" });
+  }
+});
+
+/* ================= باقي السيرفر كما هو بدون تغيير ================= */
+
+app.post("/api/login-data", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
 
     res.json({
       games_balance: user.games_balance,
@@ -142,8 +139,6 @@ app.post("/api/login-data", async (req, res) => {
     res.status(500).json({ message: "خطأ" });
   }
 });
-
-/* ================= START MATCH ================= */
 
 app.post("/api/start-match", async (req, res) => {
   try {
@@ -171,66 +166,6 @@ app.post("/api/start-match", async (req, res) => {
 
   } catch {
     res.status(500).json({ message: "خطأ في بدء المباراة" });
-  }
-});
-
-/* ================= START GAME (ذكي) ================= */
-
-app.post("/api/start-game", async (req, res) => {
-  try {
-    const { email, category, difficulty } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
-
-    // أول مباراة = أسئلة ثابتة
-    const isFirstGame = user.games_played <= 1;
-
-    let query = {
-      category,
-      difficulty,
-      season: CURRENT_SEASON,
-      isActive: true,
-      _id: { $nin: user.usedQuestions }
-    };
-
-    if (isFirstGame) {
-      query.forNewUsers = true;
-    } else {
-      query.levelRequired = { $lte: user.level };
-    }
-
-    let question = await Question.findOne(query).sort({ timesUsed: 1 });
-
-    // fallback إذا ما حصل
-    if (!question) {
-      question = await Question.findOne({
-        category,
-        difficulty,
-        season: CURRENT_SEASON,
-        isActive: true
-      });
-    }
-
-    if (!question) {
-      return res.status(404).json({ message: "لا يوجد سؤال متاح حالياً" });
-    }
-
-    question.timesUsed += 1;
-    await question.save();
-
-    user.usedQuestions.push(question._id);
-    await user.save();
-
-    res.json({
-      question: question.question,
-      answer: question.answer,
-      questionImage: question.questionImage,
-      answerImage: question.answerImage
-    });
-
-  } catch (err) {
-    res.status(500).json({ message: "خطأ في تحميل السؤال" });
   }
 });
 
