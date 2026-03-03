@@ -25,7 +25,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 /* ================= CURRENT SEASON ================= */
 
-const CURRENT_SEASON = "season1";
+let CURRENT_SEASON = "season1";
 
 /* ================= Schemas ================= */
 
@@ -45,8 +45,6 @@ const categorySchema = new mongoose.Schema({
   name: String,
   image: String
 });
-
-/* ===== NEW Question Schema ===== */
 
 const questionSchema = new mongoose.Schema({
   category: String,
@@ -125,11 +123,10 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Admin: Generate Questions (Batch 100) ================= */
+/* ================= Admin: Progress ================= */
 
-app.post("/api/admin/generate-questions", async (req, res) => {
+app.post("/api/admin/questions-progress", async (req, res) => {
   try {
-
     const { adminEmail } = req.body;
 
     const admin = await User.findOne({ email: adminEmail });
@@ -138,93 +135,47 @@ app.post("/api/admin/generate-questions", async (req, res) => {
     }
 
     const categories = await Category.find();
-    const BATCH_SIZE = 100;
-    const TARGET = 1000;
-
-    let results = [];
+    let result = [];
 
     for (const cat of categories) {
-
-      const existing = await Question.countDocuments({
+      const count = await Question.countDocuments({
         category: cat.name,
         season: CURRENT_SEASON
       });
 
-      if (existing >= TARGET) {
-        results.push(`${cat.name} مكتملة`);
-        continue;
-      }
-
-      const remaining = TARGET - existing;
-      const generateNow = Math.min(BATCH_SIZE, remaining);
-
-      const insertData = [];
-
-      for (let i = 0; i < generateNow; i++) {
-
-        let difficulty;
-        const r = Math.random();
-        if (r < 0.3) difficulty = 200;
-        else if (r < 0.65) difficulty = 400;
-        else difficulty = 600;
-
-        let extra = "";
-        if (cat.name === "دعايات") {
-          extra = "الأسئلة يجب أن تكون عن إعلانات كويتية فقط.";
-        }
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          temperature: 1,
-          messages: [
-            {
-              role: "system",
-              content: `
-أنت كاتب أسئلة مسابقات احترافي جداً.
-اجعل 400 صعب.
-اجعل 600 صعب جداً جداً.
-لا تكرر الأسئلة.
-${extra}
-أعد الرد بصيغة JSON فقط.
-`
-            },
-            {
-              role: "user",
-              content: `
-الفئة: ${cat.name}
-مستوى النقاط: ${difficulty}
-
-{
-"question":"...",
-"answer":"..."
-}
-`
-            }
-          ],
-          response_format: { type: "json_object" }
-        });
-
-        const parsed = JSON.parse(completion.choices[0].message.content);
-
-        insertData.push({
-          category: cat.name,
-          difficulty,
-          question: parsed.question,
-          answer: parsed.answer,
-          season: CURRENT_SEASON
-        });
-      }
-
-      await Question.insertMany(insertData);
-
-      results.push(`${cat.name} +${generateNow}`);
+      result.push({
+        category: cat.name,
+        count
+      });
     }
 
-    res.json({ results });
+    res.json(result);
 
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "خطأ في التوليد" });
+  } catch {
+    res.status(500).json({ message: "خطأ في التقدم" });
+  }
+});
+
+/* ================= Admin: Start New Season ================= */
+
+app.post("/api/admin/new-season", async (req, res) => {
+  try {
+    const { adminEmail, seasonName } = req.body;
+
+    const admin = await User.findOne({ email: adminEmail });
+    if (!admin || admin.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    CURRENT_SEASON = seasonName;
+
+    // تصفير سجل الأسئلة للمستخدمين
+    await User.updateMany({}, { usedQuestions: [] });
+
+    res.json({ message: "تم بدء موسم جديد", season: CURRENT_SEASON });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في تغيير الموسم" });
   }
 });
 
@@ -238,25 +189,15 @@ app.post("/api/start-game", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message:"المستخدم غير موجود" });
 
-    /* ===== Level 1 ===== */
-
     if (user.level === 1) {
-
       const question = levelOneQuestions.find(q =>
         q.category === category && q.difficulty == difficulty
       );
 
-      if (question) {
-        return res.json(question);
-      }
+      if (question) return res.json(question);
 
-      return res.json({
-        question:"سؤال غير متوفر",
-        answer:"غير متوفر"
-      });
+      return res.json({ question:"سؤال غير متوفر", answer:"غير متوفر" });
     }
-
-    /* ===== Level 2+ (من بنك الأسئلة) ===== */
 
     const questions = await Question.find({
       category,
