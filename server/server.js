@@ -5,17 +5,12 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "path";
 import { fileURLToPath } from "url";
-import OpenAI from "openai";
 
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
 
 /* ================= Mongo ================= */
 
@@ -63,24 +58,53 @@ const User = mongoose.model("User", userSchema);
 const Category = mongoose.model("Category", categorySchema);
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= ADMIN MASTER LOGIN ================= */
+/* ================= Categories ================= */
 
-app.post("/api/admin/master-login", async (req, res) => {
+// جلب الفئات
+app.get("/api/categories", async (req, res) => {
   try {
-    const { password } = req.body;
+    const categories = await Category.find();
+    res.json(categories);
+  } catch {
+    res.status(500).json([]);
+  }
+});
 
-    if (!ADMIN_MASTER_PASSWORD) {
-      return res.status(500).json({ message: "ADMIN_MASTER_PASSWORD غير معرف" });
+// إضافة فئة (مدير)
+app.post("/api/admin/add-category", async (req, res) => {
+  try {
+    const { email, section, name, image } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
     }
 
-    if (password !== ADMIN_MASTER_PASSWORD) {
-      return res.status(401).json({ message: "كلمة السر غير صحيحة" });
-    }
+    await Category.create({ section, name, image });
 
-    res.json({ success: true });
+    res.json({ message: "تمت الإضافة" });
 
   } catch {
-    res.status(500).json({ message: "خطأ في تسجيل دخول المدير" });
+    res.status(500).json({ message: "خطأ في الإضافة" });
+  }
+});
+
+// حذف فئة
+app.post("/api/admin/delete-category", async (req, res) => {
+  try {
+    const { email, id } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "غير مصرح" });
+    }
+
+    await Category.findByIdAndDelete(id);
+
+    res.json({ message: "تم الحذف" });
+
+  } catch {
+    res.status(500).json({ message: "خطأ في الحذف" });
   }
 });
 
@@ -98,12 +122,7 @@ app.post("/api/register", async (req, res) => {
     await User.create({
       name,
       email,
-      password: hashed,
-      games_balance: 1,
-      games_played: 0,
-      level: 1,
-      usedQuestions: [],
-      role: "user"
+      password: hashed
     });
 
     res.json({ message: "تم إنشاء الحساب" });
@@ -127,8 +146,6 @@ app.post("/api/login", async (req, res) => {
 
     res.json({
       name: user.name,
-      games_balance: user.games_balance,
-      level: user.level,
       role: user.role
     });
 
@@ -137,7 +154,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ================= Start Match (المفقود 👈 هذا سبب المشكلة) ================= */
+/* ================= Start Match ================= */
 
 app.post("/api/start-match", async (req, res) => {
   try {
@@ -152,18 +169,9 @@ app.post("/api/start-match", async (req, res) => {
 
     user.games_balance -= 1;
     user.games_played += 1;
-
-    if (user.games_played >= 1) {
-      user.level = 2;
-    }
-
     await user.save();
 
-    res.json({
-      message: "تم بدء المباراة",
-      level: user.level,
-      games_balance: user.games_balance
-    });
+    res.json({ message: "تم بدء المباراة" });
 
   } catch {
     res.status(500).json({ message: "خطأ في بدء المباراة" });
@@ -186,7 +194,7 @@ app.post("/api/start-game", async (req, res) => {
       _id: { $nin: user.usedQuestions }
     });
 
-    if (questions.length === 0) {
+    if (!questions.length) {
       return res.json({
         question:"لا يوجد سؤال جديد حالياً",
         answer:"حاول لاحقاً"
