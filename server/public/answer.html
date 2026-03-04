@@ -65,7 +65,6 @@ background:black;
 color:white;
 padding:8px 20px;
 border-radius:20px;
-font-size:14px;
 }
 
 /* VAR */
@@ -168,6 +167,7 @@ opacity:0.3;
 }
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
@@ -230,9 +230,9 @@ opacity:0.3;
 /* ===== Load Data ===== */
 
 const answer = localStorage.getItem("currentAnswer");
-const points = localStorage.getItem("currentPoints");
+const points = parseInt(localStorage.getItem("currentPoints"));
 const answerImage = localStorage.getItem("currentAnswerImage");
-const teamTurn = localStorage.getItem("currentTeam");
+const teamTurn = parseInt(localStorage.getItem("currentTeam"));
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
@@ -256,7 +256,7 @@ document.getElementById("team2Name").innerText = team2;
 updateScores();
 
 document.getElementById("turnBox").innerText =
-"دور فريق: " + (teamTurn === "1" ? team1 : team2);
+"دور فريق: " + (teamTurn === 1 ? team1 : team2);
 
 /* ===== Disable Used Helpers ===== */
 
@@ -274,45 +274,72 @@ let winner = prompt("اكتب رقم الفريق الفائز (1 أو 2) أو 0
 
 if(!["0","1","2"].includes(winner)) return;
 
-if(winner === "1") handleWin(1);
-if(winner === "2") handleWin(2);
+winner = parseInt(winner);
+
+handleResult(winner);
 
 finishRound();
+
 }
 
-function handleWin(team){
+function handleResult(winner){
 
 let stealActive = localStorage.getItem("stealActive");
-let stealTeam = localStorage.getItem("stealTeam");
+let stealTeam = parseInt(localStorage.getItem("stealTeam"));
 let holeActive = localStorage.getItem("holeActive");
 
-if(stealActive && stealTeam == team){
-addPoints(team, points);
-}
-else if(stealActive && stealTeam != team){
+if(stealActive){
+
+if(winner === stealTeam){
+
+addPoints(stealTeam, points);
+
+}else{
+
 addPoints(teamTurn, points);
+
 subtractPoints(stealTeam, points);
+
 }
+
+}
+
 else{
-addPoints(team, points);
+
+if(winner === 1 || winner === 2){
+
+addPoints(winner, points);
+
 if(holeActive){
-let other = team == 1 ? 2 : 1;
+
+let other = winner === 1 ? 2 : 1;
+
 subtractPoints(other, points);
+
 }
+
 }
+
+}
+
 }
 
 function addPoints(team, pts){
-if(team == 1) score1 += parseInt(pts);
-else score2 += parseInt(pts);
+
+if(team === 1) score1 += pts;
+if(team === 2) score2 += pts;
+
 }
 
 function subtractPoints(team, pts){
-if(team == 1) score1 -= parseInt(pts);
-else score2 -= parseInt(pts);
+
+if(team === 1) score1 -= pts;
+if(team === 2) score2 -= pts;
+
 }
 
 function finishRound(){
+
 localStorage.setItem("score1",score1);
 localStorage.setItem("score2",score2);
 
@@ -324,11 +351,14 @@ localStorage.removeItem("doubleActive");
 setTimeout(()=>{
 window.location.href="game.html";
 },500);
+
 }
 
 function updateScores(){
+
 document.getElementById("score1").innerText = score1;
 document.getElementById("score2").innerText = score2;
+
 }
 
 function goBack(){
