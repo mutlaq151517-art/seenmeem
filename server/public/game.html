@@ -139,6 +139,11 @@ cursor:pointer;
 
 }
 
+.point.used{
+opacity:0.3;
+pointer-events:none;
+}
+
 .category-center{
 
 text-align:center;
@@ -259,8 +264,6 @@ align-items:center;
 justify-content:center;
 
 font-size:20px;
-
-cursor:pointer;
 
 }
 
@@ -410,15 +413,11 @@ background:#d11c1c;
 </div>
 
 <div class="top-center">
-
-Gg
-
+سين ميم
 </div>
 
 <div class="turn-box">
-
 دور فريق : مطلق
-
 </div>
 
 </div>
@@ -470,9 +469,7 @@ Gg
 </div>
 
 <div class="center-logo">
-
 Boubyan
-
 </div>
 
 <div class="team">
@@ -541,35 +538,25 @@ let score2=0
 function changeScore(team,val){
 
 if(team===1){
-
 score1+=val
 document.getElementById("score1").innerText=score1
-
 }
 
 else{
-
 score2+=val
 document.getElementById("score2").innerText=score2
-
 }
 
 }
 
 function exitGame(){
-
 if(confirm("هل انت متأكد تريد الخروج من اللعبة ؟")){
-
 window.location="/"
-
 }
-
 }
 
 function backBoard(){
-
 location.reload()
-
 }
 
 function finishGame(){
@@ -601,51 +588,36 @@ document.getElementById("winScreen").style.display="flex"
 
 }
 
-/* demo categories */
+/* ===== LOAD CATEGORIES FROM SERVER ===== */
 
-const cats=[
-
-{img:"/images/1.png",name:"ولا كلمة"},
-{img:"/images/2.png",name:"الحبالة"},
-{img:"/images/3.png",name:"House of the Dragon"},
-{img:"/images/4.png",name:"حروف متحركة"},
-{img:"/images/5.png",name:"ولا كلمة عامة"},
-{img:"/images/6.png",name:"حروف"}
-
-]
+fetch("/api/categories")
+.then(res=>res.json())
+.then(data=>{
 
 const board=document.getElementById("board")
 
-cats.forEach(c=>{
+data.slice(0,6).forEach(cat=>{
 
 const card=document.createElement("div")
-
 card.className="category-card"
 
 card.innerHTML=`
 
 <div class="points">
-
-<div class="point">200</div>
-<div class="point">400</div>
-<div class="point">600</div>
-
+<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
 
 <div class="category-center">
-
-<img src="${c.img}">
-
-<div class="category-title">${c.name}</div>
-
+<img src="${cat.image}">
+<div class="category-title">${cat.name}</div>
 </div>
 
 <div class="points">
-
-<div class="point">200</div>
-<div class="point">400</div>
-<div class="point">600</div>
-
+<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
 
 `
@@ -653,6 +625,41 @@ card.innerHTML=`
 board.appendChild(card)
 
 })
+
+})
+
+/* ===== SELECT QUESTION ===== */
+
+async function chooseQuestion(category,points,el){
+
+if(el.classList.contains("used")) return
+
+el.classList.add("used")
+
+const email = localStorage.getItem("email")
+
+const res = await fetch("/api/start-game",{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({
+email,
+category,
+difficulty:points
+})
+})
+
+const data = await res.json()
+
+localStorage.setItem("currentQuestion",data.question)
+localStorage.setItem("currentAnswer",data.answer)
+localStorage.setItem("currentPoints",points)
+localStorage.setItem("currentCategory",category)
+localStorage.setItem("currentQuestionImage",data.questionImage)
+localStorage.setItem("currentAnswerImage",data.answerImage)
+
+window.location="question.html"
+
+}
 
 </script>
 
