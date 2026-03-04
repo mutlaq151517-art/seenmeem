@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>السؤال</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
+
 body{
 margin:0;
 font-family:'Cairo',sans-serif;
@@ -39,7 +41,7 @@ border-radius:20px;
 cursor:pointer;
 }
 
-/* ===== Main Layout ===== */
+/* ===== Layout ===== */
 
 .container{
 display:flex;
@@ -58,7 +60,7 @@ position:relative;
 background:white;
 border:8px solid #ff3b3b;
 border-radius:40px;
-padding:80px 40px 80px 40px;
+padding:80px 40px;
 min-height:500px;
 position:relative;
 }
@@ -95,20 +97,6 @@ background:black;
 color:white;
 padding:8px 20px;
 border-radius:20px;
-font-size:14px;
-}
-
-/* VAR */
-
-.var-box{
-position:absolute;
-top:20px;
-left:20px;
-background:#cfcfcf;
-color:black;
-padding:6px 14px;
-border-radius:10px;
-font-weight:bold;
 }
 
 /* Question */
@@ -207,16 +195,22 @@ font-size:18px;
 opacity:0.3;
 pointer-events:none;
 }
+
 </style>
 </head>
+
 <body>
 
 <div class="topbar">
+
 <div class="left">
 <div class="exit-btn" onclick="endGame()">إنهاء اللعبة</div>
 </div>
+
 <div>سين ميم</div>
+
 <div class="right" id="turnBox"></div>
+
 </div>
 
 <div class="container">
@@ -232,7 +226,6 @@ pointer-events:none;
 </div>
 
 <div class="points-box" id="pointsBox"></div>
-<div class="var-box">VAR</div>
 
 <div class="question" id="questionText"></div>
 
@@ -241,8 +234,11 @@ pointer-events:none;
 </div>
 
 <div class="bottom-buttons">
+
 <button class="btn answer-btn" onclick="goAnswer()">الإجابة</button>
+
 <button class="btn category-btn" id="categoryBtn"></button>
+
 </div>
 
 </div>
@@ -251,23 +247,39 @@ pointer-events:none;
 <div class="sidebar">
 
 <div class="team-card">
+
 <div class="team-name" id="team1Name"></div>
+
 <div class="team-score" id="score1"></div>
+
 <div class="helpers">
+
 <div class="helper" onclick="useDouble(1)" id="double1">✌</div>
+
 <div class="helper" onclick="useSteal(1)" id="steal1">🕵</div>
+
 <div class="helper" onclick="useHole(1)" id="hole1">🕳</div>
+
 </div>
+
 </div>
 
 <div class="team-card">
+
 <div class="team-name" id="team2Name"></div>
+
 <div class="team-score" id="score2"></div>
+
 <div class="helpers">
+
 <div class="helper" onclick="useDouble(2)" id="double2">✌</div>
+
 <div class="helper" onclick="useSteal(2)" id="steal2">🕵</div>
+
 <div class="helper" onclick="useHole(2)" id="hole2">🕳</div>
+
 </div>
+
 </div>
 
 </div>
@@ -279,7 +291,7 @@ pointer-events:none;
 /* ===== Load Question ===== */
 
 const question = localStorage.getItem("currentQuestion");
-const points = localStorage.getItem("currentPoints");
+const points = parseInt(localStorage.getItem("currentPoints"));
 const category = localStorage.getItem("currentCategory");
 const image = localStorage.getItem("currentQuestionImage");
 
@@ -291,95 +303,155 @@ document.getElementById("categoryBtn").innerText = category;
 
 if(image && image !== "null"){
 document.getElementById("questionImageBox").style.display="block";
-document.getElementById("questionImage").src = image;
+document.getElementById("questionImage").src=image;
 }
 
 /* ===== Teams ===== */
 
 const team1 = localStorage.getItem("team1Name");
 const team2 = localStorage.getItem("team2Name");
-let currentTeam = localStorage.getItem("currentTeam");
+
+let currentTeam = parseInt(localStorage.getItem("currentTeam"));
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
+
 document.getElementById("score1").innerText = localStorage.getItem("score1") || 0;
 document.getElementById("score2").innerText = localStorage.getItem("score2") || 0;
 
 document.getElementById("turnBox").innerText =
-"دور فريق: " + (currentTeam === "1" ? team1 : team2);
+"دور فريق: " + (currentTeam===1?team1:team2);
 
 /* ===== Helpers ===== */
 
+/* جوابين */
+
 function useDouble(team){
-if(currentTeam != team) return alert("مو دورك");
+
+if(currentTeam !== team) return alert("هذه الوسيلة تستخدم في دور فريقك");
+
 if(localStorage.getItem("doubleUsed"+team)) return;
+
 localStorage.setItem("doubleActive","true");
+
 localStorage.setItem("doubleUsed"+team,"true");
+
 document.getElementById("double"+team).classList.add("used");
+
+alert("تم تفعيل جوابين");
+
 }
+
+/* أبوق السؤال */
 
 function useSteal(team){
-if(currentTeam == team) return alert("ما تقدر تسرق دورك");
+
+if(currentTeam === team) return alert("لا يمكنك سرقة دورك");
+
 if(localStorage.getItem("stealUsed"+team)) return;
+
 localStorage.setItem("stealActive","true");
+
 localStorage.setItem("stealTeam",team);
+
 localStorage.setItem("stealUsed"+team,"true");
+
 document.getElementById("steal"+team).classList.add("used");
+
+alert("تم تفعيل أبوق السؤال");
+
 }
 
+/* الحفرة */
+
 function useHole(team){
-if(currentTeam != team) return alert("مو دورك");
+
+if(currentTeam !== team) return alert("تستخدم قبل اختيار السؤال");
+
 if(localStorage.getItem("holeUsed"+team)) return;
+
 localStorage.setItem("holeActive","true");
+
 localStorage.setItem("holeUsed"+team,"true");
+
 document.getElementById("hole"+team).classList.add("used");
+
+alert("السؤال القادم سيكون صعب جداً");
+
 }
 
 /* ===== Timer ===== */
 
-let timeLeft = 60;
+let timeLeft=60;
+
 let interval;
-let paused = false;
+
+let paused=false;
 
 function formatTime(sec){
+
 let m=Math.floor(sec/60);
+
 let s=sec%60;
+
 return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+
 }
 
 function startTimer(){
+
 interval=setInterval(()=>{
+
 if(!paused){
+
 timeLeft--;
+
 document.getElementById("timer").innerText=formatTime(timeLeft);
+
 if(timeLeft<=0) clearInterval(interval);
+
 }
+
 },1000);
+
 }
 
 document.getElementById("timer").innerText=formatTime(timeLeft);
+
 startTimer();
 
 document.getElementById("pauseBtn").onclick=()=>{
+
 paused=!paused;
+
 document.getElementById("pauseBtn").innerText=paused?"▶":"⏸";
+
 };
 
 document.getElementById("resetBtn").onclick=()=>{
+
 timeLeft=60;
+
 document.getElementById("timer").innerText=formatTime(timeLeft);
+
 };
 
 /* ===== Navigation ===== */
 
 function goAnswer(){
+
 clearInterval(interval);
+
 window.location.href="answer.html";
+
 }
 
 function endGame(){
+
 localStorage.removeItem("matchStarted");
+
 window.location.href="game.html";
+
 }
 
 </script>
