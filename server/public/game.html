@@ -10,6 +10,8 @@
 *{margin:0;padding:0;box-sizing:border-box}
 
 body{
+margin:0;
+padding-top:90px;
 font-family:'Cairo',sans-serif;
 background:#cfcfcf;
 }
@@ -17,14 +19,20 @@ background:#cfcfcf;
 /* ===== TOP BAR ===== */
 
 .topbar{
+position:fixed;
+top:0;
+right:0;
+left:0;
 width:100%;
 height:80px;
 background:linear-gradient(90deg,#ff3b3b,#ff7a3d);
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 30px;
-color:#fff;
+padding:0 40px;
+color:white;
+font-weight:700;
+z-index:1000;
 }
 
 .top-left{
