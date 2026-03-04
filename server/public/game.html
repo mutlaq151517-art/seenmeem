@@ -118,14 +118,63 @@ font-weight:900;
 
 /* ===== BOTTOM ===== */
 
-.bottom{
-margin-top:20px;
-background:#e7e7e7;
-padding:30px 80px;
-display:flex;
-align-items:center;
-justify-content:space-between;
-}
+<div class="bottom">
+
+<!-- الفريق اليسار -->
+<div class="team-side left-team">
+
+<div class="team-name" id="team1Name"></div>
+
+<div class="team-row">
+
+<div class="score-box">
+<button class="score-btn" onclick="changeScore(1,-100)">-</button>
+<div class="score-value" id="score1">0</div>
+<button class="score-btn" onclick="changeScore(1,100)">+</button>
+</div>
+
+<div class="helpers">
+<div class="helpers-title">وسائل المساعدة</div>
+<div class="helpers-icons">
+<div class="helper" onclick="activateHelper(this)">🔁</div>
+<div class="helper" onclick="activateHelper(this)">📞</div>
+<div class="helper" onclick="activateHelper(this)">✌</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="center-logo">
+<img src="/images/boubyan.png" height="70">
+</div>
+
+<!-- الفريق اليمين -->
+<div class="team-side right-team">
+
+<div class="team-name" id="team2Name"></div>
+
+<div class="team-row">
+
+<div class="helpers">
+<div class="helpers-title">وسائل المساعدة</div>
+<div class="helpers-icons">
+<div class="helper" onclick="activateHelper(this)">🔁</div>
+<div class="helper" onclick="activateHelper(this)">📞</div>
+<div class="helper" onclick="activateHelper(this)">✌</div>
+</div>
+</div>
+
+<div class="score-box">
+<button class="score-btn" onclick="changeScore(2,-100)">-</button>
+<div class="score-value" id="score2">0</div>
+<button class="score-btn" onclick="changeScore(2,100)">+</button>
+</div>
+
+</div>
+</div>
+
+</div>
 
 .team{
 display:flex;
