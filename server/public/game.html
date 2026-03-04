@@ -1,402 +1,495 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سين ميم</title>
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import path from "path";
+import { fileURLToPath } from "url";
 
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+dotenv.config();
 
-<style>
+const app = express();
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box
-}
+app.use(cors());
+app.use(express.json());
 
-body{
-font-family:'Cairo',sans-serif;
-background:#cfcfcf;
-padding-top:85px;
-}
+/* ================= DATABASE ================= */
 
-/* ===== TOP BAR ===== */
+mongoose.set("strictQuery", false);
 
-.topbar{
-position:fixed;
-top:0;
-right:0;
-left:0;
-width:100%;
-height:85px;
-
-background:linear-gradient(90deg,#ff3b3b,#ff7a3d);
-
-display:grid;
-grid-template-columns:1fr auto 1fr;
-align-items:center;
-
-padding:0 50px;
-
-color:white;
-font-weight:700;
-
-z-index:9999;
-}
-
-.top-left{
-display:flex;
-gap:30px;
-align-items:center;
-font-size:18px;
-}
-
-.top-left span{
-cursor:pointer;
-display:flex;
-gap:6px;
-align-items:center;
-}
-
-.top-center{
-font-size:22px;
-font-weight:900;
-text-align:center;
-}
-
-.top-right{
-display:flex;
-justify-content:flex-end;
-}
-
-.turn-box{
-background:#c40000;
-padding:10px 28px;
-border-radius:40px;
-font-weight:900;
-}
-
-/* ===== BOARD ===== */
-
-.board-wrapper{
-padding:40px 60px;
-}
-
-.board{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:40px;
-}
-
-.category-card{
-background:#e7e7e7;
-border-radius:35px;
-padding:20px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.points{
-display:flex;
-flex-direction:column;
-gap:16px;
-}
-
-.point{
-width:140px;
-height:50px;
-background:#d8d8d8;
-border-radius:50px;
-display:flex;
-align-items:center;
-justify-content:center;
-font-weight:900;
-font-size:22px;
-color:#b30000;
-}
-
-.category-center{
-text-align:center;
-}
-
-.category-center img{
-width:120px;
-height:120px;
-object-fit:contain;
-}
-
-.category-title{
-margin-top:8px;
-background:#ff7a3d;
-color:#fff;
-padding:8px 20px;
-border-radius:20px;
-font-weight:900;
-}
-
-/* ===== BOTTOM ===== */
-
-.bottom{
-margin-top:40px;
-background:#e7e7e7;
-padding:40px 80px;
-display:grid;
-grid-template-columns:1fr auto 1fr;
-align-items:center;
-}
-
-.team{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:15px;
-}
-
-.team-name{
-background:#c40000;
-color:#fff;
-padding:14px 110px;
-border-radius:60px;
-font-weight:900;
-font-size:22px;
-}
-
-.team-row{
-display:flex;
-align-items:center;
-gap:35px;
-}
-
-/* helpers */
-
-.helpers{
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:10px;
-}
-
-.helpers-title{
-font-size:20px;
-font-weight:700;
-}
-
-.helpers-icons{
-display:flex;
-gap:15px;
-}
-
-.helper{
-width:45px;
-height:45px;
-border-radius:50%;
-background:#d8d8d8;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:20px;
-cursor:pointer;
-}
-
-/* score */
-
-.score{
-background:#d8d8d8;
-border-radius:60px;
-padding:8px 18px;
-display:flex;
-align-items:center;
-gap:18px;
-}
-
-.score button{
-background:#c40000;
-color:#fff;
-border:none;
-width:36px;
-height:36px;
-border-radius:50%;
-font-size:20px;
-cursor:pointer;
-}
-
-.score-value{
-font-weight:900;
-font-size:20px;
-width:30px;
-text-align:center;
-}
-
-/* center logo */
-
-.center-logo{
-text-align:center;
-font-size:52px;
-font-weight:900;
-color:#555;
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- ===== TOP BAR ===== -->
-
-<div class="topbar">
-
-<div class="top-left">
-<span>🚪 الخروج</span>
-<span>⬜ الرجوع للوحة</span>
-<span>➡️ انتهاء اللعبة</span>
-<span>🔄</span>
-</div>
-
-<div class="top-center">Gg</div>
-
-<div class="top-right">
-<div class="turn-box">دور فريق : مطلق</div>
-</div>
-
-</div>
-
-<!-- ===== BOARD ===== -->
-
-<div class="board-wrapper">
-<div class="board" id="board"></div>
-</div>
-
-<!-- ===== BOTTOM ===== -->
-
-<div class="bottom">
-
-<!-- الفريق اليسار -->
-<div class="team">
-
-<div class="team-name">فلاح</div>
-
-<div class="team-row">
-
-<div class="score">
-<button onclick="changeScore(1,-100)">-</button>
-<div class="score-value" id="score1">0</div>
-<button onclick="changeScore(1,100)">+</button>
-</div>
-
-<div class="helpers">
-<div class="helpers-title">وسائل المساعدة</div>
-
-<div class="helpers-icons">
-<div class="helper">🔁</div>
-<div class="helper">📞</div>
-<div class="helper">✌</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-<!-- الشعار -->
-<div class="center-logo">
-Boubyan
-</div>
-
-<!-- الفريق اليمين -->
-<div class="team">
-
-<div class="team-name">مطلق</div>
-
-<div class="team-row">
-
-<div class="helpers">
-
-<div class="helpers-title">وسائل المساعدة</div>
-
-<div class="helpers-icons">
-<div class="helper">🔁</div>
-<div class="helper">📞</div>
-<div class="helper">✌</div>
-</div>
-
-</div>
-
-<div class="score">
-<button onclick="changeScore(2,-100)">-</button>
-<div class="score-value" id="score2">0</div>
-<button onclick="changeScore(2,100)">+</button>
-</div>
-
-</div>
-</div>
-
-</div>
-
-<script>
-
-let score1=0
-let score2=0
-
-function changeScore(team,val){
-
-if(team===1){
-score1+=val
-document.getElementById("score1").innerText=score1
-}
-
-else{
-score2+=val
-document.getElementById("score2").innerText=score2
-}
-
-}
-
-/* demo categories */
-
-const cats=[
-{img:"/images/1.png",name:"ولا كلمة"},
-{img:"/images/2.png",name:"الحبالة"},
-{img:"/images/3.png",name:"House of the Dragon"},
-{img:"/images/4.png",name:"حروف متحركة"},
-{img:"/images/5.png",name:"ولا كلمة عامة"},
-{img:"/images/6.png",name:"حروف"}
-]
-
-const board=document.getElementById("board")
-
-cats.forEach(c=>{
-
-const card=document.createElement("div")
-card.className="category-card"
-
-card.innerHTML=`
-
-<div class="points">
-<div class="point">200</div>
-<div class="point">400</div>
-<div class="point">600</div>
-</div>
-
-<div class="category-center">
-<img src="${c.img}">
-<div class="category-title">${c.name}</div>
-</div>
-
-<div class="points">
-<div class="point">200</div>
-<div class="point">400</div>
-<div class="point">600</div>
-</div>
-
-`
-
-board.appendChild(card)
-
+mongoose.connect(process.env.MONGO_URI)
+.then(() => {
+  console.log("MongoDB Connected");
 })
+.catch(err => {
+  console.error("MongoDB Connection Error:", err);
+});
 
-</script>
+/* ================= GLOBAL SETTINGS ================= */
 
-</body>
-</html>
+const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
+let CURRENT_SEASON = "season1";
+
+/* ================= Schemas ================= */
+
+const userSchema = new mongoose.Schema({
+
+  name: String,
+
+  email: {
+    type: String,
+    unique: true,
+    index: true
+  },
+
+  password: String,
+
+  games_balance: {
+    type: Number,
+    default: 1
+  },
+
+  games_played: {
+    type: Number,
+    default: 0
+  },
+
+  level: {
+    type: Number,
+    default: 1
+  },
+
+  usedQuestions: {
+    type: Array,
+    default: []
+  },
+
+  role: {
+    type: String,
+    default: "user"
+  }
+
+});
+
+const categorySchema = new mongoose.Schema({
+
+  section: String,
+  name: String,
+  image: String
+
+});
+
+const questionSchema = new mongoose.Schema({
+
+  category: {
+    type: String,
+    index: true
+  },
+
+  difficulty: {
+    type: Number,
+    index: true
+  },
+
+  question: String,
+  answer: String,
+
+  questionImage: {
+    type: String,
+    default: null
+  },
+
+  answerImage: {
+    type: String,
+    default: null
+  },
+
+  levelRequired: {
+    type: Number,
+    default: 1
+  },
+
+  forNewUsers: {
+    type: Boolean,
+    default: false
+  },
+
+  timesUsed: {
+    type: Number,
+    default: 0
+  },
+
+  season: {
+    type: String,
+    index: true
+  },
+
+  isActive: {
+    type: Boolean,
+    default: true
+  }
+
+});
+
+const User = mongoose.model("User", userSchema);
+const Category = mongoose.model("Category", categorySchema);
+const Question = mongoose.model("Question", questionSchema);
+
+/* ================= START GAME ================= */
+
+app.post("/api/start-game", async (req, res) => {
+
+  try {
+
+    const { email, category, difficulty } = req.body;
+
+    if (!email || !category || !difficulty) {
+      return res.status(400).json({ message: "بيانات ناقصة" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود" });
+    }
+
+    const isFirstGame = user.games_played <= 1;
+
+    let query = {
+
+      category,
+      difficulty,
+
+      season: CURRENT_SEASON,
+
+      isActive: true,
+
+      _id: {
+        $nin: user.usedQuestions
+      }
+
+    };
+
+    if (isFirstGame) {
+
+      query.forNewUsers = true;
+
+    } else {
+
+      query.levelRequired = {
+        $lte: user.level
+      };
+
+    }
+
+    let question = await Question
+    .findOne(query)
+    .sort({ timesUsed: 1 });
+
+    /* fallback إذا لم يوجد سؤال غير مستخدم */
+
+    if (!question) {
+
+      question = await Question.findOne({
+
+        category,
+        difficulty,
+        season: CURRENT_SEASON,
+        isActive: true
+
+      }).sort({ timesUsed: 1 });
+
+    }
+
+    if (!question) {
+
+      return res.status(404).json({
+        message: "لا يوجد سؤال متاح حالياً"
+      });
+
+    }
+
+    /* تحديث الاستخدام */
+
+    question.timesUsed += 1;
+
+    await question.save();
+
+    user.usedQuestions.push(question._id);
+
+    await user.save();
+
+    res.json({
+
+      question: question.question,
+
+      answer: question.answer,
+
+      questionImage: question.questionImage || null,
+
+      answerImage: question.answerImage || null
+
+    });
+
+  } catch (err) {
+
+    console.error("Start Game Error:", err);
+
+    res.status(500).json({
+      message: "خطأ في تحميل السؤال"
+    });
+
+  }
+
+});
+
+/* ================= LOGIN DATA ================= */
+
+app.post("/api/login-data", async (req, res) => {
+
+  try {
+
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "المستخدم غير موجود"
+      });
+    }
+
+    res.json({
+
+      games_balance: user.games_balance,
+
+      level: user.level
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "خطأ"
+    });
+
+  }
+
+});
+
+/* ================= START MATCH ================= */
+
+app.post("/api/start-match", async (req, res) => {
+
+  try {
+
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "المستخدم غير موجود"
+      });
+    }
+
+    if (user.games_balance <= 0) {
+
+      return res.status(403).json({
+        message: "لا يوجد رصيد ألعاب"
+      });
+
+    }
+
+    user.games_balance -= 1;
+
+    user.games_played += 1;
+
+    user.level = user.games_played + 1;
+
+    user.usedQuestions = [];
+
+    await user.save();
+
+    res.json({
+
+      message: "تم بدء المباراة",
+
+      games_balance: user.games_balance,
+
+      level: user.level
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "خطأ في بدء المباراة"
+    });
+
+  }
+
+});
+
+/* ================= REGISTER ================= */
+
+app.post("/api/register", async (req, res) => {
+
+  try {
+
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+
+      return res.status(400).json({
+        message: "بيانات ناقصة"
+      });
+
+    }
+
+    const existing = await User.findOne({ email });
+
+    if (existing) {
+
+      return res.status(400).json({
+        message: "المستخدم موجود مسبقاً"
+      });
+
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    await User.create({
+
+      name,
+
+      email,
+
+      password: hashed,
+
+      games_balance: 1,
+
+      games_played: 0,
+
+      level: 1,
+
+      role: "user"
+
+    });
+
+    res.json({
+      message: "تم إنشاء الحساب"
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "خطأ في التسجيل"
+    });
+
+  }
+
+});
+
+/* ================= LOGIN ================= */
+
+app.post("/api/login", async (req, res) => {
+
+  try {
+
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+
+      return res.status(404).json({
+        message: "المستخدم غير موجود"
+      });
+
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) {
+
+      return res.status(401).json({
+        message: "كلمة المرور غير صحيحة"
+      });
+
+    }
+
+    res.json({
+
+      name: user.name,
+
+      role: user.role,
+
+      games_balance: user.games_balance,
+
+      level: user.level
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "خطأ في تسجيل الدخول"
+    });
+
+  }
+
+});
+
+/* ================= CATEGORIES ================= */
+
+app.get("/api/categories", async (req, res) => {
+
+  try {
+
+    const categories = await Category.find();
+
+    res.json(categories);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json([]);
+
+  }
+
+});
+
+/* ================= STATIC FILES ================= */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, "public")));
+
+/* ================= ROUTES ================= */
+
+app.get("/", (req, res) => {
+
+  res.sendFile(path.join(__dirname, "public", "home.html"));
+
+});
+
+/* ================= SERVER ================= */
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+
+  console.log(`Server running on port ${PORT}`);
+
+});
