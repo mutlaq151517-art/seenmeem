@@ -1,14 +1,9 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import OpenAI from "openai";
-
-dotenv.config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
-await mongoose.connect(process.env.MONGO_URI);
 
 const questionSchema = new mongoose.Schema({
   category: String,
@@ -23,7 +18,7 @@ const questionSchema = new mongoose.Schema({
 
 const Question = mongoose.model("Question", questionSchema);
 
-/* ================= توليد دفعة أسئلة ================= */
+/* توليد دفعة 50 سؤال */
 
 async function generateBatch(category){
 
@@ -51,14 +46,12 @@ model:"gpt-4.1-mini",
 messages:[{ role:"user", content:prompt }]
 });
 
-const text = res.choices[0].message.content;
-
 let data;
 
 try{
-data = JSON.parse(text);
-}catch(e){
-console.log("خطأ في JSON سيتم إعادة التوليد");
+data = JSON.parse(res.choices[0].message.content);
+}catch{
+console.log("JSON خطأ سيتم إعادة التوليد");
 return;
 }
 
@@ -87,28 +80,23 @@ console.log("دفعة جديدة للفئة:",category);
 
 }
 
-/* ================= توليد 1000 سؤال ================= */
+/* توليد حتى يصل العدد 1000 */
 
-async function generate1000(category){
+export async function ensureQuestions(category){
 
-for(let i=0;i<20;i++){
+const count = await Question.countDocuments({category});
 
+if(count >= 1000){
+console.log("الفئة مكتملة:",category);
+return;
+}
+
+const batches = Math.ceil((1000-count)/50);
+
+for(let i=0;i<batches;i++){
 await generateBatch(category);
-
 }
 
-console.log("تم إنشاء 1000 سؤال للفئة:",category);
+console.log("اكتمل توليد الأسئلة للفئة:",category);
 
 }
-
-/* ================= الفئات ================= */
-
-await generate1000("التاريخ");
-await generate1000("كرة القدم");
-await generate1000("السينما");
-await generate1000("المسلسلات");
-await generate1000("الجغرافيا");
-
-console.log("تم توليد جميع الأسئلة");
-
-process.exit();
