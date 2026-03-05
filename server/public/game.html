@@ -376,51 +376,50 @@ Boubyan
 
 /* ===== TEAM NAMES ===== */
 
-const t1 = localStorage.getItem("team1Name")
-const t2 = localStorage.getItem("team2Name")
+const t1 = localStorage.getItem("team1Name") || "فريق 1"
+const t2 = localStorage.getItem("team2Name") || "فريق 2"
 
-if(t1) document.getElementById("team1Name").innerText=t1
-if(t2) document.getElementById("team2Name").innerText=t2
+document.getElementById("team1Name").innerText = t1
+document.getElementById("team2Name").innerText = t2
 
-/* ===== TURN SYSTEM ===== */
+/* ===== TURN ===== */
 
-let currentTurn=1
+let currentTurn = parseInt(localStorage.getItem("currentTeam")) || 1
 
 function updateTurn(){
-
-const name=currentTurn===1?t1:t2
-
-document.getElementById("turnBox").innerText="دور فريق : "+name
-
+const name = currentTurn === 1 ? t1 : t2
+document.getElementById("turnBox").innerText = "دور فريق : " + name
 }
 
 updateTurn()
 
 /* ===== SCORE ===== */
 
-let score1=0
-let score2=0
+let score1 = parseInt(localStorage.getItem("score1")) || 0
+let score2 = parseInt(localStorage.getItem("score2")) || 0
+
+document.getElementById("score1").innerText = score1
+document.getElementById("score2").innerText = score2
 
 function changeScore(team,val){
 
 if(team===1){
 score1+=val
 document.getElementById("score1").innerText=score1
+localStorage.setItem("score1",score1)
 }
 
 else{
 score2+=val
 document.getElementById("score2").innerText=score2
+localStorage.setItem("score2",score2)
 }
 
 }
 
 /* ===== HELPERS ===== */
 
-let helpersUsed={
-1:{},
-2:{}
-}
+let helpersUsed={1:{},2:{}}
 
 function useHelper(el,type,team){
 
@@ -475,6 +474,8 @@ fetch("/api/categories")
 
 const board=document.getElementById("board")
 
+board.innerHTML=""
+
 data.slice(0,6).forEach(cat=>{
 
 const card=document.createElement("div")
@@ -512,9 +513,14 @@ async function chooseQuestion(category,points,el){
 
 if(el.classList.contains("used")) return
 
-el.classList.add("used")
+const email = localStorage.getItem("email")
 
-const email=localStorage.getItem("email")
+if(!email){
+alert("لا يوجد مستخدم مسجل")
+return
+}
+
+try{
 
 const res=await fetch("/api/start-game",{
 method:"POST",
@@ -526,12 +532,19 @@ difficulty:points
 })
 })
 
+if(!res.ok){
+alert("فشل تحميل السؤال")
+return
+}
+
 const data=await res.json()
 
 if(!data.question){
 alert("لا يوجد سؤال متاح")
 return
 }
+
+el.classList.add("used")
 
 localStorage.setItem("currentQuestion",data.question)
 localStorage.setItem("currentAnswer",data.answer)
@@ -541,6 +554,12 @@ localStorage.setItem("currentQuestionImage",data.questionImage)
 localStorage.setItem("currentAnswerImage",data.answerImage)
 
 window.location="question.html"
+
+}catch(err){
+
+alert("خطأ في الاتصال بالسيرفر")
+
+}
 
 }
 
