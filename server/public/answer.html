@@ -230,25 +230,38 @@ opacity:0.3;
 /* ===== Load Data ===== */
 
 const answer = localStorage.getItem("currentAnswer");
-const points = parseInt(localStorage.getItem("currentPoints"));
+const points = parseInt(localStorage.getItem("currentPoints")) || 0;
 const answerImage = localStorage.getItem("currentAnswerImage");
-const teamTurn = parseInt(localStorage.getItem("currentTeam"));
 
-const team1 = localStorage.getItem("team1Name");
-const team2 = localStorage.getItem("team2Name");
+const team1 = localStorage.getItem("team1Name") || "فريق 1";
+const team2 = localStorage.getItem("team2Name") || "فريق 2";
 
 let score1 = parseInt(localStorage.getItem("score1")) || 0;
 let score2 = parseInt(localStorage.getItem("score2")) || 0;
 
-if(!answer){ window.location.href="game.html"; }
+let teamTurn = parseInt(localStorage.getItem("currentTeam"));
+
+if(!teamTurn){
+teamTurn = 1;
+localStorage.setItem("currentTeam",1);
+}
+
+if(!answer){
+alert("لا يوجد جواب");
+window.location.href="game.html";
+}
+
+/* ===== Show Answer ===== */
 
 document.getElementById("answerText").innerText = answer;
 document.getElementById("pointsBox").innerText = points + " نقطة";
 
-if(answerImage && answerImage !== "null"){
+if(answerImage && answerImage !== "null" && answerImage !== ""){
 document.getElementById("answerImageBox").style.display="block";
 document.getElementById("answerImage").src = answerImage;
 }
+
+/* ===== Teams ===== */
 
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
@@ -291,31 +304,21 @@ let holeActive = localStorage.getItem("holeActive");
 if(stealActive){
 
 if(winner === stealTeam){
-
 addPoints(stealTeam, points);
+}else{
+addPoints(teamTurn, points);
+subtractPoints(stealTeam, points);
+}
 
 }else{
-
-addPoints(teamTurn, points);
-
-subtractPoints(stealTeam, points);
-
-}
-
-}
-
-else{
 
 if(winner === 1 || winner === 2){
 
 addPoints(winner, points);
 
 if(holeActive){
-
 let other = winner === 1 ? 2 : 1;
-
 subtractPoints(other, points);
-
 }
 
 }
@@ -325,17 +328,13 @@ subtractPoints(other, points);
 }
 
 function addPoints(team, pts){
-
 if(team === 1) score1 += pts;
 if(team === 2) score2 += pts;
-
 }
 
 function subtractPoints(team, pts){
-
 if(team === 1) score1 -= pts;
 if(team === 2) score2 -= pts;
-
 }
 
 function finishRound(){
@@ -348,6 +347,11 @@ localStorage.removeItem("stealTeam");
 localStorage.removeItem("holeActive");
 localStorage.removeItem("doubleActive");
 
+/* تغيير الدور */
+
+teamTurn = teamTurn === 1 ? 2 : 1;
+localStorage.setItem("currentTeam",teamTurn);
+
 setTimeout(()=>{
 window.location.href="game.html";
 },500);
@@ -355,10 +359,8 @@ window.location.href="game.html";
 }
 
 function updateScores(){
-
 document.getElementById("score1").innerText = score1;
 document.getElementById("score2").innerText = score2;
-
 }
 
 function goBack(){
