@@ -54,7 +54,6 @@ const questionSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 });
 
-/* 🔧 الإصلاح هنا */
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 const Category = mongoose.models.Category || mongoose.model("Category", categorySchema);
 const Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
@@ -73,36 +72,32 @@ app.post("/api/start-game", async (req, res) => {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
-    const isFirstGame = user.games_played <= 1;
+    /* نحاول أولاً سؤال غير مستخدم */
 
-    let query = {
+    let question = await Question.findOne({
       category,
       difficulty,
       season: CURRENT_SEASON,
       isActive: true,
       _id: { $nin: user.usedQuestions }
-    };
+    }).sort({ timesUsed: 1 });
 
-    if (isFirstGame) {
-      query.forNewUsers = true;
-    } else {
-      query.levelRequired = { $lte: user.level };
-    }
-
-    let question = await Question.findOne(query).sort({ timesUsed: 1 });
+    /* إذا لم نجد سؤال غير مستخدم */
 
     if (!question) {
+
       question = await Question.findOne({
         category,
         difficulty,
         season: CURRENT_SEASON,
         isActive: true
       }).sort({ timesUsed: 1 });
+
     }
 
     if (!question) {
       return res.status(404).json({
-        message: "لا يوجد سؤال متاح حالياً"
+        message: "لا يوجد سؤال متاح"
       });
     }
 
@@ -112,7 +107,7 @@ app.post("/api/start-game", async (req, res) => {
     user.usedQuestions.push(question._id);
     await user.save();
 
-    return res.json({
+    res.json({
       question: question.question,
       answer: question.answer,
       questionImage: question.questionImage || null,
@@ -121,7 +116,7 @@ app.post("/api/start-game", async (req, res) => {
 
   } catch (err) {
 
-    console.error("Start Game Error:", err);
+    console.error(err);
 
     res.status(500).json({
       message: "خطأ في تحميل السؤال"
@@ -153,8 +148,6 @@ app.post("/api/login-data", async (req, res) => {
     });
 
   } catch (err) {
-
-    console.error(err);
 
     res.status(500).json({
       message: "خطأ"
@@ -201,8 +194,6 @@ app.post("/api/start-match", async (req, res) => {
 
   } catch (err) {
 
-    console.error(err);
-
     res.status(500).json({
       message: "خطأ في بدء المباراة"
     });
@@ -245,8 +236,6 @@ app.post("/api/register", async (req, res) => {
 
   } catch (err) {
 
-    console.error(err);
-
     res.status(500).json({
       message: "خطأ في التسجيل"
     });
@@ -288,8 +277,6 @@ app.post("/api/login", async (req, res) => {
 
   } catch (err) {
 
-    console.error(err);
-
     res.status(500).json({
       message: "خطأ في تسجيل الدخول"
     });
@@ -302,94 +289,9 @@ app.post("/api/login", async (req, res) => {
 
 app.get("/api/categories", async (req, res) => {
 
-  try {
+  const categories = await Category.find();
+  res.json(categories);
 
-    const categories = await Category.find();
-
-    res.json(categories);
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json([]);
-
-  }
-
-});
-
-/* ================= ADMIN API ================= */
-
-function checkAdmin(password){
-  return password === ADMIN_MASTER_PASSWORD;
-}
-
-app.post("/api/admin/users", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-  const users = await User.find().select("-password");
-  res.json(users);
-});
-
-app.post("/api/admin/update-user", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-
-  const { userId, games_balance, role } = req.body;
-
-  const user = await User.findById(userId);
-  if(!user) return res.status(404).json({message:"user not found"});
-
-  if(games_balance) user.games_balance += Number(games_balance);
-  if(role) user.role = role;
-
-  await user.save();
-
-  res.json({message:"تم تحديث المستخدم"});
-});
-
-app.post("/api/admin/reset-password", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-
-  const user = await User.findById(req.body.userId);
-
-  const newPass = Math.random().toString(36).substring(2,8);
-  const hashed = await bcrypt.hash(newPass,10);
-
-  user.password = hashed;
-  await user.save();
-
-  res.json({newPassword:newPass});
-});
-
-app.post("/api/admin/delete-user", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-
-  await User.findByIdAndDelete(req.body.userId);
-
-  res.json({message:"تم حذف المستخدم"});
-});
-
-app.post("/api/admin/categories", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-  const cats = await Category.find();
-  res.json(cats);
-});
-
-app.post("/api/admin/add-category", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-
-  const {section,name,image} = req.body;
-
-  await Category.create({section,name,image});
-
-  res.json({message:"تم إضافة الفئة"});
-});
-
-app.post("/api/admin/delete-category", async (req,res)=>{
-  if(!checkAdmin(req.body.password)) return res.status(401).json({message:"unauthorized"});
-
-  await Category.findByIdAndDelete(req.body.id);
-
-  res.json({message:"تم حذف الفئة"});
 });
 
 /* ================= STATIC FILES ================= */
