@@ -16,9 +16,11 @@ const questionSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true }
 });
 
-const Question = mongoose.model("Question", questionSchema);
+/* حل مشكلة تكرار الموديل */
 
-/* توليد دفعة 50 سؤال */
+const Question = mongoose.models.Question || mongoose.model("Question", questionSchema);
+
+/* ================= توليد دفعة 50 سؤال ================= */
 
 async function generateBatch(category){
 
@@ -80,7 +82,7 @@ console.log("دفعة جديدة للفئة:",category);
 
 }
 
-/* توليد حتى يصل العدد 1000 */
+/* ================= توليد حتى يصل العدد 1000 ================= */
 
 export async function ensureQuestions(category){
 
