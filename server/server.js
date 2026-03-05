@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { ensureQuestions } from "./generateQuestions.js";
+
 dotenv.config();
 
 const app = express();
@@ -93,13 +95,21 @@ app.post("/api/start-game", async (req, res) => {
 
     let question = await Question.findOne(query).sort({ timesUsed: 1 });
 
+    /* إذا لم يوجد سؤال -> توليد تلقائي */
+
     if (!question) {
+
+      console.log("لا توجد أسئلة كافية - جاري التوليد للفئة:", category);
+
+      await ensureQuestions(category);
+
       question = await Question.findOne({
         category,
         difficulty,
         season: CURRENT_SEASON,
         isActive: true
       }).sort({ timesUsed: 1 });
+
     }
 
     if (!question) {
