@@ -23,17 +23,19 @@ const questionSchema = new mongoose.Schema({
 
 const Question = mongoose.model("Question", questionSchema);
 
-async function generate(category){
+/* ================= توليد دفعة أسئلة ================= */
+
+async function generateBatch(category){
 
 const prompt = `
 أنشئ 50 سؤال معلومات عامة باللغة العربية لفئة "${category}"
 
 القواعد:
-- 20 سؤال سهل (200)
-- 15 سؤال متوسط (400)
-- 15 سؤال صعب جدا (600)
+20 سؤال سهل difficulty=200
+15 سؤال متوسط difficulty=400
+15 سؤال صعب جداً difficulty=600
 
-النتيجة يجب أن تكون JSON فقط بالشكل:
+أعد النتيجة JSON فقط بهذا الشكل:
 
 [
 {
@@ -45,35 +47,68 @@ const prompt = `
 `;
 
 const res = await openai.chat.completions.create({
-model: "gpt-4.1-mini",
-messages: [{ role:"user", content:prompt }]
+model:"gpt-4.1-mini",
+messages:[{ role:"user", content:prompt }]
 });
 
 const text = res.choices[0].message.content;
 
-const data = JSON.parse(text);
+let data;
+
+try{
+data = JSON.parse(text);
+}catch(e){
+console.log("خطأ في JSON سيتم إعادة التوليد");
+return;
+}
 
 for(const q of data){
 
+const exists = await Question.findOne({
+category:category,
+question:q.question
+});
+
+if(!exists){
+
 await Question.create({
-category: category,
-difficulty: q.difficulty,
-question: q.question,
-answer: q.answer,
+category:category,
+difficulty:q.difficulty,
+question:q.question,
+answer:q.answer,
 season:"season1"
 });
 
 }
 
-console.log("تم إنشاء أسئلة لفئة:",category);
 }
 
-await generate("التاريخ");
-await generate("كرة القدم");
-await generate("السينما");
-await generate("المسلسلات");
-await generate("الجغرافيا");
+console.log("دفعة جديدة للفئة:",category);
 
-console.log("تم توليد الأسئلة");
+}
+
+/* ================= توليد 1000 سؤال ================= */
+
+async function generate1000(category){
+
+for(let i=0;i<20;i++){
+
+await generateBatch(category);
+
+}
+
+console.log("تم إنشاء 1000 سؤال للفئة:",category);
+
+}
+
+/* ================= الفئات ================= */
+
+await generate1000("التاريخ");
+await generate1000("كرة القدم");
+await generate1000("السينما");
+await generate1000("المسلسلات");
+await generate1000("الجغرافيا");
+
+console.log("تم توليد جميع الأسئلة");
 
 process.exit();
