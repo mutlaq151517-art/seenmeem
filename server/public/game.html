@@ -20,18 +20,16 @@ overflow-x:auto;
 }
 /* ===== TOP BAR ===== */
 
-.topbar{
+..topbar{
 position:fixed;
 top:0;
 left:0;
-right:0;
 height:70px;
+min-width:100%;
 background:linear-gradient(90deg,#c62828,#ff7043);
-
-display:flex;
+display:grid;
+grid-template-columns:1fr auto 1fr;
 align-items:center;
-justify-content:space-between;
-
 padding:0 20px;
 color:white;
 z-index:9999;
