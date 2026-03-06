@@ -544,7 +544,7 @@ return
 }
 
 el.classList.add("used")
-
+localStorage.setItem("used_"+category+"_"+points,"true")
 localStorage.setItem("currentQuestion",data.question)
 localStorage.setItem("currentAnswer",data.answer)
 localStorage.setItem("currentPoints",points)
