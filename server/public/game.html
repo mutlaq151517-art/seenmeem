@@ -502,7 +502,12 @@ card.innerHTML=`
 `
 
 board.appendChild(card)
-
+card.querySelectorAll(".point").forEach(p=>{
+const pts = p.innerText;
+if(localStorage.getItem("used_"+cat.name+"_"+pts)){
+p.classList.add("used");
+}
+});
 })
 
 })
