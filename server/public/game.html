@@ -390,8 +390,22 @@ document.getElementById("team2Name").innerText = t2
 let currentTurn = parseInt(localStorage.getItem("currentTeam")) || 1
 
 function updateTurn(){
+
 const name = currentTurn === 1 ? t1 : t2
 document.getElementById("turnBox").innerText = "دور فريق : " + name
+
+const team1 = document.getElementById("team1Name")
+const team2 = document.getElementById("team2Name")
+
+team1.classList.remove("active-turn")
+team2.classList.remove("active-turn")
+
+if(currentTurn === 1){
+team1.classList.add("active-turn")
+}else{
+team2.classList.add("active-turn")
+}
+
 }
 
 updateTurn()
