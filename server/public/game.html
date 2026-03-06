@@ -516,21 +516,33 @@ card.className="category-card"
 card.innerHTML=`
 
 <div class="points">
+
 <div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+
 <div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+
 <div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+
 </div>
 
 <div class="category-center">
-<img src="${cat.image}">
+
+<img src="${cat.image}" />
+
 <div class="category-title">${cat.name}</div>
+
 </div>
 
 <div class="points">
+
 <div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+
 <div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+
 <div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+
 </div>
+
 `
 
 board.appendChild(card)
