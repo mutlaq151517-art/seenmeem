@@ -16,26 +16,24 @@ margin:0;
 font-family:'Cairo',sans-serif;
 background:#cfcfcf;
 padding-top:90px;
-overflow-x:hidden;
-width:100%;
-max-width:100vw;
+overflow-x:auto;
 }
 /* ===== TOP BAR ===== */
 
-.nav-bar{
+.topbar{
 position:fixed;
 top:0;
 left:0;
 right:0;
-width:100%;
 height:70px;
-background:#0b2a4a;
+background:linear-gradient(90deg,#c62828,#ff7043);
 display:flex;
 align-items:center;
 justify-content:space-between;
 padding:0 25px;
 color:white;
 z-index:9999;
+box-shadow:0 4px 15px rgba(0,0,0,0.3);
 }
 
 /* يسار */
@@ -69,10 +67,12 @@ white-space:nowrap;
 padding:40px 10px;
 }
 .board{
+display:grid;
+grid-template-columns:repeat(3, 1fr);
+gap:16px;
 width:100%;
-max-width:1200px;
+max-width:1000px;
 margin:auto;
-transform-origin:top center;
 }
 
 .category-card{
@@ -270,65 +270,32 @@ color:white;
 
 .winner{background:#6ab000;}
 .loser{background:#d11c1c;}
-.nav-bar{
-position:fixed;
-top:0;
-left:0;
-right:0;
-height:70px;
-background:#0b2a4a;
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:0 25px;
-color:white;
-z-index:9999;
-box-shadow:0 4px 10px rgba(0,0,0,0.3);
-}
 
-.nav-left{
-display:flex;
-gap:10px;
-}
-
-.nav-left button{
-background:#143d66;
-color:white;
-border:none;
-padding:8px 16px;
-border-radius:8px;
-font-size:14px;
-cursor:pointer;
-}
-
-.nav-left button:hover{
-background:#1e4f82;
-}
-
-.nav-title{
-font-size:24px;
-font-weight:900;
-}
-
-.nav-turn{
-background:#1f7a3d;
-padding:8px 18px;
-border-radius:20px;
-font-weight:bold;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">
+<div class="topbar">
 
-<button onclick="exitGame()">الخروج</button>
+<div class="top-left">
+<span onclick="exitGame()">🚪 الخروج</span>
+<span onclick="backBoard()">⬜ الرجوع للوحة</span>
+<span onclick="finishGame()">➡️ انتهاء اللعبة</span>
+</div>
 
-<div class="title">سين ميم</div>
+<div class="top-center">
+سين ميم
+</div>
 
-<button onclick="finishGame()">إنهاء اللعبة</button>
+<div class="turn-box" id="turnBox">
+دور فريق : -
+</div>
 
+</div>
+
+<div class="board-wrapper">
+<div class="board" id="board"></div>
 </div>
 
 <div class="bottom">
