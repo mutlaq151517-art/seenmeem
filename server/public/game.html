@@ -35,33 +35,24 @@ color:white;
 z-index:9999;
 box-shadow:0 4px 15px rgba(0,0,0,0.3);
 }
-
-/* يسار */
-.top-left{
+/.top-left{
+justify-self:start;
 display:flex;
 gap:12px;
-align-items:center;
 }
-
-/* الوسط */
 .top-center{
-position:absolute;
-left:50%;
-transform:translateX(-50%);
+justify-self:center;
 font-size:24px;
 font-weight:900;
 }
-
-/* يمين */
 .turn-box{
+justify-self:end;
 background:#2e7d32;
 padding:8px 18px;
 border-radius:25px;
 font-size:15px;
 font-weight:bold;
-white-space:nowrap;
-}
-/* ===== BOARD ===== */
+}/* ===== BOARD ===== */
 
 .board-wrapper{
 padding:40px 10px;
