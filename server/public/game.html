@@ -23,42 +23,56 @@ position:fixed;
 top:0;
 left:0;
 right:0;
-background:linear-gradient(90deg,#e53935,#ff7043);
-color:white;
-display:flex;
+height:70px;
+background:linear-gradient(90deg,#c62828,#ff7043);
+display:grid;
+grid-template-columns:1fr auto 1fr;
 align-items:center;
-justify-content:space-between;
-padding:10px 20px;
+padding:0 20px;
+color:white;
 z-index:9999;
-flex-wrap:wrap;
-gap:10px;
+box-shadow:0 4px 15px rgba(0,0,0,0.3);
 }
+
+/* اليسار */
 
 .top-left{
 display:flex;
 gap:10px;
-flex-wrap:wrap;
 }
 
 .top-left span{
-background:rgba(255,255,255,0.2);
-padding:6px 12px;
+background:rgba(255,255,255,0.15);
+padding:6px 14px;
 border-radius:20px;
 cursor:pointer;
 font-size:14px;
+transition:0.2s;
 }
+
+.top-left span:hover{
+background:rgba(255,255,255,0.3);
+}
+
+/* الوسط */
 
 .top-center{
-font-size:20px;
+text-align:center;
+font-size:24px;
 font-weight:900;
+letter-spacing:1px;
 }
 
+/* اليمين */
+
 .turn-box{
-background:#b71c1c;
-padding:6px 14px;
-border-radius:20px;
-font-size:14px;
-white-space:nowrap;
+justify-self:end;
+background:#2e7d32;
+padding:8px 18px;
+border-radius:25px;
+font-size:15px;
+font-weight:bold;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
 /* ===== BOARD ===== */
 
