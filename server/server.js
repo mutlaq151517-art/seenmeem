@@ -293,7 +293,90 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 
 });
+/* ================= ADMIN ROUTES ================= */
 
+function checkAdmin(password){
+  return password === ADMIN_MASTER_PASSWORD;
+}
+
+/* جلب المستخدمين */
+
+app.post("/api/admin/users", async (req,res)=>{
+
+  const { password } = req.body;
+
+  if(!checkAdmin(password)){
+    return res.status(401).json({message:"wrong password"});
+  }
+
+  const users = await User.find().select("-password");
+  res.json(users);
+
+});
+
+/* تحديث المستخدم */
+
+app.post("/api/admin/update-user", async (req,res)=>{
+
+  const { password, userId, games_balance, role } = req.body;
+
+  if(!checkAdmin(password)){
+    return res.status(401).json({message:"wrong password"});
+  }
+
+  const user = await User.findById(userId);
+
+  if(!user) return res.status(404).json({message:"user not found"});
+
+  if(games_balance){
+    user.games_balance += Number(games_balance);
+  }
+
+  if(role){
+    user.role = role;
+  }
+
+  await user.save();
+
+  res.json({message:"تم التحديث"});
+
+});
+
+/* حذف مستخدم */
+
+app.post("/api/admin/delete-user", async (req,res)=>{
+
+  const { password, userId } = req.body;
+
+  if(!checkAdmin(password)){
+    return res.status(401).json({message:"wrong password"});
+  }
+
+  await User.findByIdAndDelete(userId);
+
+  res.json({message:"تم الحذف"});
+
+});
+
+/* إعادة كلمة السر */
+
+app.post("/api/admin/reset-password", async (req,res)=>{
+
+  const { password, userId } = req.body;
+
+  if(!checkAdmin(password)){
+    return res.status(401).json({message:"wrong password"});
+  }
+
+  const newPassword = Math.random().toString(36).slice(-8);
+
+  const hashed = await bcrypt.hash(newPassword,10);
+
+  await User.findByIdAndUpdate(userId,{password:hashed});
+
+  res.json({newPassword});
+
+});
 /* ================= STATIC FILES ================= */
 
 const __filename = fileURLToPath(import.meta.url);
