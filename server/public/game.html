@@ -287,7 +287,35 @@ color:white;
 
 .winner{background:#6ab000;}
 .loser{background:#d11c1c;}
+/* ===== AUTO SCALE BOARD ===== */
 
+.board-wrapper{
+display:flex;
+justify-content:center;
+}
+
+.board{
+width:1200px;
+transform-origin:top center;
+}
+
+/* للجوالات */
+@media (max-width:1200px){
+
+.board{
+transform:scale(calc(100vw / 1200));
+}
+
+}
+
+/* للجوالات الصغيرة جداً */
+@media (max-width:800px){
+
+.board{
+transform:scale(calc(100vw / 1200));
+}
+
+}
 </style>
 </head>
 
