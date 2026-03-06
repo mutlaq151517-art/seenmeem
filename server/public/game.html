@@ -513,8 +513,7 @@ async function chooseQuestion(category,points,el){
 
 if(el.classList.contains("used")) return
 
-const email = localStorage.getItem("email")
-
+const email = localStorage.getItem("userEmail")
 if(!email){
 alert("لا يوجد مستخدم مسجل")
 return
