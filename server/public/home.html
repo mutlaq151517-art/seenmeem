@@ -187,7 +187,11 @@ localStorage.setItem("games_balance",balance);
 localStorage.setItem("level",level);
 
 updateUI();
-
+for(let key in localStorage){
+if(key.startsWith("used_")){
+localStorage.removeItem(key);
+}
+}
 window.location.href="setup.html";
 }
 
