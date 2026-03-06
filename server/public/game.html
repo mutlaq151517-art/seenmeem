@@ -270,26 +270,70 @@ color:white;
 
 .winner{background:#6ab000;}
 .loser{background:#d11c1c;}
+.nav-bar{
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:70px;
+background:#0b2a4a;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 25px;
+color:white;
+z-index:9999;
+box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
 
+.nav-left{
+display:flex;
+gap:10px;
+}
+
+.nav-left button{
+background:#143d66;
+color:white;
+border:none;
+padding:8px 16px;
+border-radius:8px;
+font-size:14px;
+cursor:pointer;
+}
+
+.nav-left button:hover{
+background:#1e4f82;
+}
+
+.nav-title{
+font-size:24px;
+font-weight:900;
+}
+
+.nav-turn{
+background:#1f7a3d;
+padding:8px 18px;
+border-radius:20px;
+font-weight:bold;
+}
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <div class="bar-left">
-    <span onclick="exitGame()">🚪 الخروج</span>
-    <span onclick="backBoard()">⬜ الرجوع للوحة</span>
-    <span onclick="finishGame()">➡️ انتهاء اللعبة</span>
-  </div>
+<div class="nav-bar">
 
-  <div class="bar-title">سين ميم</div>
-
-  <div class="bar-right" id="turnBox">
-    دور فريق : -
-  </div>
+<div class="nav-left">
+<button onclick="exitGame()">الخروج</button>
+<button onclick="backBoard()">الرجوع للوحة</button>
+<button onclick="finishGame()">إنهاء اللعبة</button>
 </div>
 
+<div class="nav-title">سين ميم</div>
+
+<div class="nav-turn" id="turnBox">دور فريق : -</div>
+
+</div>
 <div class="board-wrapper">
 <div class="board" id="board"></div>
 </div>
