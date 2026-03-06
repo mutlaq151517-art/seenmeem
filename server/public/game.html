@@ -30,53 +30,36 @@ background:linear-gradient(90deg,#c62828,#ff7043);
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:0 20px;
+padding:0 25px;
 color:white;
 z-index:9999;
 box-shadow:0 4px 15px rgba(0,0,0,0.3);
 }
 
-/* اليسار */
-
+/* يسار */
 .top-left{
 display:flex;
-gap:10px;
-flex-wrap:wrap;
-}
-
-.top-left span{
-background:rgba(255,255,255,0.15);
-padding:6px 14px;
-border-radius:20px;
-cursor:pointer;
-font-size:14px;
-transition:0.2s;
-}
-
-.top-left span:hover{
-background:rgba(255,255,255,0.3);
+gap:12px;
+align-items:center;
 }
 
 /* الوسط */
-
 .top-center{
-flex:1;
-text-align:center;
+position:absolute;
+left:50%;
+transform:translateX(-50%);
 font-size:24px;
 font-weight:900;
-letter-spacing:1px;
 }
 
-/* اليمين */
-
+/* يمين */
 .turn-box{
-justify-self:end;
 background:#2e7d32;
 padding:8px 18px;
 border-radius:25px;
 font-size:15px;
 font-weight:bold;
-box-shadow:0 2px 8px rgba(0,0,0,0.3);
+white-space:nowrap;
 }
 /* ===== BOARD ===== */
 
