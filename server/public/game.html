@@ -277,21 +277,17 @@ color:white;
 <body>
 
 <div class="topbar">
+  <div class="bar-left">
+    <span onclick="exitGame()">🚪 الخروج</span>
+    <span onclick="backBoard()">⬜ الرجوع للوحة</span>
+    <span onclick="finishGame()">➡️ انتهاء اللعبة</span>
+  </div>
 
-<div class="top-left">
-<span onclick="exitGame()">🚪 الخروج</span>
-<span onclick="backBoard()">⬜ الرجوع للوحة</span>
-<span onclick="finishGame()">➡️ انتهاء اللعبة</span>
-</div>
+  <div class="bar-title">سين ميم</div>
 
-<div class="top-center">
-سين ميم
-</div>
-
-<div class="turn-box" id="turnBox">
-دور فريق : -
-</div>
-
+  <div class="bar-right" id="turnBox">
+    دور فريق : -
+  </div>
 </div>
 
 <div class="board-wrapper">
