@@ -84,9 +84,10 @@ overflow-x:auto;
 }
 .board{
 display:grid;
-grid-template-columns:repeat(3,420px);
-justify-content:center;
+grid-template-columns:repeat(3, minmax(320px,1fr));
 gap:30px;
+max-width:1200px;
+margin:auto;
 }
 
 .category-card{
