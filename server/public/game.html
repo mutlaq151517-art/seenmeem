@@ -494,17 +494,21 @@ let winner=""
 
 if(score1>score2){
 winner=t1
-document.getElementById("team1Box").className="team-score winner"
-document.getElementById("team2Box").className="team-score loser"
+document.getElementById("team1Box").classList.add("winner")
+document.getElementById("team2Box").classList.add("loser")
 }else{
 winner=t2
-document.getElementById("team2Box").className="team-score winner"
-document.getElementById("team1Box").className="team-score loser"
+document.getElementById("team2Box").classList.add("winner")
+document.getElementById("team1Box").classList.add("loser")
 }
 
 document.getElementById("winnerName").innerText=winner
-document.getElementById("team1Box").innerText=score1
-document.getElementById("team2Box").innerText=score2
+
+document.getElementById("team1Title").innerText=t1
+document.getElementById("team2Title").innerText=t2
+
+document.getElementById("team1Points").innerText=score1
+document.getElementById("team2Points").innerText=score2
 
 document.getElementById("winScreen").style.display="flex"
 
