@@ -165,6 +165,53 @@ justify-content:center;
 .helper.used{
 opacity:0.3;
 }
+
+/* ===== TEAM SELECT PANEL ===== */
+
+.team-select{
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:#e6e6e6;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9999;
+}
+
+.team-select h2{
+font-size:36px;
+margin-bottom:40px;
+}
+
+.team-btn{
+padding:20px 60px;
+font-size:22px;
+border:none;
+border-radius:30px;
+background:#b30000;
+color:white;
+margin:10px;
+cursor:pointer;
+}
+
+.none-btn{
+background:#777;
+}
+
+.back-btn{
+margin-top:40px;
+padding:10px 30px;
+background:#2e7d32;
+color:white;
+border:none;
+border-radius:20px;
+cursor:pointer;
+}
+
 </style>
 </head>
 
@@ -192,7 +239,7 @@ opacity:0.3;
 </div>
 
 <div class="bottom-buttons">
-<button class="btn blue" onclick="chooseWinner()">أي فريق ؟</button>
+<button class="btn blue" onclick="openTeamSelect()">أي فريق ؟</button>
 <button class="btn red" onclick="goBack()">ارجع للسؤال</button>
 </div>
 
@@ -222,6 +269,21 @@ opacity:0.3;
 </div>
 
 </div>
+
+</div>
+
+<!-- TEAM SELECT SCREEN -->
+
+<div class="team-select" id="teamSelect">
+
+<h2>أي فريق جاوب صح ؟</h2>
+
+<button class="team-btn" onclick="selectWinner(1)" id="btnTeam1"></button>
+<button class="team-btn" onclick="selectWinner(2)" id="btnTeam2"></button>
+
+<button class="team-btn none-btn" onclick="selectWinner(0)">ولا أحد</button>
+
+<button class="back-btn" onclick="closeTeamSelect()">العودة للإجابة</button>
 
 </div>
 
@@ -266,28 +328,27 @@ document.getElementById("answerImage").src = answerImage;
 document.getElementById("team1Name").innerText = team1;
 document.getElementById("team2Name").innerText = team2;
 
+document.getElementById("btnTeam1").innerText = team1;
+document.getElementById("btnTeam2").innerText = team2;
+
 updateScores();
 
 document.getElementById("turnBox").innerText =
 "دور فريق: " + (teamTurn === 1 ? team1 : team2);
 
-/* ===== Disable Used Helpers ===== */
+/* ===== TEAM SELECT ===== */
 
-["1","2"].forEach(t=>{
-if(localStorage.getItem("doubleUsed"+t)) document.getElementById("double"+t).classList.add("used");
-if(localStorage.getItem("stealUsed"+t)) document.getElementById("steal"+t).classList.add("used");
-if(localStorage.getItem("holeUsed"+t)) document.getElementById("hole"+t).classList.add("used");
-});
+function openTeamSelect(){
+document.getElementById("teamSelect").style.display="flex";
+}
+
+function closeTeamSelect(){
+document.getElementById("teamSelect").style.display="none";
+}
 
 /* ===== Choose Winner ===== */
 
-function chooseWinner(){
-
-let winner = prompt("اكتب رقم الفريق الفائز (1 أو 2) أو 0 إذا لا أحد");
-
-if(!["0","1","2"].includes(winner)) return;
-
-winner = parseInt(winner);
+function selectWinner(winner){
 
 handleResult(winner);
 
@@ -346,8 +407,6 @@ localStorage.removeItem("stealActive");
 localStorage.removeItem("stealTeam");
 localStorage.removeItem("holeActive");
 localStorage.removeItem("doubleActive");
-
-/* تغيير الدور */
 
 teamTurn = teamTurn === 1 ? 2 : 1;
 localStorage.setItem("currentTeam",teamTurn);
