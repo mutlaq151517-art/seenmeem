@@ -8,7 +8,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
+.floating-controls{
+position:fixed;
+top:20px;
+left:20px;
+display:flex;
+gap:10px;
+z-index:9999;
+}
 
+.floating-controls button{
+width:45px;
+height:45px;
+border:none;
+border-radius:50%;
+background:#ff5a2c;
+color:white;
+font-size:20px;
+cursor:pointer;
+box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
 *{margin:0;padding:0;box-sizing:border-box}
 
 body{
