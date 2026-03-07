@@ -231,31 +231,58 @@ top:0;
 left:0;
 right:0;
 bottom:0;
-background:rgba(0,0,0,0.4);
+background:#f2f2f2;
 display:none;
 justify-content:center;
 align-items:center;
+flex-direction:column;
+z-index:99999;
+text-align:center;
 }
 
-.win-box{
-background:white;
-padding:40px;
-border-radius:30px;
-text-align:center;
-width:600px;
+.win-box h2{
+font-size:40px;
+margin-bottom:20px;
+}
+
+#winnerName{
+font-size:90px;
+color:#ff5a2c;
+margin-bottom:40px;
 }
 
 .win-teams{
 display:flex;
-gap:20px;
-margin-top:30px;
+gap:60px;
 }
 
 .team-score{
-flex:1;
-border-radius:20px;
-padding:30px;
-font-size:40px;
+width:300px;
+border-radius:30px;
+overflow:hidden;
+font-family:'Cairo',sans-serif;
+}
+
+.team-score .team-title{
+background:#222;
+color:white;
+padding:15px;
+font-size:24px;
+}
+
+.team-score .team-points{
+padding:40px;
+font-size:48px;
+font-weight:bold;
+}
+
+.team-score.winner .team-points{
+background:#86b300;
+color:white;
+}
+
+.team-score.loser .team-points{
+background:#e31818;
 color:white;
 }
 
