@@ -134,11 +134,6 @@ font-size:16px;
 font-weight:900;
 }
 
-.active-turn{
-background:#2e7d32 !important;
-transition:0.3s;
-}
-
 .team-row{
 display:flex;
 align-items:center;
@@ -273,23 +268,24 @@ color:white;
 <body>
 
 <div class="top-controls-bar">
-
 <div class="floating-controls">
 <button onclick="exitGame()">🚪</button>
 <button onclick="backBoard()">⬜</button>
 <button onclick="finishGame()">➡️</button>
 </div>
+</div>
 
+<!-- لوحة الفئات -->
+<div class="board-wrapper">
+<div class="board" id="board"></div>
 </div>
 
 <div class="bottom">
 
 <div class="team">
-
 <div class="team-name" id="team1Name">فريق 1</div>
 
 <div class="team-row">
-
 <div class="score">
 <button onclick="changeScore(1,-100)">-</button>
 <div class="score-value" id="score1">0</div>
@@ -304,7 +300,6 @@ color:white;
 <div class="helper" onclick="useHelper(this,'double',1)">✌</div>
 <div class="helper" onclick="useHelper(this,'steal',1)">🕳</div>
 </div>
-
 </div>
 
 </div>
@@ -317,7 +312,6 @@ color:white;
 <div class="team-row">
 
 <div class="helpers">
-
 <div class="helpers-title">وسائل المساعدة</div>
 
 <div class="helpers-icons">
@@ -325,7 +319,6 @@ color:white;
 <div class="helper" onclick="useHelper(this,'double',2)">✌</div>
 <div class="helper" onclick="useHelper(this,'steal',2)">🕳</div>
 </div>
-
 </div>
 
 <div class="score">
@@ -335,33 +328,6 @@ color:white;
 </div>
 
 </div>
-
-</div>
-
-</div>
-
-<div class="win-screen" id="winScreen">
-
-<div class="win-box">
-
-<h2>مبروك الفوز</h2>
-
-<h1 id="winnerName"></h1>
-
-<div class="win-teams">
-
-<div id="team1Box" class="team-score">
-<div class="team-title" id="team1Title"></div>
-<div class="team-points" id="team1Points"></div>
-</div>
-
-<div id="team2Box" class="team-score">
-<div class="team-title" id="team2Title"></div>
-<div class="team-points" id="team2Points"></div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -375,8 +341,6 @@ const t2 = localStorage.getItem("team2Name") || "فريق 2"
 
 document.getElementById("team1Name").innerText = t1
 document.getElementById("team2Name").innerText = t2
-
-let currentTurn = parseInt(localStorage.getItem("currentTeam")) || 1
 
 /* ===== SCORE ===== */
 
@@ -435,23 +399,11 @@ let winner=""
 
 if(score1>score2){
 winner=t1
-document.getElementById("team1Box").classList.add("winner")
-document.getElementById("team2Box").classList.add("loser")
 }else{
 winner=t2
-document.getElementById("team2Box").classList.add("winner")
-document.getElementById("team1Box").classList.add("loser")
 }
 
-document.getElementById("winnerName").innerText=winner
-
-document.getElementById("team1Title").innerText=t1
-document.getElementById("team2Title").innerText=t2
-
-document.getElementById("team1Points").innerText=score1
-document.getElementById("team2Points").innerText=score2
-
-document.getElementById("winScreen").style.display="flex"
+alert("الفائز هو: " + winner)
 
 }
 
@@ -473,9 +425,9 @@ card.className="category-card"
 card.innerHTML=`
 
 <div class="points">
-<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
-<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
-<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+<div class="point">${200}</div>
+<div class="point">${400}</div>
+<div class="point">${600}</div>
 </div>
 
 <div class="category-center">
@@ -484,9 +436,9 @@ card.innerHTML=`
 </div>
 
 <div class="points">
-<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
-<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
-<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+<div class="point">${200}</div>
+<div class="point">${400}</div>
+<div class="point">${600}</div>
 </div>
 
 `
