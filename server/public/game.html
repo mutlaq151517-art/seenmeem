@@ -455,9 +455,9 @@ card.className="category-card"
 card.innerHTML=`
 
 <div class="points">
-<div class="point">${200}</div>
-<div class="point">${400}</div>
-<div class="point">${600}</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
 
 <div class="category-center">
@@ -466,9 +466,9 @@ card.innerHTML=`
 </div>
 
 <div class="points">
-<div class="point">${200}</div>
-<div class="point">${400}</div>
-<div class="point">${600}</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
 
 `
