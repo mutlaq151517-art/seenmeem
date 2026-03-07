@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
+
 .floating-controls{
 position:fixed;
 top:20px;
@@ -28,6 +29,7 @@ font-size:20px;
 cursor:pointer;
 box-shadow:0 3px 10px rgba(0,0,0,0.3);
 }
+
 *{margin:0;padding:0;box-sizing:border-box}
 
 body{
@@ -36,45 +38,13 @@ font-family:'Cairo',sans-serif;
 background:#cfcfcf;
 overflow-x:auto;
 }
-/* ===== TOP BAR ===== */
 
-.topbar{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:70px;
-background:linear-gradient(90deg,#c62828,#ff7043);
-display:grid;
-grid-template-columns:1fr auto 1fr;
-align-items:center;
-padding:0 20px;
-color:white;
-z-index:9999;
-box-shadow:0 4px 15px rgba(0,0,0,0.3);
-}
-/.top-left{
-justify-self:start;
-display:flex;
-gap:12px;
-}
-.top-center{
-justify-self:center;
-font-size:24px;
-font-weight:900;
-}
-.turn-box{
-justify-self:end;
-background:#2e7d32;
-padding:8px 18px;
-border-radius:25px;
-font-size:15px;
-font-weight:bold;
-}/* ===== BOARD ===== */
+/* ===== BOARD ===== */
 
 .board-wrapper{
 padding:40px 10px;
 }
+
 .board{
 display:grid;
 grid-template-columns:repeat(3, 1fr);
@@ -165,10 +135,12 @@ border-radius:60px;
 font-size:22px;
 font-weight:900;
 }
+
 .active-turn{
 background:#2e7d32 !important;
 transition:0.3s;
 }
+
 .team-row{
 display:flex;
 align-items:center;
@@ -235,13 +207,7 @@ width:30px;
 text-align:center;
 }
 
-.center-logo{
-font-size:52px;
-font-weight:900;
-color:#555;
-}
-
-/* ===== WINNER MODAL ===== */
+/* ===== WINNER ===== */
 
 .win-screen{
 position:fixed;
@@ -302,20 +268,15 @@ background:#e31818;
 color:white;
 }
 
-.winner{background:#6ab000;}
-.loser{background:#d11c1c;}
-
 </style>
 </head>
 
 <body>
 
 <div class="floating-controls">
-
 <button onclick="exitGame()">🚪</button>
 <button onclick="backBoard()">⬜</button>
 <button onclick="finishGame()">➡️</button>
-
 </div>
 
 <div class="board-wrapper">
@@ -349,8 +310,6 @@ color:white;
 
 </div>
 </div>
-
-
 
 <div class="team">
 
@@ -406,6 +365,8 @@ color:white;
 
 </div>
 
+</div>
+
 <script>
 
 /* ===== TEAM NAMES ===== */
@@ -416,30 +377,7 @@ const t2 = localStorage.getItem("team2Name") || "فريق 2"
 document.getElementById("team1Name").innerText = t1
 document.getElementById("team2Name").innerText = t2
 
-/* ===== TURN ===== */
-
 let currentTurn = parseInt(localStorage.getItem("currentTeam")) || 1
-
-function updateTurn(){
-
-const name = currentTurn === 1 ? t1 : t2
-document.getElementById("turnBox").innerText = "دور فريق : " + name
-
-const team1 = document.getElementById("team1Name")
-const team2 = document.getElementById("team2Name")
-
-team1.classList.remove("active-turn")
-team2.classList.remove("active-turn")
-
-if(currentTurn === 1){
-team1.classList.add("active-turn")
-}else{
-team2.classList.add("active-turn")
-}
-
-}
-
-updateTurn()
 
 /* ===== SCORE ===== */
 
@@ -536,100 +474,29 @@ card.className="category-card"
 card.innerHTML=`
 
 <div class="points">
-
 <div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
-
 <div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
-
 <div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
-
 </div>
 
 <div class="category-center">
-
 <img src="${cat.image}" />
-
 <div class="category-title">${cat.name}</div>
-
 </div>
 
 <div class="points">
-
 <div class="point" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
-
 <div class="point" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
-
 <div class="point" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
-
 </div>
 
 `
 
 board.appendChild(card)
-card.querySelectorAll(".point").forEach(p=>{
-const pts = p.innerText;
-if(localStorage.getItem("used_"+cat.name+"_"+pts)){
-p.classList.add("used");
-}
-});
-})
 
 })
 
-/* ===== SELECT QUESTION ===== */
-
-async function chooseQuestion(category,points,el){
-
-if(el.classList.contains("used")) return
-
-const email = localStorage.getItem("userEmail")
-if(!email){
-alert("لا يوجد مستخدم مسجل")
-return
-}
-
-try{
-
-const res=await fetch("/api/start-game",{
-method:"POST",
-headers:{ "Content-Type":"application/json"},
-body:JSON.stringify({
-email,
-category,
-difficulty:points
 })
-})
-
-if(!res.ok){
-alert("فشل تحميل السؤال")
-return
-}
-
-const data=await res.json()
-
-if(!data.question){
-alert("لا يوجد سؤال متاح")
-return
-}
-
-el.classList.add("used")
-localStorage.setItem("used_"+category+"_"+points,"true")
-localStorage.setItem("currentQuestion",data.question)
-localStorage.setItem("currentAnswer",data.answer)
-localStorage.setItem("currentPoints",points)
-localStorage.setItem("currentCategory",category)
-localStorage.setItem("currentQuestionImage",data.questionImage)
-localStorage.setItem("currentAnswerImage",data.answerImage)
-
-window.location="question.html"
-
-}catch(err){
-
-alert("خطأ في الاتصال بالسيرفر")
-
-}
-
-}
 
 </script>
 
