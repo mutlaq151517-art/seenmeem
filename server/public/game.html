@@ -490,6 +490,16 @@ localStorage.removeItem("darkMode")
 if(localStorage.getItem("darkMode")){
 document.body.classList.add("dark-mode")
 }
+function chooseQuestion(category,points,el){
+
+localStorage.setItem("currentCategory",category);
+localStorage.setItem("currentPoints",points);
+
+el.classList.add("used");
+
+window.location.href="question.html";
+
+}
 </script>
 
 </body>
