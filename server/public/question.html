@@ -330,129 +330,22 @@ localStorage.setItem("currentTeam",1);
 document.getElementById("turnBox").innerText =
 "دور فريق: " + (currentTeam===1?team1:team2);
 
-/* ===== Restore used helpers ===== */
-
-["double","steal","hole"].forEach(type=>{
-
-if(localStorage.getItem(type+"Used1"))
-document.getElementById(type+"1").classList.add("used")
-
-if(localStorage.getItem(type+"Used2"))
-document.getElementById(type+"2").classList.add("used")
-
-})
-
-/* ===== Helpers ===== */
-
-function useDouble(team){
-
-if(currentTeam !== team) return alert("هذه الوسيلة تستخدم في دور فريقك");
-
-if(localStorage.getItem("doubleUsed"+team)) return;
-
-localStorage.setItem("doubleActive","true");
-localStorage.setItem("doubleUsed"+team,"true");
-
-document.getElementById("double"+team).classList.add("used");
-
-alert("تم تفعيل جوابين");
-
-}
-
-function useSteal(team){
-
-if(currentTeam === team) return alert("لا يمكنك سرقة دورك");
-
-if(localStorage.getItem("stealUsed"+team)) return;
-
-localStorage.setItem("stealActive","true");
-localStorage.setItem("stealTeam",team);
-localStorage.setItem("stealUsed"+team,"true");
-
-document.getElementById("steal"+team).classList.add("used");
-
-alert("تم تفعيل أبوق السؤال");
-
-}
-
-function useHole(team){
-
-if(currentTeam !== team) return alert("تستخدم قبل اختيار السؤال");
-
-if(localStorage.getItem("holeUsed"+team)) return;
-
-localStorage.setItem("holeActive","true");
-localStorage.setItem("holeUsed"+team,"true");
-
-document.getElementById("hole"+team).classList.add("used");
-
-alert("السؤال القادم سيكون صعب جداً");
-
-}
-
-/* ===== Timer ===== */
-
-let timeLeft=60;
-let interval;
-let paused=false;
-
-function formatTime(sec){
-
-let m=Math.floor(sec/60);
-let s=sec%60;
-
-return `${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
-
-}
-
-function startTimer(){
-
-interval=setInterval(()=>{
-
-if(!paused){
-
-timeLeft--;
-
-document.getElementById("timer").innerText=formatTime(timeLeft);
-
-if(timeLeft<=0) clearInterval(interval);
-
-}
-
-},1000);
-
-}
-
-document.getElementById("timer").innerText=formatTime(timeLeft);
-
-startTimer();
-
-document.getElementById("pauseBtn").onclick=()=>{
-paused=!paused;
-document.getElementById("pauseBtn").innerText=paused?"▶":"⏸";
-};
-
-document.getElementById("resetBtn").onclick=()=>{
-timeLeft=60;
-document.getElementById("timer").innerText=formatTime(timeLeft);
-};
-
 /* ===== Navigation ===== */
 
 function goAnswer(){
 
 clearInterval(interval);
 
+/* حفظ نقاط السؤال */
+localStorage.setItem("answerPoints",points);
+
 window.location.href="answer.html";
 
 }
 
 function endGame(){
-
 localStorage.removeItem("matchStarted");
-
 window.location.href="game.html";
-
 }
 
 </script>
