@@ -161,7 +161,7 @@ startBtn.innerText = "إنشاء لعبة";
 }
 
 async function startGame(){
-
+localStorage.removeItem("usedQuestions");
 if(balance <= 0){
 alert("لا يوجد لديك رصيد ألعاب");
 return;
