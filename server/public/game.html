@@ -495,7 +495,14 @@ function chooseQuestion(category,points,el){
 localStorage.setItem("currentCategory",category);
 localStorage.setItem("currentPoints",points);
 
+/* حفظ السؤال المستخدم */
 el.classList.add("used");
+el.style.pointerEvents="none";
+
+/* حفظه في الذاكرة */
+let used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
+used.push(category+"-"+points);
+localStorage.setItem("usedQuestions",JSON.stringify(used));
 
 window.location.href="question.html";
 
