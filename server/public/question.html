@@ -357,7 +357,29 @@ function endGame(){
 localStorage.removeItem("matchStarted");
 window.location.href="game.html";
 }
+function exitGame(){
+window.location.href="/";
+}
 
+function backBoard(){
+window.location.href="game.html";
+}
+
+function toggleDarkMode(){
+
+document.body.classList.toggle("dark-mode");
+
+if(document.body.classList.contains("dark-mode")){
+localStorage.setItem("darkMode","on");
+}else{
+localStorage.removeItem("darkMode");
+}
+
+}
+
+if(localStorage.getItem("darkMode")){
+document.body.classList.add("dark-mode");
+}
 </script>
 
 </body>
