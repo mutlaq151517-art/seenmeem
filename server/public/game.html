@@ -399,12 +399,11 @@ let helpersUsed={1:{},2:{}}
 
 function useHelper(el,type,team){
 
-if(helpersUsed[team][type]) return
+if(localStorage.getItem(type+"Used"+team)) return;
 
-helpersUsed[team][type]=true
+localStorage.setItem(type+"Used"+team,true);
 
-el.style.opacity="0.3"
-el.style.pointerEvents="none"
+el.classList.add("used");
 
 }
 
