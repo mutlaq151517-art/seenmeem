@@ -471,7 +471,16 @@ card.innerHTML=`
 </div>
 
 `
+card.querySelectorAll(".point").forEach(p=>{
 
+let key = p.dataset.key;
+
+if(used.includes(key)){
+p.classList.add("used");
+p.style.pointerEvents="none";
+}
+
+});
 board.appendChild(card)
 
 })
