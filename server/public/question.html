@@ -327,7 +327,15 @@ document.getElementById("team2Name").innerText = team2;
 
 document.getElementById("score1").innerText = localStorage.getItem("score1") || 0;
 document.getElementById("score2").innerText = localStorage.getItem("score2") || 0;
+["spy","double","steal"].forEach(type=>{
 
+if(localStorage.getItem(type+"Used1"))
+document.querySelector(`[onclick="useHelper(this,'${type}',1)"]`).classList.add("used")
+
+if(localStorage.getItem(type+"Used2"))
+document.querySelector(`[onclick="useHelper(this,'${type}',2)"]`).classList.add("used")
+
+})
 /* ===== TURN ===== */
 
 let currentTeam = parseInt(localStorage.getItem("currentTeam"));
