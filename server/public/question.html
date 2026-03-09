@@ -388,6 +388,35 @@ localStorage.removeItem("darkMode");
 if(localStorage.getItem("darkMode")){
 document.body.classList.add("dark-mode");
 }
+function useHelper(el,type,team){
+
+if(localStorage.getItem(type+"Used"+team)){
+alert("تم استخدام هذه الوسيلة سابقاً");
+return;
+}
+
+/* حفظ أن الوسيلة استُخدمت */
+localStorage.setItem(type+"Used"+team,true);
+
+/* تفعيل التأثير */
+el.classList.add("used");
+el.style.pointerEvents="none";
+
+/* تفعيل نوع الوسيلة */
+if(type==="double"){
+localStorage.setItem("doubleActive","true");
+}
+
+if(type==="spy"){
+localStorage.setItem("stealActive","true");
+localStorage.setItem("stealTeam",team);
+}
+
+if(type==="steal"){
+localStorage.setItem("holeActive","true");
+}
+
+}
 </script>
 
 </body>
