@@ -4,10 +4,13 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "path";
+import OpenAI from "openai";
 import { fileURLToPath } from "url";
 
 dotenv.config();
-
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 const app = express();
 app.use(cors());
 app.use(express.json());
