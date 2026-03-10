@@ -201,66 +201,8 @@ width:30px;
 text-align:center;
 }
 
-/* ===== WINNER ===== */
+/* ===== DARK MODE ===== */
 
-.win-screen{
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:#f2f2f2;
-display:none;
-justify-content:center;
-align-items:center;
-z-index:99999;
-}
-
-.win-box{
-width:900px;
-max-width:90%;
-text-align:center;
-}
-
-#winnerName{
-font-size:70px;
-color:#ff5a2c;
-margin:20px 0 40px;
-}
-
-.win-teams{
-display:flex;
-gap:60px;
-}
-
-.team-score{
-width:260px;
-border-radius:25px;
-overflow:hidden;
-}
-
-.team-score .team-title{
-background:#222;
-color:white;
-padding:15px;
-font-size:24px;
-}
-
-.team-score .team-points{
-padding:30px;
-font-size:40px;
-font-weight:bold;
-}
-
-.team-score.winner .team-points{
-background:#86b300;
-color:white;
-}
-
-.team-score.loser .team-points{
-background:#e31818;
-color:white;
-}
 .dark-mode{
 background:#0e1117;
 color:white;
@@ -286,6 +228,7 @@ background:#2b2f36;
 .dark-mode .category-title{
 background:#ff7a3d;
 }
+
 </style>
 </head>
 
@@ -300,12 +243,9 @@ background:#ff7a3d;
 </div>
 </div>
 
-<!-- لوحة الفئات -->
 <div class="board-wrapper">
 <div class="board" id="board"></div>
 </div>
-
-
 
 <div class="bottom">
 
@@ -313,6 +253,7 @@ background:#ff7a3d;
 <div class="team-name" id="team1Name">فريق 1</div>
 
 <div class="team-row">
+
 <div class="score">
 <button onclick="changeScore(1,-100)">-</button>
 <div class="score-value" id="score1">0</div>
@@ -395,8 +336,6 @@ localStorage.setItem("score2",score2)
 
 /* ===== HELPERS ===== */
 
-let helpersUsed={1:{},2:{}}
-
 function useHelper(el,type,team){
 
 if(localStorage.getItem(type+"Used"+team)) return;
@@ -444,18 +383,18 @@ const board=document.getElementById("board")
 board.innerHTML=""
 
 data.slice(0,6).forEach(cat=>{
+
 let used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
+
 const card=document.createElement("div")
 card.className="category-card"
 
 card.innerHTML=`
 
 <div class="points">
-<div class="point" data-key="${cat.name}-200" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
-
-<div class="point" data-key="${cat.name}-400" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
-
-<div class="point" data-key="${cat.name}-600" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+<div class="point" data-key="${cat.name}-200-L" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" data-key="${cat.name}-400-L" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" data-key="${cat.name}-600-L" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
 
 <div class="category-center">
@@ -463,15 +402,14 @@ card.innerHTML=`
 <div class="category-title">${cat.name}</div>
 </div>
 
+<div class="points">
+<div class="point" data-key="${cat.name}-200-R" onclick="chooseQuestion('${cat.name}',200,this)">200</div>
+<div class="point" data-key="${cat.name}-400-R" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
+<div class="point" data-key="${cat.name}-600-R" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
+</div>
 
 `
-card.querySelectorAll(".point").forEach(p=>{
-let key = p.dataset.key;
 
-if(used.includes(key)){
-p.classList.add("used");
-}
-})
 card.querySelectorAll(".point").forEach(p=>{
 
 let key = p.dataset.key;
@@ -482,11 +420,13 @@ p.style.pointerEvents="none";
 }
 
 });
+
 board.appendChild(card)
 
 })
 
 })
+
 function toggleDarkMode(){
 
 document.body.classList.toggle("dark-mode")
@@ -502,10 +442,11 @@ localStorage.removeItem("darkMode")
 if(localStorage.getItem("darkMode")){
 document.body.classList.add("dark-mode")
 }
+
 async function chooseQuestion(category,points,el){
 
 el.classList.add("used")
-localStorage.setItem("used_"+category+"_"+points,"true")
+
 const res = await fetch("/api/generate-question",{
 method:"POST",
 headers:{
@@ -528,6 +469,7 @@ localStorage.setItem("currentAnswer",data.answer)
 window.location.href="question.html"
 
 }
+
 </script>
 
 </body>
