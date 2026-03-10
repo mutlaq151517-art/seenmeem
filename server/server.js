@@ -26,6 +26,11 @@ mongoose.connect(process.env.MONGO_URI)
 const ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD;
 let CURRENT_SEASON = "season1";
 
+/* ================= AI MEMORY ================= */
+
+/* ذاكرة لمنع تكرار الأسئلة داخل المباراة */
+let usedAIQuestions = [];
+
 /* ================= Schemas ================= */
 
 const userSchema = new mongoose.Schema({
@@ -185,6 +190,9 @@ app.post("/api/start-match", async (req, res) => {
     user.level = user.games_played + 1;
     user.usedQuestions = [];
 
+    /* إعادة تعيين ذاكرة الأسئلة */
+    usedAIQuestions = [];
+
     await user.save();
 
     res.json({
@@ -314,20 +322,25 @@ difficultyPrompt = "سؤال صعب";
 }
 
 if(difficulty == 600){
-difficultyPrompt = "سؤال صعب جداً ونادر";
+difficultyPrompt = "سؤال صعب جداً ونادر جداً من مستوى برامج المسابقات العالمية";
 }
 
 const randomSeed = Math.floor(Math.random()*1000000);
+
+const previousQuestions = usedAIQuestions.join("\n");
 
 const prompt = `
 أنشئ سؤال مسابقات جديد في فئة ${category}
 
 مستوى الصعوبة: ${difficultyPrompt}
 
+لا تكرر أي سؤال من القائمة التالية:
+${previousQuestions}
+
 القواعد:
 - لا تكرر الأسئلة المشهورة
 - لا تستخدم أسئلة العاصمة أو أسماء الحكام
-- يجب أن يكون السؤال مختلفاً في كل مرة
+- يجب أن يكون السؤال مختلفاً تماماً
 - الإجابة كلمة واحدة أو كلمتين فقط
 
 رقم تنويع السؤال: ${randomSeed}
@@ -343,12 +356,15 @@ const prompt = `
 const response = await openai.chat.completions.create({
 model:"gpt-4.1-mini",
 messages:[{role:"user",content:prompt}],
-temperature:1.2
+temperature:1.3
 });
 
 const text = response.choices[0].message.content;
 
 const data = JSON.parse(text);
+
+/* حفظ السؤال لمنع تكراره */
+usedAIQuestions.push(data.question);
 
 res.json({
 question:data.question,
