@@ -503,7 +503,7 @@ document.body.classList.add("dark-mode")
 async function chooseQuestion(category,points,el){
 
 el.classList.add("used")
-
+localStorage.setItem("used_"+category+"_"+points,"true")
 const res = await fetch("/api/generate-question",{
 method:"POST",
 headers:{
