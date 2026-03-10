@@ -304,11 +304,19 @@ try{
 
 const { category, difficulty } = req.body;
 
-let level = "متوسط";
+let level = "متوسط";let difficultyPrompt = "";
 
-if(difficulty == 400) level = "صعب";
-if(difficulty == 600) level = "صعب جداً ونادر جداً";
+if(difficulty == 200){
+difficultyPrompt = "سؤال صعب لكن يمكن حله بالتفكير.";
+}
 
+if(difficulty == 400){
+difficultyPrompt = "سؤال صعب جداً يحتاج معرفة عميقة.";
+}
+
+if(difficulty == 600){
+difficultyPrompt = "سؤال نادر جداً من مستوى برامج المسابقات العالمية.";
+}
 const prompt = `
 أنشئ سؤال مسابقات شديد الصعوبة في فئة ${category}.
 
