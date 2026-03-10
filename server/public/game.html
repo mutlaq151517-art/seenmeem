@@ -500,17 +500,30 @@ localStorage.removeItem("darkMode")
 if(localStorage.getItem("darkMode")){
 document.body.classList.add("dark-mode")
 }
-function chooseQuestion(category,points,el){
+async function chooseQuestion(category,points,el){
 
-localStorage.setItem("currentCategory",category);
-localStorage.setItem("currentPoints",points);
+el.classList.add("used")
 
-/* حفظ السؤال المستخدم */
-let used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
-used.push(el.dataset.key);
-localStorage.setItem("usedQuestions",JSON.stringify(used));
+const res = await fetch("/api/generate-question",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+category:category,
+difficulty:points
+})
+})
 
-window.location.href="question.html";
+const data = await res.json()
+
+localStorage.setItem("currentCategory",category)
+localStorage.setItem("currentPoints",points)
+
+localStorage.setItem("currentQuestion",data.question)
+localStorage.setItem("currentAnswer",data.answer)
+
+window.location.href="question.html"
 
 }
 </script>
