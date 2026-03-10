@@ -346,32 +346,6 @@ el.classList.add("used");
 
 }
 
-/* ===== GAME CONTROL ===== */
-
-function exitGame(){
-if(confirm("هل انت متأكد تريد الخروج من اللعبة ؟")){
-window.location="/"
-}
-}
-
-function backBoard(){
-location.reload()
-}
-
-function finishGame(){
-
-let winner=""
-
-if(score1>score2){
-winner=t1
-}else{
-winner=t2
-}
-
-alert("الفائز هو: " + winner)
-
-}
-
 /* ===== LOAD CATEGORIES ===== */
 
 fetch("/api/categories")
@@ -383,8 +357,6 @@ const board=document.getElementById("board")
 board.innerHTML=""
 
 data.slice(0,6).forEach(cat=>{
-
-let used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
 
 const card=document.createElement("div")
 card.className="category-card"
@@ -407,19 +379,7 @@ card.innerHTML=`
 <div class="point" data-key="${cat.name}-400-R" onclick="chooseQuestion('${cat.name}',400,this)">400</div>
 <div class="point" data-key="${cat.name}-600-R" onclick="chooseQuestion('${cat.name}',600,this)">600</div>
 </div>
-
 `
-
-card.querySelectorAll(".point").forEach(p=>{
-
-let key = p.dataset.key;
-
-if(used.includes(key)){
-p.classList.add("used");
-p.style.pointerEvents="none";
-}
-
-});
 
 board.appendChild(card)
 
@@ -446,6 +406,12 @@ document.body.classList.add("dark-mode")
 async function chooseQuestion(category,points,el){
 
 el.classList.add("used")
+
+let used = JSON.parse(localStorage.getItem("usedQuestions") || "[]");
+
+used.push(category+"-"+points+"-"+Math.random())
+
+localStorage.setItem("usedQuestions",JSON.stringify(used))
 
 const res = await fetch("/api/generate-question",{
 method:"POST",
