@@ -208,11 +208,8 @@ pointer-events:none;
 <div class="left">
 
 <button onclick="exitGame()">🚪</button>
-
 <button onclick="backBoard()">⬜</button>
-
 <button onclick="endGame()">➡️</button>
-
 <button onclick="toggleDarkMode()">🌙</button>
 
 </div>
@@ -246,7 +243,6 @@ pointer-events:none;
 <div class="bottom-buttons">
 
 <button class="btn answer-btn" onclick="goAnswer()">الإجابة</button>
-
 <button class="btn category-btn" id="categoryBtn"></button>
 
 </div>
@@ -259,7 +255,6 @@ pointer-events:none;
 <div class="team-card">
 
 <div class="team-name" id="team1Name"></div>
-
 <div class="team-score" id="score1"></div>
 
 <div class="helpers">
@@ -275,7 +270,6 @@ pointer-events:none;
 <div class="team-card">
 
 <div class="team-name" id="team2Name"></div>
-
 <div class="team-score" id="score2"></div>
 
 <div class="helpers">
@@ -299,7 +293,6 @@ pointer-events:none;
 const question = localStorage.getItem("currentQuestion");
 const points = parseInt(localStorage.getItem("currentPoints"));
 const category = localStorage.getItem("currentCategory");
-const image = localStorage.getItem("currentQuestionImage");
 
 if(!question){
 alert("لا يوجد سؤال");
@@ -309,13 +302,6 @@ window.location.href="game.html";
 document.getElementById("questionText").innerText = question;
 document.getElementById("pointsBox").innerText = points + " نقطة";
 document.getElementById("categoryBtn").innerText = category;
-
-/* ===== IMAGE ===== */
-
-if(image && image !== "null" && image !== ""){
-document.getElementById("questionImageBox").style.display="block";
-document.getElementById("questionImage").src=image;
-}
 
 /* ===== Teams ===== */
 
@@ -327,15 +313,7 @@ document.getElementById("team2Name").innerText = team2;
 
 document.getElementById("score1").innerText = localStorage.getItem("score1") || 0;
 document.getElementById("score2").innerText = localStorage.getItem("score2") || 0;
-["spy","double","steal"].forEach(type=>{
 
-if(localStorage.getItem(type+"Used1"))
-document.querySelector(`[onclick="useHelper(this,'${type}',1)"]`).classList.add("used")
-
-if(localStorage.getItem(type+"Used2"))
-document.querySelector(`[onclick="useHelper(this,'${type}',2)"]`).classList.add("used")
-
-})
 /* ===== TURN ===== */
 
 let currentTeam = parseInt(localStorage.getItem("currentTeam"));
@@ -351,20 +329,15 @@ document.getElementById("turnBox").innerText =
 /* ===== Navigation ===== */
 
 function goAnswer(){
-
-
-
-/* حفظ نقاط السؤال */
 localStorage.setItem("answerPoints",points);
-
 window.location.href="answer.html";
-
 }
 
 function endGame(){
 localStorage.removeItem("matchStarted");
 window.location.href="game.html";
 }
+
 function exitGame(){
 window.location.href="/";
 }
@@ -373,50 +346,6 @@ function backBoard(){
 window.location.href="game.html";
 }
 
-function toggleDarkMode(){
-
-document.body.classList.toggle("dark-mode");
-
-if(document.body.classList.contains("dark-mode")){
-localStorage.setItem("darkMode","on");
-}else{
-localStorage.removeItem("darkMode");
-}
-
-}
-
-if(localStorage.getItem("darkMode")){
-document.body.classList.add("dark-mode");
-}
-function useHelper(el,type,team){
-
-if(localStorage.getItem(type+"Used"+team)){
-alert("تم استخدام هذه الوسيلة سابقاً");
-return;
-}
-
-/* حفظ أن الوسيلة استُخدمت */
-localStorage.setItem(type+"Used"+team,true);
-
-/* تفعيل التأثير */
-el.classList.add("used");
-el.style.pointerEvents="none";
-
-/* تفعيل نوع الوسيلة */
-if(type==="double"){
-localStorage.setItem("doubleActive","true");
-}
-
-if(type==="spy"){
-localStorage.setItem("stealActive","true");
-localStorage.setItem("stealTeam",team);
-}
-
-if(type==="steal"){
-localStorage.setItem("holeActive","true");
-}
-
-}
 </script>
 
 </body>
