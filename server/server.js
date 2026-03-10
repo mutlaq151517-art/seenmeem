@@ -8,9 +8,11 @@ import OpenAI from "openai";
 import { fileURLToPath } from "url";
 
 dotenv.config();
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -75,8 +77,6 @@ app.post("/api/start-game", async (req, res) => {
       return res.status(404).json({ message: "المستخدم غير موجود" });
     }
 
-    /* نحاول أولاً سؤال غير مستخدم */
-
     let question = await Question.findOne({
       category,
       difficulty,
@@ -84,8 +84,6 @@ app.post("/api/start-game", async (req, res) => {
       isActive: true,
       _id: { $nin: user.usedQuestions }
     }).sort({ timesUsed: 1 });
-
-    /* إذا لم نجد سؤال غير مستخدم */
 
     if (!question) {
 
@@ -296,6 +294,7 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 
 });
+
 /* ================= AI QUESTION GENERATOR ================= */
 
 app.post("/api/generate-question", async (req,res)=>{
@@ -304,30 +303,37 @@ try{
 
 const { category, difficulty } = req.body;
 
-let level = "متوسط";let difficultyPrompt = "";
+let difficultyPrompt = "";
 
 if(difficulty == 200){
-difficultyPrompt = "سؤال صعب لكن يمكن حله بالتفكير.";
+difficultyPrompt = "سؤال متوسط الصعوبة";
 }
 
 if(difficulty == 400){
-difficultyPrompt = "سؤال صعب جداً يحتاج معرفة عميقة.";
+difficultyPrompt = "سؤال صعب";
 }
 
 if(difficulty == 600){
-difficultyPrompt = "سؤال نادر جداً من مستوى برامج المسابقات العالمية.";
+difficultyPrompt = "سؤال صعب جداً ونادر";
 }
-const prompt = `
-أنشئ سؤال مسابقات شديد الصعوبة في فئة ${category}.
 
-درجة الصعوبة: ${difficultyPrompt}
+const randomSeed = Math.floor(Math.random()*1000000);
+
+const prompt = `
+أنشئ سؤال مسابقات جديد في فئة ${category}
+
+مستوى الصعوبة: ${difficultyPrompt}
 
 القواعد:
-- ممنوع الأسئلة السهلة مثل العاصمة أو أسماء الحكام
-- يجب أن يكون السؤال من مستوى برامج المسابقات
-- يجب أن يعتمد على معلومة عميقة أو تاريخية دقيقة
-- أعد النتيجة بصيغة JSON فقط
-- الإجابة يجب أن تكون كلمة واحدة أو كلمتين فقط
+- لا تكرر الأسئلة المشهورة
+- لا تستخدم أسئلة العاصمة أو أسماء الحكام
+- يجب أن يكون السؤال مختلفاً في كل مرة
+- الإجابة كلمة واحدة أو كلمتين فقط
+
+رقم تنويع السؤال: ${randomSeed}
+
+أعد النتيجة بصيغة JSON فقط:
+
 {
 "question":"",
 "answer":""
@@ -336,7 +342,8 @@ const prompt = `
 
 const response = await openai.chat.completions.create({
 model:"gpt-4.1-mini",
-messages:[{role:"user",content:prompt}]
+messages:[{role:"user",content:prompt}],
+temperature:1.2
 });
 
 const text = response.choices[0].message.content;
@@ -359,13 +366,12 @@ message:"AI question error"
 }
 
 });
+
 /* ================= ADMIN ROUTES ================= */
 
 function checkAdmin(password){
   return password === ADMIN_MASTER_PASSWORD;
 }
-
-/* جلب المستخدمين */
 
 app.post("/api/admin/users", async (req,res)=>{
 
@@ -379,8 +385,6 @@ app.post("/api/admin/users", async (req,res)=>{
   res.json(users);
 
 });
-
-/* تحديث المستخدم */
 
 app.post("/api/admin/update-user", async (req,res)=>{
 
@@ -408,8 +412,6 @@ app.post("/api/admin/update-user", async (req,res)=>{
 
 });
 
-/* حذف مستخدم */
-
 app.post("/api/admin/delete-user", async (req,res)=>{
 
   const { password, userId } = req.body;
@@ -423,8 +425,6 @@ app.post("/api/admin/delete-user", async (req,res)=>{
   res.json({message:"تم الحذف"});
 
 });
-
-/* إعادة كلمة السر */
 
 app.post("/api/admin/reset-password", async (req,res)=>{
 
@@ -443,6 +443,7 @@ app.post("/api/admin/reset-password", async (req,res)=>{
   res.json({newPassword});
 
 });
+
 /* ================= STATIC FILES ================= */
 
 const __filename = fileURLToPath(import.meta.url);
