@@ -296,6 +296,61 @@ app.get("/api/categories", async (req, res) => {
   res.json(categories);
 
 });
+/* ================= AI QUESTION GENERATOR ================= */
+
+app.post("/api/generate-question", async (req,res)=>{
+
+try{
+
+const { category, difficulty } = req.body;
+
+let level = "متوسط";
+
+if(difficulty == 400) level = "صعب";
+if(difficulty == 600) level = "صعب جداً ونادر جداً";
+
+const prompt = `
+أنشئ سؤال مسابقات شديد الصعوبة في فئة ${category}.
+
+مستوى الصعوبة: ${level}
+
+القواعد:
+- ممنوع الأسئلة السهلة مثل العاصمة أو أسماء الحكام
+- يجب أن يكون السؤال من مستوى برامج المسابقات
+- يجب أن يعتمد على معلومة عميقة أو تاريخية دقيقة
+- أعد النتيجة بصيغة JSON فقط
+
+{
+"question":"",
+"answer":""
+}
+`;
+
+const response = await openai.chat.completions.create({
+model:"gpt-4.1-mini",
+messages:[{role:"user",content:prompt}]
+});
+
+const text = response.choices[0].message.content;
+
+const data = JSON.parse(text);
+
+res.json({
+question:data.question,
+answer:data.answer
+});
+
+}catch(err){
+
+console.error(err);
+
+res.status(500).json({
+message:"AI question error"
+});
+
+}
+
+});
 /* ================= ADMIN ROUTES ================= */
 
 function checkAdmin(password){
